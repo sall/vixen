@@ -29,7 +29,17 @@ namespace Common.Controls.Timeline
     	private Waveform waveform;
 
         #endregion
-
+		bool _sequenceLoading = false;
+		public bool SequenceLoading
+		{
+			get { return _sequenceLoading; }
+			set
+			{
+				_sequenceLoading = value;
+				if (grid != null)
+					grid.SequenceLoading = value;
+			}
+		}
         public TimelineControl()
 			:base(new TimeInfo())	// This is THE TimeInfo object for the whole control (and all sub-controls).
 		{
@@ -252,7 +262,15 @@ namespace Common.Controls.Timeline
 				r.Height = (int)(r.Height * scale);
 			}
 		}
-
+        public void ResizeGrid()
+        {
+            grid.AllowGridResize = true;
+            grid.ResizeGridHeight();
+        }
+        public bool AllowGridResize { 
+            get { return grid.AllowGridResize; } 
+            set { grid.AllowGridResize = value; } 
+        }
 		private void AddRowToControls(Row row, RowLabel label)
 		{
 			grid.AddRow(row);
