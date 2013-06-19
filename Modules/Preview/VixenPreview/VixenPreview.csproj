@@ -97,7 +97,9 @@
       <DependentUpon>PreviewCustomSetupControl.cs</DependentUpon>
     </Compile>
     <Compile Include="Shapes\PreviewPixelGrid.cs" />
-    <Compile Include="Shapes\PreviewPixelGridSetupControl.cs" />
+    <Compile Include="Shapes\PreviewPixelGridSetupControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="Shapes\PreviewPixelGridSetupControl.Designer.cs">
       <DependentUpon>PreviewPixelGridSetupControl.cs</DependentUpon>
     </Compile>
