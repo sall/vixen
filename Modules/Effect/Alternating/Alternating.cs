@@ -92,12 +92,14 @@ namespace VixenModules.Effect.Alternating
         {
             bool altColor = false;
             bool startingColor = false;
-            long intervals = 1;
+            double intervals = 1;
             long rem = 0;
 
             if (Enable)
             {
-                intervals = Math.DivRem((long)TimeSpan.TotalMilliseconds, (long)Interval, out rem);
+                //intervals = Math.DivRem((long)TimeSpan.TotalMilliseconds, (long)Interval, out rem);
+                intervals =  Math.Ceiling(TimeSpan.TotalMilliseconds/(double)Interval);
+
             }
             TimeSpan startTime = TimeSpan.Zero;
             for (int i = 0; i < intervals; i++)
