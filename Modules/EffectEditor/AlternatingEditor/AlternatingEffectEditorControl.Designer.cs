@@ -35,13 +35,20 @@
             this.levelTypeEditorControl2 = new VixenModules.EffectEditor.LevelTypeEditor.LevelTypeEditorControl();
             this.colorTypeEditorControl2 = new VixenModules.EffectEditor.ColorTypeEditor.ColorTypeEditorControl();
             this.chkEnabled = new System.Windows.Forms.CheckBox();
-            this.label1 = new System.Windows.Forms.Label();
             this.trackBarInterval = new System.Windows.Forms.TrackBar();
-            this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
+            this.numChangeInterval = new System.Windows.Forms.NumericUpDown();
+            this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
+            this.numGroupEffects = new System.Windows.Forms.NumericUpDown();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarInterval)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numChangeInterval)).BeginInit();
+            this.groupBox3.SuspendLayout();
+            this.groupBox4.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numGroupEffects)).BeginInit();
             this.SuspendLayout();
             // 
             // levelTypeEditorControl1
@@ -70,7 +77,7 @@
             // 
             this.groupBox1.Controls.Add(this.levelTypeEditorControl1);
             this.groupBox1.Controls.Add(this.colorTypeEditorControl1);
-            this.groupBox1.Location = new System.Drawing.Point(16, 24);
+            this.groupBox1.Location = new System.Drawing.Point(3, 14);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(159, 78);
             this.groupBox1.TabIndex = 19;
@@ -81,7 +88,7 @@
             // 
             this.groupBox2.Controls.Add(this.levelTypeEditorControl2);
             this.groupBox2.Controls.Add(this.colorTypeEditorControl2);
-            this.groupBox2.Location = new System.Drawing.Point(201, 24);
+            this.groupBox2.Location = new System.Drawing.Point(168, 14);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(159, 78);
             this.groupBox2.TabIndex = 20;
@@ -113,57 +120,114 @@
             // chkEnabled
             // 
             this.chkEnabled.AutoSize = true;
-            this.chkEnabled.Location = new System.Drawing.Point(33, 129);
+            this.chkEnabled.Location = new System.Drawing.Point(20, 114);
             this.chkEnabled.Name = "chkEnabled";
-            this.chkEnabled.Size = new System.Drawing.Size(53, 17);
+            this.chkEnabled.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.chkEnabled.Size = new System.Drawing.Size(120, 17);
             this.chkEnabled.TabIndex = 22;
-            this.chkEnabled.Text = "Static";
+            this.chkEnabled.Text = "Make Display Static";
             this.chkEnabled.UseVisualStyleBackColor = true;
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(151, 113);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(42, 13);
-            this.label1.TabIndex = 23;
-            this.label1.Text = "Interval";
             // 
             // trackBarInterval
             // 
-            this.trackBarInterval.Location = new System.Drawing.Point(154, 129);
+            this.trackBarInterval.Dock = System.Windows.Forms.DockStyle.Top;
+            this.trackBarInterval.Location = new System.Drawing.Point(3, 16);
             this.trackBarInterval.Maximum = 5000;
             this.trackBarInterval.Minimum = 100;
             this.trackBarInterval.Name = "trackBarInterval";
-            this.trackBarInterval.Size = new System.Drawing.Size(206, 45);
+            this.trackBarInterval.Size = new System.Drawing.Size(153, 45);
             this.trackBarInterval.TabIndex = 24;
             this.trackBarInterval.Value = 100;
             this.trackBarInterval.ValueChanged += new System.EventHandler(this.trackBarInterval_ValueChanged);
             // 
-            // numericUpDown1
+            // numChangeInterval
             // 
-            this.numericUpDown1.Location = new System.Drawing.Point(166, 154);
-            this.numericUpDown1.Name = "numericUpDown1";
-            this.numericUpDown1.Size = new System.Drawing.Size(120, 20);
-            this.numericUpDown1.TabIndex = 25;
-            this.numericUpDown1.ValueChanged += new System.EventHandler(this.numericUpDown1_ValueChanged);
+            this.numChangeInterval.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.numChangeInterval.Location = new System.Drawing.Point(3, 49);
+            this.numChangeInterval.Name = "numChangeInterval";
+            this.numChangeInterval.Size = new System.Drawing.Size(153, 20);
+            this.numChangeInterval.TabIndex = 25;
+            this.numChangeInterval.ValueChanged += new System.EventHandler(this.numericUpDown1_ValueChanged);
+            // 
+            // groupBox3
+            // 
+            this.groupBox3.Controls.Add(this.numChangeInterval);
+            this.groupBox3.Controls.Add(this.trackBarInterval);
+            this.groupBox3.Location = new System.Drawing.Point(168, 98);
+            this.groupBox3.Name = "groupBox3";
+            this.groupBox3.Size = new System.Drawing.Size(159, 72);
+            this.groupBox3.TabIndex = 28;
+            this.groupBox3.TabStop = false;
+            this.groupBox3.Text = "Change Interval";
+            // 
+            // groupBox4
+            // 
+            this.groupBox4.Controls.Add(this.label2);
+            this.groupBox4.Controls.Add(this.label1);
+            this.groupBox4.Controls.Add(this.numGroupEffects);
+            this.groupBox4.Location = new System.Drawing.Point(6, 147);
+            this.groupBox4.Name = "groupBox4";
+            this.groupBox4.Size = new System.Drawing.Size(159, 71);
+            this.groupBox4.TabIndex = 29;
+            this.groupBox4.TabStop = false;
+            this.groupBox4.Text = "Grouping && Display";
+            this.groupBox4.Visible = false;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(7, 33);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(56, 13);
+            this.label2.TabIndex = 2;
+            this.label2.Text = "Element(s)";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(7, 20);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(82, 13);
+            this.label1.TabIndex = 1;
+            this.label1.Text = "Group Effect to ";
+            // 
+            // numGroupEffects
+            // 
+            this.numGroupEffects.Location = new System.Drawing.Point(95, 20);
+            this.numGroupEffects.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.numGroupEffects.Name = "numGroupEffects";
+            this.numGroupEffects.Size = new System.Drawing.Size(48, 20);
+            this.numGroupEffects.TabIndex = 0;
+            this.numGroupEffects.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
             // 
             // AlternatingEffectEditorControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.numericUpDown1);
-            this.Controls.Add(this.trackBarInterval);
-            this.Controls.Add(this.label1);
+            this.Controls.Add(this.groupBox4);
+            this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.chkEnabled);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.Name = "AlternatingEffectEditorControl";
-            this.Size = new System.Drawing.Size(376, 203);
+            this.Size = new System.Drawing.Size(331, 175);
             this.groupBox1.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.trackBarInterval)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numChangeInterval)).EndInit();
+            this.groupBox3.ResumeLayout(false);
+            this.groupBox3.PerformLayout();
+            this.groupBox4.ResumeLayout(false);
+            this.groupBox4.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numGroupEffects)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -178,8 +242,12 @@
         private LevelTypeEditor.LevelTypeEditorControl levelTypeEditorControl2;
         private ColorTypeEditor.ColorTypeEditorControl colorTypeEditorControl2;
         private System.Windows.Forms.CheckBox chkEnabled;
-        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TrackBar trackBarInterval;
-        private System.Windows.Forms.NumericUpDown numericUpDown1;
+        private System.Windows.Forms.NumericUpDown numChangeInterval;
+        private System.Windows.Forms.GroupBox groupBox3;
+        private System.Windows.Forms.GroupBox groupBox4;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.NumericUpDown numGroupEffects;
     }
 }

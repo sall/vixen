@@ -18,8 +18,8 @@ namespace VixenModules.EffectEditor.AlternatingEditor
         public AlternatingEffectEditorControl()
         {
             InitializeComponent();
-            numericUpDown1.Maximum = trackBarInterval.Maximum;
-            numericUpDown1.Minimum = trackBarInterval.Minimum;
+            numChangeInterval.Maximum = trackBarInterval.Maximum;
+            numChangeInterval.Minimum = trackBarInterval.Minimum;
 
         }
 
@@ -33,12 +33,14 @@ namespace VixenModules.EffectEditor.AlternatingEditor
                     Level2,
                     Color2,
                     Interval,
+                    DepthOfEffect, 
+                    GroupInterval,
                     Enabled
 				};
             }
             set
             {
-                if (value.Length != 6)
+                if (value.Length != 8)
                 {
                     VixenSystem.Logging.Warning("Alternating effect parameters set with " + value.Length + " parameters");
                     return;
@@ -49,8 +51,9 @@ namespace VixenModules.EffectEditor.AlternatingEditor
                 Level2 = (double)value[2];
                 Color2 = (Color)value[3];
                 Interval = (int)value[4];
-                Enabled = (bool)value[5];
-
+                DepthOfEffect = (int)value[5];
+                GroupInterval = (int)value[6];
+                Enabled = (bool)value[7];
             }
         }
 
@@ -75,17 +78,26 @@ namespace VixenModules.EffectEditor.AlternatingEditor
         public double Level1 { get { return levelTypeEditorControl1.LevelValue; } set { levelTypeEditorControl1.LevelValue = value; } }
         public double Level2 { get { return levelTypeEditorControl2.LevelValue; } set { levelTypeEditorControl2.LevelValue = value; } }
         public bool Enabled { get { return !this.chkEnabled.Checked; } set { this.chkEnabled.Checked = !value; } }
-
+        public int GroupInterval
+        {
+            get { return (int)this.numGroupEffects.Value; }
+            set
+            {
+                this.numGroupEffects.Value = value <= 1 ? 1 : value;
+            }
+        }
+        public int DepthOfEffect { get; set; }
         private void trackBarInterval_ValueChanged(object sender, EventArgs e)
         {
-            label1.Text = string.Format("Interval ({0}ms)", trackBarInterval.Value);
-            numericUpDown1.Value = trackBarInterval.Value;
+            numChangeInterval.Value = trackBarInterval.Value;
         }
 
         private void numericUpDown1_ValueChanged(object sender, EventArgs e)
         {
-            trackBarInterval.Value = (int)numericUpDown1.Value;
+            trackBarInterval.Value = (int)numChangeInterval.Value;
         }
+
+
 
 
 

@@ -38,7 +38,10 @@ namespace VixenModules.Effect.Alternating
                     new ParameterSpecification("Level2", typeof(double)),
                     new ParameterSpecification("Color2", typeof(Color)),
                     new ParameterSpecification("Interval", typeof(double)),
-                    new ParameterSpecification("Enable", typeof(bool))
+                    new ParameterSpecification("Enable", typeof(bool)),
+                    new ParameterSpecification("DepthOfEffect", typeof(int)),
+                    new ParameterSpecification("GroupEffect", typeof(int))
+
                     );
             }
         }

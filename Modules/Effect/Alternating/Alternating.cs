@@ -78,6 +78,19 @@ namespace VixenModules.Effect.Alternating
             get { return _data.Interval; }
             set { _data.Interval = value; IsDirty = true; }
         }
+        [Value]
+        public int DepthOfEffect
+        {
+            get { return _data.DepthOfEffect; }
+            set { _data.DepthOfEffect = value; IsDirty = true; }
+        }
+
+        [Value]
+        public int GroupEffect
+        {
+            get { return _data.GroupEffect; }
+            set { _data.GroupEffect = value; IsDirty = true; }
+        }
 
         [Value]
         public bool Enable
@@ -85,6 +98,7 @@ namespace VixenModules.Effect.Alternating
             get { return _data.Enable; }
             set { _data.Enable = value; IsDirty = true; }
         }
+
 
         // renders the given node to the internal ElementData dictionary. If the given node is
         // not a element, will recursively descend until we render its elements.
@@ -94,11 +108,11 @@ namespace VixenModules.Effect.Alternating
             bool startingColor = false;
             double intervals = 1;
             long rem = 0;
-
+            int grouping = 0;
             if (Enable)
             {
                 //intervals = Math.DivRem((long)TimeSpan.TotalMilliseconds, (long)Interval, out rem);
-                intervals =  Math.Ceiling(TimeSpan.TotalMilliseconds/(double)Interval);
+                intervals = Math.Ceiling(TimeSpan.TotalMilliseconds / (double)Interval);
 
             }
             TimeSpan startTime = TimeSpan.Zero;
@@ -107,18 +121,27 @@ namespace VixenModules.Effect.Alternating
                 altColor = startingColor;
                 var intervalTime = intervals == 1 ? TimeSpan : TimeSpan.FromMilliseconds(i == intervals - 1 ? Interval + rem : Interval);
 
+                LightingValue? lightingValue = null;
+
                 foreach (Element element in node)
                 {
-                    LightingValue lightingValue;
-                    if (altColor)
-                    {
-                        lightingValue = new LightingValue(Color1, (float)IntensityLevel1);
-                    }
-                    else
-                    {
-                        lightingValue = new LightingValue(Color2, (float)IntensityLevel2);
-                    }
-                    IIntent intent = new LightingIntent(lightingValue, lightingValue, intervalTime);
+                  
+                    //if (grouping == GroupEffect || !lightingValue.HasValue)
+                    //{
+                    //    if (lightingValue.HasValue) grouping = 0;
+
+                        if (altColor)
+                        {
+                            lightingValue = new LightingValue(Color1, (float)IntensityLevel1);
+                        }
+                        else
+                        {
+                            lightingValue = new LightingValue(Color2, (float)IntensityLevel2);
+                        }
+
+  //                  }
+  //grouping++;
+                    IIntent intent = new LightingIntent(lightingValue.Value, lightingValue.Value, intervalTime);
                     _elementData.AddIntentForElement(element.Id, intent, startTime);
 
                     altColor = !altColor;

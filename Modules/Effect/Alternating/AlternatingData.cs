@@ -25,8 +25,16 @@ namespace VixenModules.Effect.Alternating
 
         [DataMember]
         public int Interval { get; set; }
+
         [DataMember]
         public bool Enable { get; set; }
+
+        [DataMember]
+        public int DepthOfEffect { get; set; }
+
+        [DataMember]
+        public int GroupEffect { get { return groupEffect < 1 ? 1 : groupEffect; } set { groupEffect = value < 0 ? 1 : value; } }
+        int groupEffect = 1;
 
         public AlternatingData()
         {
@@ -35,18 +43,22 @@ namespace VixenModules.Effect.Alternating
             Color1 = Color.White;
             Color2 = Color.Red;
             Enable = false;
-            Interval = 1000;
+            Interval = 500;
+            DepthOfEffect = 0;
+            GroupEffect = 1;
         }
 
         public override IModuleDataModel Clone()
         {
             AlternatingData result = new AlternatingData();
-            result.Level1 = Level1 ;
+            result.Level1 = Level1;
             result.Level2 = Level2;
             result.Color1 = Color1;
             result.Color2 = Color2;
             result.Enable = Enable;
             result.Interval = Interval;
+            result.DepthOfEffect = DepthOfEffect;
+            result.GroupEffect = GroupEffect;
             return result;
         }
     }
