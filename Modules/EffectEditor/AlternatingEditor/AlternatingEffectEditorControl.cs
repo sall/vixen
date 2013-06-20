@@ -10,6 +10,7 @@ using Vixen.Module.EffectEditor;
 using Vixen.Module.Effect;
 using Common.Controls.ColorManagement.ColorModels;
 using Vixen.Sys;
+using VixenModules.App.ColorGradients;
 
 namespace VixenModules.EffectEditor.AlternatingEditor
 {
@@ -35,12 +36,16 @@ namespace VixenModules.EffectEditor.AlternatingEditor
                     Interval,
                     DepthOfEffect, 
                     GroupInterval,
-                    Enabled
+                    Enabled,
+                    StaticColor1,
+                    StaticColor2,
+                    ColorGradient1,
+                    ColorGradient2
 				};
             }
             set
             {
-                if (value.Length != 8)
+                if (value.Length != 12)
                 {
                     VixenSystem.Logging.Warning("Alternating effect parameters set with " + value.Length + " parameters");
                     return;
@@ -54,6 +59,11 @@ namespace VixenModules.EffectEditor.AlternatingEditor
                 DepthOfEffect = (int)value[5];
                 GroupInterval = (int)value[6];
                 Enabled = (bool)value[7];
+                StaticColor1 = (bool)value[8];
+                StaticColor2 = (bool)value[9];
+                ColorGradient1 = (ColorGradient)value[10];
+                ColorGradient2 = (ColorGradient)value[11];
+
             }
         }
 
@@ -78,13 +88,34 @@ namespace VixenModules.EffectEditor.AlternatingEditor
         public double Level1 { get { return levelTypeEditorControl1.LevelValue; } set { levelTypeEditorControl1.LevelValue = value; } }
         public double Level2 { get { return levelTypeEditorControl2.LevelValue; } set { levelTypeEditorControl2.LevelValue = value; } }
         public bool Enabled { get { return !this.chkEnabled.Checked; } set { this.chkEnabled.Checked = !value; } }
-        public int GroupInterval
+
+        public ColorGradient ColorGradient1 { get { return this.gradient1.ColorGradientValue; } set { this.gradient1.ColorGradientValue = value; } }
+        public ColorGradient ColorGradient2 { get { return this.gradient2.ColorGradientValue; } set { this.gradient2.ColorGradientValue = value; } }
+
+        public bool StaticColor1
         {
-            get { return (int)this.numGroupEffects.Value; }
+            get { return this.radioStatic1.Checked; ; }
             set
             {
-                this.numGroupEffects.Value = value <= 1 ? 1 : value;
+
+                this.radioStatic1.Checked = value;
+                this.radioGradient1.Checked = !value;
             }
+        }
+        public bool StaticColor2
+        {
+            get { return this.radioStatic2.Checked; }
+            set
+            {
+                this.radioStatic2.Checked = value;
+                this.radioGradient2.Checked = !value;
+            }
+        }
+
+        public int GroupInterval
+        {
+            get;
+            set;
         }
         public int DepthOfEffect { get; set; }
         private void trackBarInterval_ValueChanged(object sender, EventArgs e)
@@ -96,6 +127,8 @@ namespace VixenModules.EffectEditor.AlternatingEditor
         {
             trackBarInterval.Value = (int)numChangeInterval.Value;
         }
+
+
 
 
 

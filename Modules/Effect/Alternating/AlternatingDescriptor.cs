@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using Vixen.Module.Effect;
 using Vixen.Sys;
+using VixenModules.App.ColorGradients;
 
 namespace VixenModules.Effect.Alternating
 {
@@ -40,7 +41,11 @@ namespace VixenModules.Effect.Alternating
                     new ParameterSpecification("Interval", typeof(double)),
                     new ParameterSpecification("Enable", typeof(bool)),
                     new ParameterSpecification("DepthOfEffect", typeof(int)),
-                    new ParameterSpecification("GroupEffect", typeof(int))
+                    new ParameterSpecification("GroupEffect", typeof(int)),
+                    new ParameterSpecification("StaticColor1", typeof(bool)),
+                    new ParameterSpecification("StaticColor2", typeof(bool)),
+                    new ParameterSpecification("ColorGradient1", typeof(ColorGradient)),
+                    new ParameterSpecification("ColorGradient2", typeof(ColorGradient))
 
                     );
             }

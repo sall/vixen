@@ -58,6 +58,11 @@
       <Name>Vixen</Name>
       <Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\..\App\ColorGradients\ColorGradients.csproj">
+      <Project>{1b189b36-02af-4a57-9e1b-6dc833212725}</Project>
+      <Name>ColorGradients</Name>
+      <Private>False</Private>
+    </ProjectReference>
     <ProjectReference Include="..\SetLevel\SetLevel.csproj">
       <Project>{8910163e-a2a3-4f8b-b5d8-0e311166b8ba}</Project>
       <Name>SetLevel</Name>
