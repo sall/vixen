@@ -114,8 +114,8 @@ namespace VixenModules.EffectEditor.AlternatingEditor
 
         public int GroupInterval
         {
-            get;
-            set;
+            get { return (int)numGroup.Value; }
+            set { numGroup.Value = value; }
         }
         public int DepthOfEffect { get; set; }
         private void trackBarInterval_ValueChanged(object sender, EventArgs e)

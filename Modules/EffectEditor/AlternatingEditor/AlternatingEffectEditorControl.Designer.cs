@@ -28,8 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            VixenModules.App.ColorGradients.ColorGradient colorGradient1 = new VixenModules.App.ColorGradients.ColorGradient();
-            VixenModules.App.ColorGradients.ColorGradient colorGradient2 = new VixenModules.App.ColorGradients.ColorGradient();
+            VixenModules.App.ColorGradients.ColorGradient colorGradient3 = new VixenModules.App.ColorGradients.ColorGradient();
+            VixenModules.App.ColorGradients.ColorGradient colorGradient4 = new VixenModules.App.ColorGradients.ColorGradient();
             this.levelTypeEditorControl1 = new VixenModules.EffectEditor.LevelTypeEditor.LevelTypeEditorControl();
             this.colorTypeEditorControl1 = new VixenModules.EffectEditor.ColorTypeEditor.ColorTypeEditorControl();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
@@ -46,11 +46,14 @@
             this.trackBarInterval = new System.Windows.Forms.TrackBar();
             this.numChangeInterval = new System.Windows.Forms.NumericUpDown();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.numGroup = new System.Windows.Forms.NumericUpDown();
+            this.label1 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarInterval)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numChangeInterval)).BeginInit();
             this.groupBox3.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numGroup)).BeginInit();
             this.SuspendLayout();
             // 
             // levelTypeEditorControl1
@@ -101,13 +104,13 @@
             // 
             // gradient1
             // 
-            colorGradient1.Gammacorrected = false;
-            colorGradient1.IsCurrentLibraryGradient = false;
-            colorGradient1.LibraryReferenceName = "";
-            colorGradient1.Title = null;
-            this.gradient1.ColorGradientValue = colorGradient1;
+            colorGradient3.Gammacorrected = false;
+            colorGradient3.IsCurrentLibraryGradient = false;
+            colorGradient3.LibraryReferenceName = "";
+            colorGradient3.Title = null;
+            this.gradient1.ColorGradientValue = colorGradient3;
             this.gradient1.EffectParameterValues = new object[] {
-        ((object)(colorGradient1))};
+        ((object)(colorGradient3))};
             this.gradient1.Location = new System.Drawing.Point(101, 64);
             this.gradient1.Name = "gradient1";
             this.gradient1.Size = new System.Drawing.Size(100, 40);
@@ -164,13 +167,13 @@
             // 
             // gradient2
             // 
-            colorGradient2.Gammacorrected = false;
-            colorGradient2.IsCurrentLibraryGradient = false;
-            colorGradient2.LibraryReferenceName = "";
-            colorGradient2.Title = null;
-            this.gradient2.ColorGradientValue = colorGradient2;
+            colorGradient4.Gammacorrected = false;
+            colorGradient4.IsCurrentLibraryGradient = false;
+            colorGradient4.LibraryReferenceName = "";
+            colorGradient4.Title = null;
+            this.gradient2.ColorGradientValue = colorGradient4;
             this.gradient2.EffectParameterValues = new object[] {
-        ((object)(colorGradient2))};
+        ((object)(colorGradient4))};
             this.gradient2.Location = new System.Drawing.Point(101, 64);
             this.gradient2.Name = "gradient2";
             this.gradient2.Size = new System.Drawing.Size(100, 40);
@@ -242,10 +245,38 @@
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Change Interval";
             // 
+            // numGroup
+            // 
+            this.numGroup.Location = new System.Drawing.Point(13, 222);
+            this.numGroup.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.numGroup.Name = "numGroup";
+            this.numGroup.Size = new System.Drawing.Size(65, 20);
+            this.numGroup.TabIndex = 29;
+            this.numGroup.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(13, 206);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(113, 13);
+            this.label1.TabIndex = 30;
+            this.label1.Text = "Group Element Effects";
+            // 
             // AlternatingEffectEditorControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.label1);
+            this.Controls.Add(this.numGroup);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.chkEnabled);
             this.Controls.Add(this.groupBox2);
@@ -260,6 +291,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.numChangeInterval)).EndInit();
             this.groupBox3.ResumeLayout(false);
             this.groupBox3.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numGroup)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -283,5 +315,7 @@
         private System.Windows.Forms.RadioButton radioGradient2;
         private System.Windows.Forms.RadioButton radioStatic2;
         private ColorGradientTypeEditor.ColorGradientTypeEditorControl gradient2;
+        private System.Windows.Forms.NumericUpDown numGroup;
+        private System.Windows.Forms.Label label1;
     }
 }
