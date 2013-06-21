@@ -23,7 +23,6 @@ namespace VixenModules.Controller.E131
             if (outputStates == null)
             {
                 return new byte[0];
-               // return new byte[0];
             }
 
             var channelValues = new byte[outputStates.Length];

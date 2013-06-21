@@ -541,7 +541,7 @@ namespace VixenModules.Controller.E131
 
             
             var channelValues = outputStates.ToChannelValuesAsBytes();
-         
+
             int universeSize = 0;
 
             this._eventCnt++;
