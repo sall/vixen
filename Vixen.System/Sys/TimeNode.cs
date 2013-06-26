@@ -67,10 +67,12 @@ namespace Vixen.Sys {
 			//Leaving this here as a reminder that it used to be this way,
 			//but I'm not sure if it was for a reason.
 			//return timeSpan > timeNode.StartTime && timeSpan < timeNode.EndTime;
+            if (timeNode == null) return false;
 			return timeSpan >= timeNode.StartTime && timeSpan < timeNode.EndTime;
 		}
 
 		public static bool IntersectsInclusively(ITimeNode timeNode, TimeSpan timeSpan) {
+            if (timeNode == null) return false;
 			return timeSpan >= timeNode.StartTime && timeSpan <= timeNode.EndTime;
 		}
 

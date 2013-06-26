@@ -46,7 +46,7 @@ SetCompressorDictSize 64
 !define MUI_LICENSEPAGE_TEXT_TOP "Press Page Down to see the rest of the release notes file."
 !define MUI_LICENSEPAGE_TEXT_BOTTOM "When you have finished reading, click on Next to proceed."
 !define MUI_LICENSEPAGE_BUTTON $(^NextBtn)
-!insertmacro MUI_PAGE_LICENSE "..\Release\Release Notes.txt"
+!insertmacro MUI_PAGE_LICENSE "..\Release\release notes.txt"
 
 ; Directory page
 DirText "Setup will install ${PRODUCT_NAME_FULL} in the following folder. $\n$\nTo install in a different folder (such as a USB Drive), click Browse and select another folder. $\nWhen ready, click next to continue."
@@ -63,6 +63,7 @@ var ICONS_GROUP
 !insertmacro MUI_PAGE_INSTFILES
 ; Finish page
 !define MUI_FINISHPAGE_RUN "$INSTDIR\VixenApplication.exe"
+!define MUI_FINISHPAGE_SHOWREADME "$INSTDIR\ChangeLog.txt"
 !define MUI_FINISHPAGE_SHOWREADME "$INSTDIR\Release Notes.txt"
 !insertmacro MUI_PAGE_FINISH
 
