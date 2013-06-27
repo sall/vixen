@@ -249,6 +249,9 @@ namespace VixenModules.App.ColorGradients
         /// <param name="other"></param>
         public ColorGradient(ColorGradient other)
         {
+            if (other == null)
+                other = new ColorGradient();
+
             CloneFrom(other);
         }
 
@@ -715,6 +718,7 @@ namespace VixenModules.App.ColorGradients
         /// <param name="other"></param>
         public void CloneFrom(ColorGradient other)
         {
+           
             CloneDataFrom(other);
 
             // grab all the library-linking details as well
@@ -728,6 +732,7 @@ namespace VixenModules.App.ColorGradients
         /// <param name="other"></param>
         public void CloneDataFrom(ColorGradient other)
         {
+          
             _colors = new PointList<ColorPoint>();
             foreach (ColorPoint cp in other.Colors)
             {

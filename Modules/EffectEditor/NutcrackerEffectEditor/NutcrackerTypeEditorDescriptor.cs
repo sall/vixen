@@ -20,7 +20,7 @@ namespace VixenModules.EffectEditor.NutcrackerEffectEditor
 
 		public override string Description { get { return "A control which will edit a Nutcracker Effect."; } }
 
-		public override Guid EffectTypeId { get { return Guid.Empty; } }
+		public override Guid EffectTypeId { get { return new Guid("{82334CB3-9472-42FE-A221-8482F5C731DB}"); } }
 
 		public override Type ModuleClass { get { return typeof(NutcrackerTypeEditor); } }
 

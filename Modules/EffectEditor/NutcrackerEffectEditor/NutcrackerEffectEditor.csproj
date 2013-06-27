@@ -75,7 +75,7 @@
       <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Common\ffmpeg\ffmpeg.csproj">
-      <Project>{E2A22920-D333-4D92-936C-CA1782E1F042}</Project>
+      <Project>{e2a22920-d333-4d92-936c-ca1782e1f042}</Project>
       <Name>ffmpeg</Name>
       <Private>False</Private>
     </ProjectReference>
