@@ -41,7 +41,7 @@
       <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\Property\Color\Color.csproj">
-      <Project>{73068A83-B3B7-4A2C-923D-71C7886CD5E3}</Project>
+      <Project>{73068a83-b3b7-4a2c-923d-71c7886cd5e3}</Project>
       <Name>Color</Name>
       <Private>False</Private>
     </ProjectReference>

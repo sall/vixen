@@ -30,19 +30,22 @@ namespace VixenModules.EffectEditor.ColorTypeEditor
 		public IEffect TargetEffect
 		{
 			get { return _targetEffect; }
-			set
-			{
-				_targetEffect = value;
-				_discreteColors = false;
-				HashSet<Color> validColors = new HashSet<Color>();
+            set
+            {
+                _targetEffect = value;
+                if (_targetEffect != null)
+                {
+                    _discreteColors = false;
+                    HashSet<Color> validColors = new HashSet<Color>();
 
-				// look for the color property of the target effect element, and restrict the gradient.
-				// If it's a group, iterate through all children (and their children, etc.), finding as many color
-				// properties as possible; then we can decide what to do based on that.
-				validColors.AddRange(_targetEffect.TargetNodes.SelectMany(x => GetValidColorsForElementNode(x)));
+                    // look for the color property of the target effect element, and restrict the gradient.
+                    // If it's a group, iterate through all children (and their children, etc.), finding as many color
+                    // properties as possible; then we can decide what to do based on that.
+                    validColors.AddRange(_targetEffect.TargetNodes.SelectMany(x => GetValidColorsForElementNode(x)));
 
-				_validDiscreteColors = validColors;
-			}
+                    _validDiscreteColors = validColors;
+                }
+            }
 		}
 
 		private HashSet<Color> GetValidColorsForElementNode(ElementNode elementNode)
