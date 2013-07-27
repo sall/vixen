@@ -13,6 +13,8 @@ namespace VixenModules.Preview.DisplayPreview.ViewModels
 
 	public class VisualizerViewModel : ViewModelBase
 	{
+		private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
+
 		private DisplayPreviewModuleDataModel _dataModel;
 		private BitmapImage _backgroundImage;
 
@@ -69,8 +71,7 @@ namespace VixenModules.Preview.DisplayPreview.ViewModels
 					}
 					catch (Exception ex) {
 						if (ex is DirectoryNotFoundException || ex is FileNotFoundException) {
-							Logging.Error("DisplayPreview: error loading background image. File not found: " +
-							                          _dataModel.BackgroundImage);
+							Logging.Error("DisplayPreview: error loading background image. File not found: " + _dataModel.BackgroundImage);
 						}
 						else {
 							throw;
