@@ -1225,44 +1225,62 @@ namespace Common.Controls.Timeline
 		private void renderWorker_DoWork(object sender, DoWorkEventArgs e)
 		{
 			double total = 0;
-			foreach (Element element in _blockingElementQueue.GetConsumingEnumerable(cts.Token))
+			try
 			{
-				if(renderWorker.CancellationPending){
-					break;
-				}
-				try
+
+				foreach (Element element in _blockingElementQueue.GetConsumingEnumerable(cts.Token))
 				{
-					Size size = new Size((int)Math.Ceiling(timeToPixels(element.Duration)), element.Row.Height - 1);
-					element.SetupCachedImage(size);
-					if (!_blockingElementQueue.Any())
+					if (renderWorker.CancellationPending)
 					{
-						total = 0;
+						break;
+					}
+					try
+					{
+						Size size = new Size((int)Math.Ceiling(timeToPixels(element.Duration)), element.Row.Height - 1);
+						element.SetupCachedImage(size);
 						if (!SuppressInvalidate)
 						{
-							Invalidate(); //Invalidate when the queue is empty
+							if (element.EndTime > VisibleTimeStart && element.StartTime < VisibleTimeEnd)
+							{
+								Invalidate();
+							}
 						}
-						renderWorker.ReportProgress(100);
-					} else
+						if (!_blockingElementQueue.Any())
+						{
+							total = 0;
+							if (!SuppressInvalidate)
+							{
+								Invalidate(); //Invalidate when the queue is empty just to make sure everything is up to date.
+							}
+							renderWorker.ReportProgress(100);
+						} else
+						{
+							double currentTotal = _blockingElementQueue.Count;
+							total = Math.Max(currentTotal, total);
+							renderWorker.ReportProgress((int)(((total - currentTotal) / total) * 100));
+						}
+
+					} catch (Exception ex)
 					{
-						double currentTotal = _blockingElementQueue.Count;
-						total = Math.Max(currentTotal, total);
-						renderWorker.ReportProgress((int)(((total - currentTotal) / total) * 100));
+						Logging.ErrorException("Error in rendering.", ex);
 					}
 
-				} catch (Exception ex)
-				{
-					Logging.ErrorException("Error in rendering.", ex);
 				}
-	
+			} catch (OperationCanceledException)
+			{
+				//eat the uneeded exception
 			}
 		}
 
+		/// <summary>
+		/// Add a specific element to the render queue
+		/// </summary>
+		/// <param name="element"></param>
         public void RenderElement(Element element)
         {
 			if (SupressRendering) return;
-			if (!element.CachedCanvasIsCurrent) {
-				_blockingElementQueue.Add(element);
-			}
+			element.Changed=true;
+			_blockingElementQueue.Add(element);
         }
 
         public void RenderVisibleRows(List<Row> rows)
@@ -1290,11 +1308,13 @@ namespace Common.Controls.Timeline
 
         private void ClearElementRenderQueue()
         {
+			SupressRendering = true;
 			while (_blockingElementQueue.Count > 0)
 			{
 				Element element;
 				_blockingElementQueue.TryTake(out element);
 			}
+			SupressRendering=false;
 			
         }
 
