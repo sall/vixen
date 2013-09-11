@@ -32,11 +32,11 @@ namespace VixenModules.Effect.Nutcracker
 			if (scnt < 2)
 				_data.NutcrackerData.PreviewType = NutcrackerEffects.PreviewType.VerticalLine;
 			_elementData = new EffectIntents();
-
 			foreach (ElementNode node in TargetNodes) {
 				if (node != null)
 					RenderNode(node);
 			}
+			GC.Collect();
 		}
 
 		protected override EffectIntents _Render()
@@ -93,13 +93,13 @@ namespace VixenModules.Effect.Nutcracker
 					{
 						if (!node.IsLeaf)
 						{
-							childCount++;
-						}
+						childCount++;
 					}
+				}
 					if (childCount == 0 && TargetNodes.FirstOrDefault().Children.Count() > 0)
 					{
-						childCount = 1;
-					}
+					childCount = 1;
+				}
 				}
 
                 if (childCount == 0)
@@ -173,9 +173,9 @@ namespace VixenModules.Effect.Nutcracker
 						_elementData.AddIntentForElement(elements[elementNum].Id, intent, startTime);
 					}
 				});
-
+			
 				startTime = startTime.Add(ms50);
 			};
-		}
+			}
 	}
 }
