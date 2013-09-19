@@ -105,6 +105,10 @@ namespace Common.Controls.Timeline
 				m_rows=null;
 				m_rows=new List<Row>();
 			}
+
+			TimeInfo= null;
+			TimeInfo = new Timeline.TimeInfo();
+
 			_blockingElementQueue.Dispose();
 			_blockingElementQueue= null;
 			_blockingElementQueue=new BlockingCollection<Element>();
@@ -1224,7 +1228,7 @@ namespace Common.Controls.Timeline
 		}
 
 		#endregion
-
+	
 		#region Drawing
 
 		public void BeginDraw()
@@ -1399,7 +1403,12 @@ namespace Common.Controls.Timeline
         public void RenderElement(Element element)
         {
 			if (SupressRendering) return;
-			_blockingElementQueue.Add(element);
+			//Render single elements right now instead of tossing in the queue. If we have single elements is probably
+			//because someone is directly working with it.
+			Task.Factory.StartNew(() =>
+				                    {
+										element.SetupCachedImage(new Size((int)Math.Ceiling(timeToPixels(element.Duration)), element.Row.Height - 1));
+				                    });
         }
 
 		/// <summary>
