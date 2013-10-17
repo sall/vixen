@@ -33,8 +33,6 @@
     <BootstrapperEnabled>true</BootstrapperEnabled>
     <TargetFrameworkProfile />
   </PropertyGroup>
-  
- 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>$(SolutionDir)\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
@@ -45,7 +43,6 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-  
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>$(SolutionDir)\Release64\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
@@ -159,6 +156,7 @@
     <Compile Include="Factory\IOutputFactory.cs" />
     <Compile Include="Factory\PreviewFactory.cs" />
     <Compile Include="Factory\SmartControllerFactory.cs" />
+    <Compile Include="Instrumentation\MillisecondsValue.cs" />
     <Compile Include="Intent\IntentHelpers.cs" />
     <Compile Include="Intent\RGBIntent.cs" />
     <Compile Include="Intent\CommandIntent.cs" />
@@ -484,6 +482,7 @@
     <Compile Include="Sys\Output\OutputModuleConsumer.cs" />
     <Compile Include="Sys\Output\OutputModuleInstanceBase.cs" />
     <Compile Include="Sys\Output\OutputPreview.cs" />
+    <Compile Include="Sys\Output\Recordings.cs" />
     <Compile Include="Sys\Output\SmartOutputController.cs" />
     <Compile Include="Data\Value\PositionValue.cs" />
     <Compile Include="Sys\SequenceFilterLookup.cs" />
