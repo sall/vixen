@@ -26,7 +26,7 @@ namespace VixenModules.Preview.VixenPreview
 		public GDIPreviewForm(VixenPreviewData data)
 		{
 			InitializeComponent();
-			this.ControlBox = false;
+		    this.ControlBox = false;
 			Data = data;
 		}
 
