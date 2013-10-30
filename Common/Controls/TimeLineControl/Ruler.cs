@@ -49,6 +49,40 @@ namespace Common.Controls.Timeline
 			get { return new Size(400, 40); }
 		}
 
+		public int StandardNudgeTime
+		{
+			get
+			{
+				Common.Controls.XMLProfileSettings xml = new Common.Controls.XMLProfileSettings();
+				int nudgeValue = xml.GetSetting("StandardNudge", 10);
+				xml = null;
+				return nudgeValue;
+			}
+			set
+			{
+				Common.Controls.XMLProfileSettings xml = new Common.Controls.XMLProfileSettings();
+				xml.PutSetting("StandardNudge", value);
+				xml = null;
+			}
+		}
+
+		public int SuperNudgeTime
+		{
+			get
+			{
+				Common.Controls.XMLProfileSettings xml = new Common.Controls.XMLProfileSettings();
+				int nudgeValue = xml.GetSetting("SuperNudge", 20);
+				xml = null;
+				return nudgeValue;
+			}
+			set 
+			{
+				Common.Controls.XMLProfileSettings xml = new Common.Controls.XMLProfileSettings();
+				xml.PutSetting("SuperNudge", value);
+				xml = null;
+			}
+		}
+
 		#region Drawing
 
 		protected override void OnPaint(PaintEventArgs e)
@@ -68,7 +102,7 @@ namespace Common.Controls.Timeline
 
 				drawPlaybackIndicators(e.Graphics);
 
-				_drawSnapPoints(e.Graphics);
+				_drawMarks(e.Graphics);
 			}
 			catch (Exception ex) {
 				MessageBox.Show("Exception in Timeline.Ruler.OnPaint():\n\n\t" + ex.Message + "\n\nBacktrace:\n\n\t" + ex.StackTrace);
@@ -407,16 +441,16 @@ namespace Common.Controls.Timeline
 		private MouseButtons m_button;
 		private TimeSpan m_mark;
 		private SnapDetails m_markDetails = null;
-
+		public SortedDictionary<TimeSpan, SnapDetails> selectedMarks = new SortedDictionary<TimeSpan, SnapDetails>();
 		protected override void OnMouseDown(MouseEventArgs e)
 		{
-			Console.WriteLine("Clicks: " + e.Clicks);
+			//Console.WriteLine("Clicks: " + e.Clicks);
 
 			m_button = e.Button;
 			m_mouseDownX = e.X;
 			if (e.Button != MouseButtons.Left) return;
 
-			// If we're hovering over a mark when left button is clicked, then move the mark 
+			// If we're hovering over a mark when left button is clicked, then select/move the mark 
 			m_mark = PointTimeToMark(pixelsToTime(e.X) + VisibleTimeStart);
 			if (m_mark != TimeSpan.Zero)
 			{
@@ -429,6 +463,7 @@ namespace Common.Controls.Timeline
 			}
 			else
 			{
+				ClearSelectedMarks();
 				m_mouseState = MouseState.DragWait;
 			}
 		}
@@ -492,7 +527,6 @@ namespace Common.Controls.Timeline
 			}
 		}
 
-
 		protected override void OnMouseUp(MouseEventArgs e)
 		{
 			if (e.Clicks == 2)
@@ -522,7 +556,21 @@ namespace Common.Controls.Timeline
 						case MouseState.DraggingMark:
 							if (m_mark != TimeSpan.Zero)
 							{
-								OnMarkMoved(new MarkMovedEventArgs(m_mark, pixelsToTime(e.X) + VisibleTimeStart, m_markDetails));
+								// Did we SELECT the mark?
+								if (e.X == m_mouseDownX)
+								{
+									if (ModifierKeys != Keys.Control)
+									{
+										ClearSelectedMarks();
+									}
+ 									selectedMarks.Add(m_mark, m_markDetails);
+								}
+								// Did we MOVE the mark?
+								else
+								{
+									ClearSelectedMarks();
+									OnMarkMoved(new MarkMovedEventArgs(m_mark, pixelsToTime(e.X) + VisibleTimeStart, m_markDetails));
+								}
 							}
 							break;
 						default:
@@ -554,12 +602,41 @@ namespace Common.Controls.Timeline
 			Invalidate();
 		}
 
+		public void ClearSelectedMarks()
+		{
+			selectedMarks.Clear();
+		}
+
+		public void NudgeMark(int offset)
+		{
+			TimeSpan timeOffset;
+			timeOffset = TimeSpan.FromMilliseconds(offset);
+
+			SortedDictionary<TimeSpan, SnapDetails> newSelectedMarks = new SortedDictionary<TimeSpan, SnapDetails>();
+
+			foreach (KeyValuePair<TimeSpan, SnapDetails> kvp in selectedMarks)
+			{
+				newSelectedMarks.Add(kvp.Key + timeOffset, kvp.Value);
+				OnMarkMoved(new MarkMovedEventArgs(kvp.Key, kvp.Key + timeOffset, kvp.Value));
+			}
+
+			selectedMarks = newSelectedMarks;
+		}
+
 		void DeleteMark_Click(object sender, EventArgs e)
 		{
 			MenuItem mi = sender as MenuItem;
 			if (mi != null)
 			{
-				OnDeleteMark(new DeleteMarkEventArgs(m_mark));
+				DeleteSelectedMarks();
+			}
+		}
+
+		public void DeleteSelectedMarks()
+		{
+			foreach (TimeSpan mark in selectedMarks.Keys)
+			{
+				OnDeleteMark(new DeleteMarkEventArgs(mark));
 			}
 		}
 
@@ -574,7 +651,6 @@ namespace Common.Controls.Timeline
 			Cursor = Cursors.Default;
 			base.OnMouseLeave(e);
 		}
-
 
 		public event EventHandler<MarkMovedEventArgs> MarkMoved;
 		public event EventHandler<DeleteMarkEventArgs> DeleteMark;
@@ -668,7 +744,7 @@ namespace Common.Controls.Timeline
 			if (!SuppressInvalidate) Invalidate();
 		}
 
-		private void _drawSnapPoints(Graphics g)
+		private void _drawMarks(Graphics g)
 		{
 			Pen p;
 
@@ -686,10 +762,13 @@ namespace Common.Controls.Timeline
 					p = new Pen(details.SnapColor);
 					Single x = timeToPixels(kvp.Key);
 					p.DashPattern = new float[] { details.SnapLevel, details.SnapLevel };
+					if (selectedMarks.ContainsKey(kvp.Key))
+					{
+						p.Width = 3;
+					}
 					g.DrawLine(p, x, 0, x, Height);
 					p.Dispose();
 				}
-
 			}
 
 			if (m_button == System.Windows.Forms.MouseButtons.Left && m_mark != TimeSpan.Zero)

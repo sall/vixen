@@ -140,6 +140,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			MarksForm.ChangedMarkCollection += MarkCollection_Changed;
 
 			TimelineControl.SelectionChanged += TimelineControlOnSelectionChanged;
+			TimelineControl.grid.MouseDown += TimelineControl_MouseDown;
 			TimeLineSequenceClipboardContentsChanged += TimelineSequenceTimeLineSequenceClipboardContentsChanged;
 			TimelineControl.CursorMoved += CursorMovedHandler;
 			TimelineControl.ElementsSelected += timelineControl_ElementsSelected;
@@ -153,6 +154,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			LoadAvailableEffects();
 			InitUndo();
 			updateButtonStates();
+			UpdatePasteMenuStates();
 			LoadVirtualEffects();
 
 #if DEBUG
@@ -204,6 +206,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			MarksForm.ChangedMarkCollection -= MarkCollection_Changed;
 
 			TimelineControl.SelectionChanged -= TimelineControlOnSelectionChanged;
+			TimelineControl.grid.MouseDown -= TimelineControl_MouseDown;
 			TimeLineSequenceClipboardContentsChanged -= TimelineSequenceTimeLineSequenceClipboardContentsChanged;
 			TimelineControl.CursorMoved -= CursorMovedHandler;
 			TimelineControl.ElementsSelected -= timelineControl_ElementsSelected;
@@ -607,6 +610,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				if (audio.MediaExists)
 				{
 					TimelineControl.Audio = audio;
+					toolStripMenuItem_removeAudio.Enabled = true;
 					PopulateAudioDropdown();
 				} else
 				{
@@ -685,6 +689,12 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		{
 			toolStripButton_Copy.Enabled = toolStripButton_Cut.Enabled = TimelineControl.SelectedElements.Any();
 			toolStripMenuItem_Copy.Enabled = toolStripMenuItem_Cut.Enabled = TimelineControl.SelectedElements.Any();
+		}
+
+		private void TimelineControl_MouseDown(object sender, MouseEventArgs e) 
+		{
+			TimelineControl.ruler.ClearSelectedMarks();
+			Invalidate(true);
 		}
 
 		protected void ElementContentChangedHandler(object sender, EventArgs e)
@@ -1576,11 +1586,34 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		#region Overridden form functions (On___)
 
+		protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+		{
+			switch (keyData)
+			{
+				case Keys.Left:
+					TimelineControl.ruler.NudgeMark(-TimelineControl.ruler.StandardNudgeTime);
+					break;
+				case (Keys.Left | Keys.Shift):
+					TimelineControl.ruler.NudgeMark(-TimelineControl.ruler.SuperNudgeTime);
+					break;
+				case Keys.Right:
+					TimelineControl.ruler.NudgeMark(TimelineControl.ruler.StandardNudgeTime);
+					break;
+				case (Keys.Right | Keys.Shift):
+					TimelineControl.ruler.NudgeMark(TimelineControl.ruler.SuperNudgeTime);
+					break;
+			}
+			return base.ProcessCmdKey(ref msg, keyData);
+		}
+
 		protected override void OnKeyDown(KeyEventArgs e)
 		{
 			// do anything special we want to here: keyboard shortcuts that are in
 			// the menu will be handled by them instead.
 			switch (e.KeyCode) {
+				//case Keys.Delete:
+				//	TimelineControl.ruler.DeleteSelectedMarks();
+				//	break;
 				case Keys.Home:
 					if (e.Control)
 						TimelineControl.VisibleTimeStart = TimeSpan.Zero;
@@ -1647,6 +1680,10 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				default:
 					break;
 			}
+			// Prevents sending keystrokes to child controls. 
+			// This was causing serious slowdowns if random keys were pressed.
+			//e.SuppressKeyPress = true;
+			base.OnKeyDown(e);
 		}
 
 		protected override void OnFormClosed(FormClosedEventArgs e)
@@ -1700,7 +1737,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 			IDataObject dataObject = new DataObject(_clipboardFormatName);
 			dataObject.SetData(result);
-			Clipboard.SetDataObject(dataObject, false);
+			Clipboard.SetDataObject(dataObject, true);
 			_TimeLineSequenceClipboardContentsChanged(EventArgs.Empty);
 		}
 
@@ -1826,7 +1863,15 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		private void toolStripMenuItem_deleteElements_Click(object sender, EventArgs e)
 		{
+			if (TimelineControl.ruler.selectedMarks.Count() > 0)
+			{
+				TimelineControl.ruler.DeleteSelectedMarks();
+			}
+			else
 			removeSelectedElements();
+			{
+				removeSelectedElements();
+			}
 		}
 
 		private void selectAllElementsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -2067,6 +2112,18 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		private void stopToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			StopSequence();
+		}
+
+		private void toolStripMenuItem_SnapTo_CheckedChanged(object sender, EventArgs e)
+		{
+			toolStripButton_SnapTo.Checked = toolStripMenuItem_SnapTo.Checked;
+			TimelineControl.grid.EnableSnapTo = toolStripMenuItem_SnapTo.Checked;
+		}
+
+		private void toolStripButton_SnapTo_CheckedChanged(object sender, EventArgs e)
+		{
+			toolStripMenuItem_SnapTo.Checked = toolStripButton_SnapTo.Checked;
+			TimelineControl.grid.EnableSnapTo = toolStripButton_SnapTo.Checked;
 		}
 
 		#endregion
@@ -2445,6 +2502,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				MarksForm.Close();
 			}
 		}
+
 	}
 
 	[Serializable]
