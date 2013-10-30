@@ -589,16 +589,16 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			if (this.InvokeRequired) {
 				this.Invoke(new Vixen.Delegates.GenericDelegate(PopulateAudioDropdown));
 			} else {
-				using (var fmod = new FmodInstance()) {
-					cboAudioDevices.Items.Clear();
-					fmod.AudioDevices.OrderBy(a => a.Item1).Select(b => b.Item2).ToList().ForEach(device => {
-						cboAudioDevices.Items.Add(device);
-					});
-					if (cboAudioDevices.Items.Count > 0)
-					{
-						cboAudioDevices.SelectedIndex = 0;
-					}
-				}
+				//using (var fmod = new FmodInstance()) {
+				//    cboAudioDevices.Items.Clear();
+				//    fmod.AudioDevices.OrderBy(a => a.Item1).Select(b => b.Item2).ToList().ForEach(device => {
+				//        cboAudioDevices.Items.Add(device);
+				//    });
+				//    if (cboAudioDevices.Items.Count > 0)
+				//    {
+				//        cboAudioDevices.SelectedIndex = 0;
+				//    }
+				//}
 			}
 		}
 		private void populateWaveformAudio()
@@ -2314,6 +2314,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			_SetTimingSpeed(_timingSpeed + _timingChangeDelta);
 		}
 
+        
 		private void toolStripButton_DecreaseTimingSpeed_Click(object sender, EventArgs e)
 		{
 			_SetTimingSpeed(_timingSpeed - _timingChangeDelta);
@@ -2331,12 +2332,12 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			}
 
 			_UpdateTimingSpeedDisplay();
-			toolStripButton_DecreaseTimingSpeed.Enabled = _timingSpeed > _timingChangeDelta;
+			//toolStripButton_DecreaseTimingSpeed.Enabled = _timingSpeed > _timingChangeDelta;
 		}
 
 		private void _UpdateTimingSpeedDisplay()
 		{
-			toolStripLabel_TimingSpeed.Text = _timingSpeed.ToString("p0");
+			//toolStripLabel_TimingSpeed.Text = _timingSpeed.ToString("p0");
 		}
 
 		private void _SetTimingToolStripEnabledState()
@@ -2345,7 +2346,11 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				this.Invoke(new Vixen.Delegates.GenericDelegate(_SetTimingToolStripEnabledState));
 			else {
 				ITiming timingSource = _sequence.GetTiming();
-				toolStripTiming.Enabled = timingSource != null && timingSource.SupportsVariableSpeeds;
+				//this.toolStripButton_IncreaseTimingSpeed.Enabled =
+				//    this.toolStripButton_DecreaseTimingSpeed.Enabled =
+				//    this.toolStripLabel_TimingSpeed.Enabled= this.toolStripLabel_TimingSpeedLabel.Enabled = 
+				//   timingSource != null && timingSource.SupportsVariableSpeeds;
+
 			}
 		}
 
@@ -2373,11 +2378,16 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 				if (_timingSource.SupportsVariableSpeeds) {
 					_timingSource.Speed = _timingSpeed;
-					toolStripTiming.Enabled = true;
+					//this.toolStripButton_IncreaseTimingSpeed.Enabled =
+					//    this.toolStripButton_DecreaseTimingSpeed.Enabled =
+					//        this.toolStripLabel_TimingSpeed.Enabled = this.toolStripLabel_TimingSpeedLabel.Enabled = true;
+					 
 				}
 				else {
 					_UpdateTimingSpeedDisplay();
-					toolStripTiming.Enabled = false;
+					// this.toolStripButton_IncreaseTimingSpeed.Enabled =
+					//this.toolStripButton_DecreaseTimingSpeed.Enabled =
+					//this.toolStripLabel_TimingSpeed.Enabled= this.toolStripLabel_TimingSpeedLabel.Enabled = false;
 				}
 			}
 		}
@@ -2460,12 +2470,12 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		private void cboAudioDevices_TextChanged(object sender, EventArgs e)
 		{
-			Vixen.Sys.State.Variables.SelectedAudioDeviceIndex= cboAudioDevices.SelectedIndex;
+			//Vixen.Sys.State.Variables.SelectedAudioDeviceIndex= cboAudioDevices.SelectedIndex;
 		}
 
 		private void cboAudioDevices_SelectedIndexChanged(object sender, EventArgs e)
 		{
-			Vixen.Sys.State.Variables.SelectedAudioDeviceIndex= cboAudioDevices.SelectedIndex;
+			//Vixen.Sys.State.Variables.SelectedAudioDeviceIndex= cboAudioDevices.SelectedIndex;
 		}
 
 		private void menuStrip_MenuActivate(object sender, EventArgs e)
