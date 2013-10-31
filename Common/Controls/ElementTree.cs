@@ -71,6 +71,7 @@ namespace Common.Controls
 			// clear the treeview, and repopulate it
 			treeview.BeginUpdate();
 			treeview.Nodes.Clear();
+			treeview.SelectedNodes.Clear();
 
 			foreach (ElementNode element in VixenSystem.Nodes.GetRootNodes()) {
 				AddNodeToTree(treeview.Nodes, element);
@@ -189,7 +190,7 @@ namespace Common.Controls
 
 			if (!elementNode.Children.Any()) {
 				if (elementNode.Element != null &&
-					VixenSystem.DataFlow.GetChildren(VixenSystem.Elements.GetDataFlowComponentForElement(elementNode.Element)).Any()) {
+					VixenSystem.DataFlow.GetDestinationsOfComponent(VixenSystem.Elements.GetDataFlowComponentForElement(elementNode.Element)).Any()) {
 					if (elementNode.Element.Masked)
 						addedNode.ImageKey = addedNode.SelectedImageKey = "RedBall";
 					else
@@ -398,7 +399,8 @@ namespace Common.Controls
 			}
 
 			IEnumerable<ElementNode> invalidSourceNodes = invalidNodesForTarget.Intersect(nodes);
-			if (invalidSourceNodes.Count() > 0) {
+            if (invalidSourceNodes.Any())
+            {
 				if (invalidSourceNodes.Intersect(permittedNodesForTarget).Count() == invalidSourceNodes.Count())
 					e.ValidDragTarget = true;
 				else
@@ -485,7 +487,7 @@ namespace Common.Controls
 		public bool CheckAndPromptIfNodeWillLosePatches(ElementNode node)
 		{
 			if (node != null && node.Element != null) {
-				if (VixenSystem.DataFlow.GetChildren(VixenSystem.Elements.GetDataFlowComponentForElement(node.Element)).Any()) {
+				if (VixenSystem.DataFlow.GetDestinationsOfComponent(VixenSystem.Elements.GetDataFlowComponentForElement(node.Element)).Any()) {
 					string message = "Adding items to this element will convert it into a Group, which will remove any " +
 					                 "patches it may have. Are you sure you want to continue?";
 					string title = "Convert Element to Group?";
@@ -595,7 +597,8 @@ namespace Common.Controls
 				invalidNodesForTarget = destinationNode.InvalidChildren();
 
 			IEnumerable<ElementNode> invalidSourceNodes = invalidNodesForTarget.Intersect(_clipboardNodes);
-			if (invalidSourceNodes.Count() > 0) {
+            if (invalidSourceNodes.Any())
+            {
 				SystemSounds.Asterisk.Play();
 			}
 			else {

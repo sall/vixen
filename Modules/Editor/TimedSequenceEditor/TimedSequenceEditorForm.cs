@@ -24,6 +24,7 @@ using VixenModules.App.VirtualEffect;
 using Vixen.Module.App;
 using System.Threading.Tasks;
 using System.Threading;
+using Common.Resources.Properties;
 using Common.Controls;
 using WeifenLuo.WinFormsUI.Docking;
 
@@ -81,6 +82,41 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		public TimedSequenceEditorForm()
 		{
 			InitializeComponent();
+			Icon = Resources.Icon_Vixen3;
+			toolStripButton_Start.Image = Resources.control_start_blue;
+			toolStripButton_Start.DisplayStyle = ToolStripItemDisplayStyle.Image;
+			toolStripButton_Play.Image = Resources.control_play_blue;
+			toolStripButton_Play.DisplayStyle = ToolStripItemDisplayStyle.Image;
+			toolStripButton_Stop.Image = Resources.control_stop_blue;
+			toolStripButton_Stop.DisplayStyle = ToolStripItemDisplayStyle.Image;
+			toolStripButton_Pause.Image = Resources.control_pause_blue;
+			toolStripButton_Pause.DisplayStyle = ToolStripItemDisplayStyle.Image;
+			toolStripButton_End.Image = Resources.control_end_blue;
+			toolStripButton_End.DisplayStyle = ToolStripItemDisplayStyle.Image;
+			undoButton.Image = Resources.arrow_undo;
+			undoButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
+			redoButton.Image = Resources.arrow_redo;
+			redoButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
+			toolStripButton_Cut.Image = Resources.cut;
+			toolStripButton_Cut.DisplayStyle = ToolStripItemDisplayStyle.Image;
+			toolStripButton_Copy.Image = Resources.page_white_copy;
+			toolStripButton_Copy.DisplayStyle = ToolStripItemDisplayStyle.Image;
+			toolStripButton_Paste.Image = Resources.page_white_paste;
+			toolStripButton_Paste.DisplayStyle = ToolStripItemDisplayStyle.Image;
+			toolStripButton_AssociateAudio.Image = Resources.music;
+			toolStripButton_AssociateAudio.DisplayStyle = ToolStripItemDisplayStyle.Image;
+			toolStripButton_MarkManager.Image = Resources.timeline_marker;
+			toolStripButton_MarkManager.DisplayStyle = ToolStripItemDisplayStyle.Image;
+			toolStripButton_ZoomTimeIn.Image = Resources.zoom_in;
+			toolStripButton_ZoomTimeIn.DisplayStyle = ToolStripItemDisplayStyle.Image;
+			toolStripButton_ZoomTimeOut.Image = Resources.zoom_out;
+			toolStripButton_ZoomTimeOut.DisplayStyle = ToolStripItemDisplayStyle.Image;
+			toolStripButton_SnapTo.Image = Resources.magnet;
+			toolStripButton_SnapTo.DisplayStyle = ToolStripItemDisplayStyle.Image;
+			toolStripButton_IncreaseTimingSpeed.Image = Resources.plus;
+			toolStripButton_IncreaseTimingSpeed.DisplayStyle = ToolStripItemDisplayStyle.Image;
+			toolStripButton_DecreaseTimingSpeed.Image = Resources.minus;
+			toolStripButton_DecreaseTimingSpeed.DisplayStyle = ToolStripItemDisplayStyle.Image;
 		}
 
 		private IDockContent DockingPanels_GetContentFromPersistString(string persistString)
@@ -492,7 +528,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				                                                  	});
 
 				populateGridWithMarks();
-				
+
 				var t2 = Task.Factory.StartNew(() => populateWaveformAudio());
 
 				//This path is followed for new and existing sequences so we need to determine which we have and set modified accordingly.
@@ -589,16 +625,16 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			if (this.InvokeRequired) {
 				this.Invoke(new Vixen.Delegates.GenericDelegate(PopulateAudioDropdown));
 			} else {
-				//using (var fmod = new FmodInstance()) {
-				//    cboAudioDevices.Items.Clear();
-				//    fmod.AudioDevices.OrderBy(a => a.Item1).Select(b => b.Item2).ToList().ForEach(device => {
-				//        cboAudioDevices.Items.Add(device);
-				//    });
-				//    if (cboAudioDevices.Items.Count > 0)
-				//    {
-				//        cboAudioDevices.SelectedIndex = 0;
-				//    }
-				//}
+				using (var fmod = new FmodInstance()) {
+					cboAudioDevices.Items.Clear();
+					fmod.AudioDevices.OrderBy(a => a.Item1).Select(b => b.Item2).ToList().ForEach(device => {
+						cboAudioDevices.Items.Add(device);
+					});
+					if (cboAudioDevices.Items.Count > 0)
+					{
+						cboAudioDevices.SelectedIndex = 0;
+			}
+		}
 			}
 		}
 		private void populateWaveformAudio()
@@ -610,16 +646,16 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				if (audio.MediaExists)
 				{
 					TimelineControl.Audio = audio;
-					toolStripMenuItem_removeAudio.Enabled = true;
+				toolStripMenuItem_removeAudio.Enabled = true;
 					PopulateAudioDropdown();
 				} else
 				{
 					string message = String.Format("Audio file not found on the path:\n\n {0}\n\nPlease Check your settings/path.", audio.MediaFilePath);
 					MessageBox.Show(message, "Missing audio file");
-				}
+			}
 
 				 
-			}
+		}
 		}
 
 		/// <summary>
@@ -938,33 +974,33 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 			if (e.Button == System.Windows.Forms.MouseButtons.Left)
 			{
-				bool autoPlay = e.ModifierKeys.HasFlag(Keys.Control);
+			bool autoPlay = e.ModifierKeys.HasFlag(Keys.Control);
 
 				if (autoPlay)
 				{
-					// Save the times for later restoration
+				// Save the times for later restoration
 					m_prevPlaybackStart = TimelineControl.PlaybackStartTime;
 					m_prevPlaybackEnd = TimelineControl.PlaybackEndTime;
-				}
+			}
 				else
 				{
-					m_prevPlaybackStart = e.Time;
-					m_prevPlaybackEnd = null;
-				}
+				m_prevPlaybackStart = e.Time;
+				m_prevPlaybackEnd = null;
+			}
 
-				// Set the timeline control
+			// Set the timeline control
 				TimelineControl.PlaybackStartTime = e.Time;
 				TimelineControl.PlaybackEndTime = null;
 
 				if (autoPlay)
 				{
-					_PlaySequence(e.Time, TimeSpan.MaxValue);
-				}
+				_PlaySequence(e.Time, TimeSpan.MaxValue);
+			}
 				else
 				{
 					TimelineControl.CursorPosition = e.Time;
-				}
 			}
+		}
 			else if (e.Button == System.Windows.Forms.MouseButtons.Right)
 			{
 				MarkCollection mc = null;
@@ -1110,7 +1146,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			_context.SequenceEnded += context_SequenceEnded;
 			//_context.ProgramEnded += _context_ProgramEnded;
 			_context.ContextEnded += context_ContextEnded;
-			
+
 			updateButtonStates();
 		}
 
@@ -1404,40 +1440,40 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		{
 			Dictionary<Row, List<Element>> rowMap =
 			_elementNodeToRows.SelectMany(x => x.Value).ToList().ToDictionary(x => x, x => new List<Element>());
-			
+
 			foreach (EffectNode node in nodes)
 			{
 				TimedSequenceElement element = setupNewElementFromNode(node);
-				foreach(ElementNode target in node.Effect.TargetNodes){
+			foreach (ElementNode target in node.Effect.TargetNodes) {
 					if (_elementNodeToRows.ContainsKey(target))
 					{
-						// Add the element to each row that represents the element this command is in.
+					// Add the element to each row that represents the element this command is in.
 						foreach (Row row in _elementNodeToRows[target])
 						{
-							if (!_effectNodeToElement.ContainsKey(node))
+						if (!_effectNodeToElement.ContainsKey(node))
 							{
-								_effectNodeToElement[node] = element;
-							}
+							_effectNodeToElement[node] = element;
+					}
 							rowMap[row].Add(element);
 			
-						}
+				}
 					} else
 					{
-						// we don't have a row for the element this effect is referencing; most likely, the row has
-						// been deleted, or we're opening someone else's sequence, etc. Big fat TODO: here for that, then.
-						// dunno what we want to do: prompt to add new elements for them? map them to others? etc.
+					// we don't have a row for the element this effect is referencing; most likely, the row has
+					// been deleted, or we're opening someone else's sequence, etc. Big fat TODO: here for that, then.
+					// dunno what we want to do: prompt to add new elements for them? map them to others? etc.
 						string message = "No Timeline.Row is associated with a target ElementNode for this EffectNode. It now exists in the sequence, but not in the GUI.";
-						MessageBox.Show(message);
-						Logging.Error(message);
-					}
+					MessageBox.Show(message);
+					Logging.Error(message);
 				}
+			}
 			}
 
 			foreach (KeyValuePair<Row,List<Element>> row in rowMap)
 			{
 				row.Key.AddBulkElements(row.Value);
-			}
-	
+		}
+
 		}
 
 		/// <summary>
@@ -1457,9 +1493,9 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				        		if (_elementNodeToRows.ContainsKey(target)) {
 				        			// Add the element to each row that represents the element this command is in.
 				        			foreach (Row row in _elementNodeToRows[target]) {
-										if (!_effectNodeToElement.ContainsKey(node))
+				        				if (!_effectNodeToElement.ContainsKey(node))
 										{
-											_effectNodeToElement[node] = element;
+				        					_effectNodeToElement [node] = element;
 										}
 				        				row.AddElement(element);
 				        			}
@@ -1779,7 +1815,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			int topTargetRoxIndex = visibleRows.IndexOf(targetRow);
 
 			foreach (KeyValuePair<TimelineElementsClipboardData.EffectModelCandidate, int> kvp in data.EffectModelCandidates) {
-				TimelineElementsClipboardData.EffectModelCandidate effectModelCandidate = 
+				TimelineElementsClipboardData.EffectModelCandidate effectModelCandidate =
 					kvp.Key as TimelineElementsClipboardData.EffectModelCandidate;
 				int relativeRow = kvp.Value;
 
@@ -1863,7 +1899,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		private void toolStripMenuItem_deleteElements_Click(object sender, EventArgs e)
 		{
-			if (TimelineControl.ruler.selectedMarks.Count() > 0)
+            if (TimelineControl.ruler.selectedMarks.Any())
 			{
 				TimelineControl.ruler.DeleteSelectedMarks();
 			}
@@ -1871,7 +1907,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			removeSelectedElements();
 			{
 				removeSelectedElements();
-			}
+		}
 		}
 
 		private void selectAllElementsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1881,7 +1917,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		private void toolStripMenuItem_EditEffect_Click(object sender, EventArgs e)
 		{
-			if (TimelineControl.SelectedElements.Count() > 0) {
+            if (TimelineControl.SelectedElements.Any())
+            {
 				EditElements(TimelineControl.SelectedElements.Cast<TimedSequenceElement>());
 			}
 		}
@@ -1891,9 +1928,9 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		// on select of elements, but that's too annoying for now...
 		//private void editToolStripMenuItem_DropDownOpened(object sender, EventArgs e)
 		//{
-		//    toolStripMenuItem_EditEffect.Enabled = TimelineControl.SelectedElements.Count() > 0;
-		//    toolStripMenuItem_Cut.Enabled = TimelineControl.SelectedElements.Count() > 0;
-		//    toolStripMenuItem_Copy.Enabled = TimelineControl.SelectedElements.Count() > 0;
+		//    toolStripMenuItem_EditEffect.Enabled = TimelineControl.SelectedElements.Any() ;
+		//    toolStripMenuItem_Cut.Enabled = TimelineControl.SelectedElements.Any() ;
+		//    toolStripMenuItem_Copy.Enabled = TimelineControl.SelectedElements.Any() ;
 		//    toolStripMenuItem_Paste.Enabled = _clipboard != null;		//TODO: fix this when clipboard fixed
 		//}
 
@@ -2229,7 +2266,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			{
 				if (value is TimedSequence)
 				{
-					_sequence = (TimedSequence)value;
+					_sequence = (TimedSequence) value;
 				}
 				else
 				{
@@ -2332,12 +2369,12 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			}
 
 			_UpdateTimingSpeedDisplay();
-			//toolStripButton_DecreaseTimingSpeed.Enabled = _timingSpeed > _timingChangeDelta;
+			toolStripButton_DecreaseTimingSpeed.Enabled = _timingSpeed > _timingChangeDelta;
 		}
 
 		private void _UpdateTimingSpeedDisplay()
 		{
-			//toolStripLabel_TimingSpeed.Text = _timingSpeed.ToString("p0");
+			toolStripLabel_TimingSpeed.Text = _timingSpeed.ToString("p0");
 		}
 
 		private void _SetTimingToolStripEnabledState()
@@ -2346,10 +2383,10 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				this.Invoke(new Vixen.Delegates.GenericDelegate(_SetTimingToolStripEnabledState));
 			else {
 				ITiming timingSource = _sequence.GetTiming();
-				//this.toolStripButton_IncreaseTimingSpeed.Enabled =
-				//    this.toolStripButton_DecreaseTimingSpeed.Enabled =
-				//    this.toolStripLabel_TimingSpeed.Enabled= this.toolStripLabel_TimingSpeedLabel.Enabled = 
-				//   timingSource != null && timingSource.SupportsVariableSpeeds;
+                this.toolStripButton_IncreaseTimingSpeed.Enabled =
+                    this.toolStripButton_DecreaseTimingSpeed.Enabled =
+                    this.toolStripLabel_TimingSpeed.Enabled= this.toolStripLabel_TimingSpeedLabel.Enabled = 
+                   timingSource != null && timingSource.SupportsVariableSpeeds;
 
 			}
 		}
@@ -2378,16 +2415,16 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 				if (_timingSource.SupportsVariableSpeeds) {
 					_timingSource.Speed = _timingSpeed;
-					//this.toolStripButton_IncreaseTimingSpeed.Enabled =
-					//    this.toolStripButton_DecreaseTimingSpeed.Enabled =
-					//        this.toolStripLabel_TimingSpeed.Enabled = this.toolStripLabel_TimingSpeedLabel.Enabled = true;
+				    this.toolStripButton_IncreaseTimingSpeed.Enabled =
+				        this.toolStripButton_DecreaseTimingSpeed.Enabled =
+				            this.toolStripLabel_TimingSpeed.Enabled = this.toolStripLabel_TimingSpeedLabel.Enabled = true;
 					 
 				}
 				else {
 					_UpdateTimingSpeedDisplay();
-					// this.toolStripButton_IncreaseTimingSpeed.Enabled =
-					//this.toolStripButton_DecreaseTimingSpeed.Enabled =
-					//this.toolStripLabel_TimingSpeed.Enabled= this.toolStripLabel_TimingSpeedLabel.Enabled = false;
+					 this.toolStripButton_IncreaseTimingSpeed.Enabled =
+                    this.toolStripButton_DecreaseTimingSpeed.Enabled =
+                    this.toolStripLabel_TimingSpeed.Enabled= this.toolStripLabel_TimingSpeedLabel.Enabled = false;
 				}
 			}
 		}
@@ -2470,12 +2507,12 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		private void cboAudioDevices_TextChanged(object sender, EventArgs e)
 		{
-			//Vixen.Sys.State.Variables.SelectedAudioDeviceIndex= cboAudioDevices.SelectedIndex;
-		}
+			Vixen.Sys.State.Variables.SelectedAudioDeviceIndex= cboAudioDevices.SelectedIndex;
+	}
 
 		private void cboAudioDevices_SelectedIndexChanged(object sender, EventArgs e)
 		{
-			//Vixen.Sys.State.Variables.SelectedAudioDeviceIndex= cboAudioDevices.SelectedIndex;
+			Vixen.Sys.State.Variables.SelectedAudioDeviceIndex= cboAudioDevices.SelectedIndex;
 		}
 
 		private void menuStrip_MenuActivate(object sender, EventArgs e)

@@ -28,7 +28,6 @@
 		private void InitializeComponent()
 		{
 			this.components = new System.ComponentModel.Container();
-			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(NutcrackerTypeEditorControl));
 			this.timerRender = new System.Windows.Forms.Timer(this.components);
 			this.groupBox1 = new System.Windows.Forms.GroupBox();
 			this.preview = new VixenModules.Preview.VixenPreview.VixenPreviewControl();
@@ -61,7 +60,7 @@
 			this.label49 = new System.Windows.Forms.Label();
 			this.label48 = new System.Windows.Forms.Label();
 			this.comboBoxPictureTileFileName = new Common.Controls.PictureComboBox();
-			 this.Picture = new System.Windows.Forms.TabPage();
+			this.Picture = new System.Windows.Forms.TabPage();
 			this.textPictureFileName = new System.Windows.Forms.TextBox();
 			this.label38 = new System.Windows.Forms.Label();
 			this.comboBoxPictureDirection = new System.Windows.Forms.ComboBox();
@@ -1933,7 +1932,6 @@
 			// 
 			this.buttonHelp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.buttonHelp.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-			this.buttonHelp.Image = ((System.Drawing.Image)(resources.GetObject("buttonHelp.Image")));
 			this.buttonHelp.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			this.buttonHelp.Location = new System.Drawing.Point(649, 423);
 			this.buttonHelp.Name = "buttonHelp";

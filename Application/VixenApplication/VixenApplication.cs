@@ -11,6 +11,7 @@ using Vixen.Module.SequenceType;
 using Vixen.Services;
 using Vixen.Sys;
 using NLog;
+using Common.Resources.Properties;
 using Common.Controls;
 
 namespace VixenApplication
@@ -30,6 +31,9 @@ namespace VixenApplication
 
 		public VixenApplication()
 		{
+			InitializeComponent();
+			Icon = Resources.Icon_Vixen3;
+
 			string[] args = Environment.GetCommandLineArgs();
 			foreach (string arg in args) {
 				_ProcessArg(arg);
@@ -41,7 +45,6 @@ namespace VixenApplication
 			_applicationData = new VixenApplicationData(_rootDataDirectory);
 
 			stopping = false;
-			InitializeComponent();
 			PopulateVersionStrings();
 			AppCommands = new AppCommand(this);
 			Execution.ExecutionStateChanged += executionStateChangedHandler;
@@ -55,7 +58,7 @@ namespace VixenApplication
 			{
 				toolsMenu = new AppCommand("Tools", "Tools");
 				AppCommands.Add(toolsMenu);
-			}
+		}
 			var myMenu = new AppCommand("Options", "Options...");
 			myMenu.Click += optionsToolStripMenuItem_Click;
 			toolsMenu.Add(myMenu);
@@ -105,7 +108,7 @@ namespace VixenApplication
 			System.Reflection.Assembly assembly = System.Reflection.Assembly.LoadFile(VixenSystem.AssemblyFileName);
 			Version version = assembly.GetName().Version;
 			string result = string.Format("{0}.{1}.{2}", version.Major ,version.Minor ,version.Build)			;
-			
+
 
 #if AUTOBUILD
 			labelVersion.Text = "Test Build " + version.Revision;
@@ -219,8 +222,8 @@ namespace VixenApplication
 			//	}
 
 			//});
- 
-		}
+
+			}
 
 		#region IApplication implemetation
 
@@ -292,14 +295,14 @@ namespace VixenApplication
 			_openEditors.Add(editorUI);
 			editorUI.Closing +=editorUI_Closing;
 			editorUI.Activated +=editorUI_Activated;
-		 
+
 			editorUI.StartEditor();
 		}
 
 		void editorUI_Activated(object sender, EventArgs e)
-		{
+			                    	{
 			_activeEditor = sender as IEditorUserInterface; 
-		}
+			                    		}
 
 		void editorUI_Closing(object sender, System.ComponentModel.CancelEventArgs e)
 		{
@@ -307,7 +310,7 @@ namespace VixenApplication
 			if (!_CloseEditor(editor))
 			{
 				e.Cancel = true;
-			}
+		}
 			else
 			{
 				editor.EditorClosing();
@@ -329,7 +332,7 @@ namespace VixenApplication
 			if (_openEditors.Contains(editor)) {
 				_openEditors.Remove(editor);
 			}
-			
+
 			_activeEditor= null;
 			
 			AddSequenceToRecentList(editor.Sequence.FilePath);
@@ -616,5 +619,22 @@ namespace VixenApplication
 			}
 		}
 
+		private void buttonSingleSetup_Click(object sender, EventArgs e)
+		{
+			DialogResult dr = MessageBox.Show("Please note: this new setup form is still in active development. There will be bugs! Make sure you backup your configuration in case it breaks something.", "", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
+
+			if (dr == DialogResult.Cancel)
+				return;
+
+			using (DisplaySetup form = new DisplaySetup()) {
+				dr = form.ShowDialog();
+			}
+
+			if (dr == DialogResult.OK) {
+				VixenSystem.SaveSystemConfig();
+			} else {
+				VixenSystem.ReloadSystemConfig();
+			}
+		}
 	}
 }

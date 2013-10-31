@@ -13,6 +13,7 @@ namespace Common.Controls
 		                        bool allowParityEdit = true, bool allowDataEdit = true, bool allowStopEdit = true)
 		{
 			InitializeComponent();
+			Icon = Resources.Properties.Resources.Icon_Vixen3;
 
 			//lets try and open the serial port if it can't be opened then it
 			//must be in use so label it as in use
@@ -48,7 +49,8 @@ namespace Common.Controls
 				configuredPortValueLabel.Text = "None";
 			}
 
-			if (serialPort == null && SerialPort.GetPortNames().Count() > 0) {
+            if (serialPort == null && SerialPort.GetPortNames().Any())
+            {
 				serialPort = new SerialPort(SerialPort.GetPortNames().FirstOrDefault(), 57600, Parity.None, 8, StopBits.One);
 			}
 

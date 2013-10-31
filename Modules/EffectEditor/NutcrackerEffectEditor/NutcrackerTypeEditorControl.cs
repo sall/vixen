@@ -29,6 +29,8 @@ namespace VixenModules.EffectEditor.NutcrackerEffectEditor
 		public NutcrackerTypeEditorControl()
 		{
 			InitializeComponent();
+			buttonHelp.BackgroundImage = Common.Resources.Properties.Resources.help;
+
 			NutcrackerDataValue = new NutcrackerData();
 		}
 
@@ -216,7 +218,7 @@ namespace VixenModules.EffectEditor.NutcrackerEffectEditor
 						childCount++;
 					}
 				}
-				if (childCount == 0 && TargetEffect.TargetNodes.FirstOrDefault().Children.Count() > 0) {
+				if (childCount == 0 && TargetEffect.TargetNodes.FirstOrDefault().Children.Any() ) {
 					childCount = 1;
 				}
 				return childCount;

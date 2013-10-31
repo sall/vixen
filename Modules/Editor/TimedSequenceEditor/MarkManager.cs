@@ -13,6 +13,7 @@ using Vixen.Module.Timing;
 using VixenModules.Media.Audio;
 using System.Collections.Concurrent;
 using System.IO;
+using Common.Resources.Properties;
 
 namespace VixenModules.Editor.TimedSequenceEditor
 {
@@ -37,6 +38,20 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		                   TimedSequenceEditorForm timedSequenceEditorForm)
 		{
 			InitializeComponent();
+			Icon = Resources.Icon_Vixen3;
+			buttonPlay.BackgroundImage = Resources.control_play_blue;
+			buttonPlay.Text = "";
+			buttonStop.BackgroundImage = Resources.control_stop_blue;
+			buttonStop.Text = "";
+			buttonIncreasePlaybackSpeed.BackgroundImage = Resources.plus;
+			buttonIncreasePlaybackSpeed.Text = "";
+			buttonDecreasePlaySpeed.BackgroundImage = Resources.minus;
+			buttonDecreasePlaySpeed.Text = "";
+			buttonIncreaseSelectedMarks.BackgroundImage = Resources.plus;
+			buttonIncreaseSelectedMarks.Text = "";
+			buttonDecreaseSelectedMarks.BackgroundImage = Resources.minus;
+			buttonDecreaseSelectedMarks.Text = "";
+
 			MarkCollections = markCollections;
 			_executionControl = executionControl;
 			_timingSource = timingSource;
@@ -1131,7 +1146,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 					// Remove the \r so we're just left with a \n (allows importing of Sean's Audacity beat marks
 					everything = everything.Replace("\r", "");
 					string[] lines = everything.Split(new string[] {"\n"}, StringSplitOptions.RemoveEmptyEntries);
-					if (lines.Count() > 0)
+                    if (lines.Any())
 					{
 						AddNewCollection(Color.Yellow, "Audacity Marks");
 						foreach (string line in lines)

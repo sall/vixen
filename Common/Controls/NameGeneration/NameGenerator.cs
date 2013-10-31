@@ -36,6 +36,12 @@ namespace Common.Controls
 		public NameGenerator()
 		{
 			InitializeComponent();
+			Icon = Resources.Properties.Resources.Icon_Vixen3;
+			buttonMoveRuleUp.BackgroundImage = Resources.Properties.Resources.arrow_up;
+			buttonMoveRuleUp.Text = "";
+			buttonMoveRuleDown.BackgroundImage = Resources.Properties.Resources.arrow_down;
+			buttonMoveRuleDown.Text = "";
+
 			Generators = new List<INamingGenerator>();
 
 			listViewNames.Columns.Clear();
@@ -238,7 +244,7 @@ namespace Common.Controls
 				else {
 					// if the sub-generator didn't make anything, add the name directly and treat this one as the final.
 					IEnumerable<string> subResult = GenerateNames(depth + 1, newFormat, currentNumber + result.Count, maxNumber);
-					if (subResult.Count() > 0)
+                    if (subResult.Any())
 						result.AddRange(subResult);
 					else
 						result.Add(newFormat);
