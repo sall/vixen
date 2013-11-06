@@ -162,12 +162,11 @@ namespace VixenApplication.Setup
 			project.Design.FillStyles.Add(styleController, styleController);
 			project.Design.FillStyles.Add(styleOutput, styleOutput);
 
-			//InitializeAllShapes(VixenSystem.Nodes.GetRootNodes(), VixenSystem.Filters, VixenSystem.OutputControllers);
-
 			ConnectionTool tool = new ConnectionTool();
 			tool.DataFlowModificationMade += tool_DataFlowModificationMade;
 			diagramDisplay.CurrentTool = tool;
 		}
+
 
 		private void tool_DataFlowModificationMade(object sender, EventArgs e)
 		{
@@ -366,6 +365,8 @@ namespace VixenApplication.Setup
 
 		private IEnumerable<IOutputFilterModuleInstance> _findFiltersThatDescendFromElements(IEnumerable<ElementNode> elements)
 		{
+			// this is assuming that the elements given are actual leaf/output elements (ie. have a Element object, and
+			// will be patched to stuff).  If you only have group element nodes, iterate to the leaf nodes first.
 			return elements
 				.Where(x => x.Element != null)
 				.SelectMany(x => _findComponentsOfTypeInTreeFromComponent(VixenSystem.DataFlow.GetComponent(x.Element.Id), typeof(IOutputFilterModuleInstance)))
@@ -1768,7 +1769,7 @@ namespace VixenApplication.Setup
 
 		}
 
-		#endregion
+#endregion
 
 
 
@@ -1783,7 +1784,7 @@ namespace VixenApplication.Setup
 
 
 
-		#region Resize timer
+#region Resize timer
 
 		private Timer _relayoutOnResizeTimer;
 
@@ -1846,6 +1847,26 @@ namespace VixenApplication.Setup
 
 
 
+		public void ZoomToFitAll()
+		{
+			double a = diagramDisplay.Width / (float)diagramDisplay.ScrollAreaBounds.Width;
+			double b = diagramDisplay.Height / (float)diagramDisplay.ScrollAreaBounds.Height;
+
+			double zoom = Math.Max(Math.Min(Math.Min(a, b), 1.0), 0.2);
+			int zoomPercent = (int)(zoom * 100);
+			if (zoomPercent < 100)
+				zoomPercent--;		// fix some weird graphical bugs with scrollbars
+
+			diagramDisplay.ZoomLevel = zoomPercent;
+
+			diagramDisplay.ScrollBy(-diagramDisplay.ScrollAreaBounds.Width, -diagramDisplay.ScrollAreaBounds.Height);
+		}
+
+
+
+
+
+
 #region ISetupPatchingControl implementation and form linking
 
 		public event EventHandler<FiltersEventArgs> FiltersAdded;
@@ -1874,19 +1895,23 @@ namespace VixenApplication.Setup
 
 			List<Shape> selectedShapes = _getCurrentlySelectedShapes().ToList();
 
-			List<ElementNode> nodeList = nodes.ToList();
-			_UpdateElementShapesFromElements(nodeList);
-			IEnumerable<IOutputFilterModuleInstance> filters = _findFiltersThatDescendFromElements(nodeList);
+			List<ElementNode> rootNodes = nodes.ToList();
+			List<ElementNode> leafNodes = rootNodes.SelectMany(x => x.GetLeafEnumerator()).ToList();
+			_UpdateElementShapesFromElements(rootNodes);
+			IEnumerable<IOutputFilterModuleInstance> filters = _findFiltersThatDescendFromElements(leafNodes);
+			
+			// this assumption here is that the leaf node shapes will have been created as part of making the root node shapes...
 			_UpdateFilterShapesFromFilters(filters);
 
 			_ResizeAndPositionElementShapes();
 			_ResizeAndPositionFilterShapes();
 
 			UpdateConnections();
-
 			_selectShapesIfPresent(selectedShapes);
 
 			diagramDisplay.DoResumeUpdate();
+
+			ZoomToFitAll();
 		}
 
 		public void UpdateElementSelection(IEnumerable<ElementNode> nodes)
@@ -1904,39 +1929,33 @@ namespace VixenApplication.Setup
 			diagramDisplay.DoSuspendUpdate();
 
 			List<Shape> selectedShapes = _getCurrentlySelectedShapes().ToList();
-
 			_updateControllerShapesFromControllersAndOutputs(controllersAndOutputs);
-
 			_ResizeAndPositionControllerShapes();
-
 			UpdateConnections();
-
 			_selectShapesIfPresent(selectedShapes);
 
 			diagramDisplay.DoResumeUpdate();
+
+			ZoomToFitAll();
 		}
 
 
-		private ControllersAndOutputsSet _cachedControllersAndOutputs = null;
 		public void UpdateControllerSelection(ControllersAndOutputsSet controllersAndOutputs)
 		{
-			_cachedControllersAndOutputs = controllersAndOutputs;
 			_updateControllerDisplay(controllersAndOutputs);
 		}
 
-		public void UpdateControllerDetails()
+		public void UpdateControllerDetails(ControllersAndOutputsSet controllersAndOutputs)
 		{
-			if (_cachedControllersAndOutputs == null) {
-				Logging.Error("null cached controllers and outputs");
-			} else {
-				_updateControllerDisplay(_cachedControllersAndOutputs);
-			}
+			_updateControllerDisplay(controllersAndOutputs);
 		}
 
 		public Control SetupPatchingControl
 		{
 			get { return this; }
 		}
+
+		public DisplaySetup MasterForm { get; set; }
 
 		public void OnFiltersAdded(IEnumerable<IOutputFilterModuleInstance> filters)
 		{

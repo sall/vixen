@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using Vixen.Rule;
+using Vixen.Sys;
 using VixenApplication.Setup;
 using VixenApplication.Setup.ElementTemplates;
 
@@ -43,45 +44,28 @@ namespace VixenApplication
 		{
 			_setupElementsTree = new SetupElementsTree(_elementTemplates, _elementSetupHelpers);
 			_setupElementsTree.Dock = DockStyle.Fill;
+			_setupElementsTree.MasterForm = this;
 			_setupElementsPreview = new SetupElementsPreview();
 			_setupElementsPreview.Dock = DockStyle.Fill;
+			_setupElementsPreview.MasterForm = this;
 
 			_setupPatchingSimple = new SetupPatchingSimple();
 			_setupPatchingSimple.Dock = DockStyle.Fill;
+			_setupPatchingSimple.MasterForm = this;
 			_setupPatchingGraphical = new SetupPatchingGraphical();
 			_setupPatchingGraphical.Dock = DockStyle.Fill;
+			_setupPatchingGraphical.MasterForm = this;
 
 			_setupControllersSimple = new SetupControllersSimple();
 			_setupControllersSimple.Dock = DockStyle.Fill;
+			_setupControllersSimple.MasterForm = this;
 
 			radioButtonElementTree.Checked = true;
 			radioButtonPatchingSimple.Checked = true;
 			radioButtonControllersStandard.Checked = true;
+
+			buttonHelp.Image = new Bitmap(Common.Resources.Properties.Resources.help, new Size(16, 16));
 		}
-
-
-		/// <summary>
-		/// A collection of all the Element Templates that are available to be used (eg. megatree, pixel grid, normal group, etc.)
-		/// TODO: are instances the best option?  Should it be an array of types or something similar?
-		/// </summary>
-		public IEnumerable<IElementTemplate> ElementTemplates =
-			new List<IElementTemplate>
-				{
-					new Megatree(),
-					new PixelGrid(),
-					new NumberedGroup(),
-				};
-
-
-		/// <summary>
-		/// A collection of all the Element Setup Helpers that are available to be used.
-		/// TODO: are instances the best option?  Should it be an array of types or something similar?
-		/// </summary>
-		public IEnumerable<IElementSetupHelper> ElementSetupHelpers =
-			new List<IElementSetupHelper>
-				{
-				};
-
 
 
 		private void activateElementControl(ISetupElementsControl control)
@@ -96,10 +80,10 @@ namespace VixenApplication
 			control.ElementSelectionChanged +=  control_ElementSelectionChanged;
 			control.ElementsChanged += control_ElementsChanged;
 
-			control.UpdatePatching();
-
 			tableLayoutPanelElementSetup.Controls.Clear();
 			tableLayoutPanelElementSetup.Controls.Add(control.SetupElementsControl);
+
+			control.UpdatePatching();
 		}
 
 		void control_ElementsChanged(object sender, EventArgs e)
@@ -130,6 +114,10 @@ namespace VixenApplication
 			control.FiltersAdded += control_FiltersAdded;
 			control.PatchingUpdated += control_PatchingUpdated;
 
+			tableLayoutPanelPatchingSetup.Controls.Clear();
+			tableLayoutPanelPatchingSetup.Controls.Add(control.SetupPatchingControl);
+
+
 			if (_currentControllersControl == null) {
 				control.UpdateControllerSelection(new ControllersAndOutputsSet());
 			} else {
@@ -140,9 +128,6 @@ namespace VixenApplication
 			} else {
 				control.UpdateElementSelection(_currentElementControl.SelectedElements);				
 			}
-
-			tableLayoutPanelPatchingSetup.Controls.Clear();
-			tableLayoutPanelPatchingSetup.Controls.Add(control.SetupPatchingControl);
 		}
 
 		void control_PatchingUpdated(object sender, EventArgs e)
@@ -174,16 +159,16 @@ namespace VixenApplication
 			control.ControllerSelectionChanged += control_ControllerSelectionChanged;
 			control.ControllersChanged += control_ControllersChanged;
 
-			control.UpdatePatching();
-
 			tableLayoutPanelControllerSetup.Controls.Clear();
 			tableLayoutPanelControllerSetup.Controls.Add(control.SetupControllersControl);
+
+			control.UpdatePatching();
 		}
 
 		void control_ControllersChanged(object sender, EventArgs e)
 		{
 			if (_currentPatchingControl != null) {
-				_currentPatchingControl.UpdateControllerDetails();
+				_currentPatchingControl.UpdateControllerDetails(_currentControllersControl.SelectedControllersAndOutputs);
 			}
 		}
 
@@ -229,6 +214,21 @@ namespace VixenApplication
 				activateControllersControl(_setupControllersSimple);
 		}
 
+		private void buttonHelp_Click(object sender, EventArgs e)
+		{
+			Common.VixenHelp.VixenHelp.ShowHelp(Common.VixenHelp.VixenHelp.HelpStrings.Setup_Main);
+		}
 
+
+
+		public void SelectElements(IEnumerable<ElementNode> elements)
+		{
+			_currentElementControl.SelectedElements = elements;
+		}
+
+		public void SelectControllersAndOutputs(ControllersAndOutputsSet controllersAndOutputs)
+		{
+			_currentControllersControl.SelectedControllersAndOutputs = controllersAndOutputs;
+		}
 	}
 }

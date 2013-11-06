@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -9,10 +10,12 @@ using System.Text;
 using System.Windows.Forms;
 using Common.Resources.Properties;
 using Common.Controls;
+using Vixen.Data.Flow;
 using Vixen.Module.Property;
 using Vixen.Rule;
 using Vixen.Services;
 using Vixen.Sys;
+using Vixen.Sys.Output;
 
 namespace VixenApplication.Setup
 {
@@ -28,6 +31,16 @@ namespace VixenApplication.Setup
 			buttonRunHelperSetup.Text = "";
 			buttonAddProperty.BackgroundImage = Resources.add;
 			buttonAddProperty.Text = "";
+			buttonRemoveProperty.BackgroundImage = Resources.delete;
+			buttonRemoveProperty.Text = "";
+			buttonConfigureProperty.BackgroundImage = Resources.cog;
+			buttonConfigureProperty.Text = "";
+			buttonDeleteElements.BackgroundImage = Resources.delete;
+			buttonDeleteElements.Text = "";
+			buttonRenameElements.BackgroundImage = Resources.pencil;
+			buttonRenameElements.Text = "";
+			buttonSelectDestinationOutputs.BackgroundImage = Resources.table_select_row;
+			buttonSelectDestinationOutputs.Text = "";
 
 			comboBoxNewItemType.BeginUpdate();
 			foreach (IElementTemplate template in elementTemplates) {
@@ -47,7 +60,7 @@ namespace VixenApplication.Setup
 			if (comboBoxSetupHelperType.Items.Count > 0)
 				comboBoxSetupHelperType.SelectedIndex = 0;
 
-			PopulateWithNode(null);
+			UpdateFormWithNode(null);
 		}
 
 
@@ -62,7 +75,7 @@ namespace VixenApplication.Setup
 		}
 
 		public event EventHandler ElementsChanged;
-		public void OnElementChanged()
+		public void OnElementsChanged()
 		{
 			if (ElementsChanged == null)
 				return;
@@ -74,12 +87,18 @@ namespace VixenApplication.Setup
 		public IEnumerable<ElementNode> SelectedElements
 		{
 			get { return elementTree.SelectedElementNodes; }
+			set
+			{
+				elementTree.PopulateNodeTree(value);
+			}
 		}
 
 		public Control SetupElementsControl
 		{
 			get { return this; }
 		}
+
+		public DisplaySetup MasterForm { get; set; }
 
 		public void UpdatePatching()
 		{
@@ -89,14 +108,19 @@ namespace VixenApplication.Setup
 
 		private void buttonRunSetupHelper_Click(object sender, EventArgs e)
 		{
+			if (comboBoxSetupHelperType.SelectedIndex < 0)
+				return;
+
 			ComboBoxItem item = (comboBoxSetupHelperType.SelectedItem as ComboBoxItem);
 
 			if (item != null) {
 				IElementSetupHelper helper = item.Value as IElementSetupHelper;
 				helper.Perform(elementTree.SelectedElementNodes);
 				elementTree.PopulateNodeTree();
-			}
 
+				UpdateFormWithNode();
+				OnElementsChanged();
+			}
 		}
 
 		private void buttonAddProperty_Click(object sender, EventArgs e)
@@ -115,11 +139,67 @@ namespace VixenApplication.Setup
 						node.Properties.Add((Guid)addForm.SelectedItem);
 					}
 
-					PopulateWithNode();
+					UpdateFormWithNode();
+					OnElementsChanged();
+				}
+			}
+		}
+
+		private void buttonRemoveProperty_Click(object sender, EventArgs e)
+		{
+			if (listViewProperties.SelectedItems.Count > 0) {
+				string message, title;
+				if (listViewProperties.SelectedItems.Count == 1) {
+					message = "Are you sure you want to remove the selected property from the element?";
+					title = "Remove Property?";
+				} else {
+					message = "Are you sure you want to remove the selected properties from the element?";
+					title = "Remove Properties?";
+				}
+				if (MessageBox.Show(message, title, MessageBoxButtons.OKCancel) == DialogResult.OK) {
+					foreach (ListViewItem item in listViewProperties.SelectedItems) {
+						foreach (ElementNode elementNode in SelectedElements) {
+							elementNode.Properties.Remove((item.Tag as IPropertyModuleInstance).Descriptor.TypeId);
+						}
+					}
+
+					UpdateFormWithNode();
+					OnElementsChanged();
 				}
 			}
 
 		}
+
+		private void buttonConfigureProperty_Click(object sender, EventArgs e)
+		{
+			ConfigureSelectedProperties();
+		}
+
+		private bool ConfigureSelectedProperties()
+		{
+			bool result = false;
+
+			if (listViewProperties.SelectedItems.Count == 1) {
+				var property = listViewProperties.SelectedItems[0].Tag as IPropertyModuleInstance;
+				if (property != null) {
+					result = property.Setup();
+					if (result) {
+						// try and 'clone' the property data to any other selected element with this property data
+						foreach (ElementNode elementNode in SelectedElements) {
+							IPropertyModuleInstance p = elementNode.Properties.Get(property.TypeId);
+							if (p != null) {
+								p.ModuleData = property.ModuleData.Clone();
+							}
+						}
+
+						OnElementsChanged();
+					}
+				}
+			}
+
+			return result;
+		}
+
 
 		private void buttonAddTemplate_Click(object sender, EventArgs e)
 		{
@@ -129,22 +209,24 @@ namespace VixenApplication.Setup
 				IElementTemplate template = item.Value as IElementTemplate;
 				bool act = template.SetupTemplate(elementTree.SelectedElementNodes);
 				if (act) {
-					template.GenerateElements(elementTree.SelectedElementNodes);
-					elementTree.PopulateNodeTree();
+					IEnumerable<ElementNode> createdElements = template.GenerateElements(elementTree.SelectedElementNodes);
+					elementTree.PopulateNodeTree(createdElements.FirstOrDefault());
+					OnElementsChanged();
 				}
 			}
-
 		}
 
-		private void PopulateWithNode()
+		private void UpdateFormWithNode()
 		{
-			PopulateWithNode(elementTree.SelectedNode);
+			UpdateFormWithNode(elementTree.SelectedNode);
 		}
 
 
-		private void PopulateWithNode(ElementNode selectedNode)
+		private void UpdateFormWithNode(ElementNode selectedNode)
 		{
 			// Properties
+			// TODO: we should really go through the selected elements, and only show properties they all have
+			// TODO: or even better, show normally if they ALL have them, and show in italics if SOME have the property... then don't let the partial ones be configured
 			listViewProperties.BeginUpdate();
 			listViewProperties.Items.Clear();
 			if (selectedNode != null) {
@@ -158,48 +240,130 @@ namespace VixenApplication.Setup
 				listViewProperties.SelectedItems.Clear();
 			}
 			listViewProperties.EndUpdate();
+
+			UpdateButtons();
+		}
+
+		private void UpdateButtons()
+		{
+			buttonRunHelperSetup.Enabled = comboBoxSetupHelperType.SelectedIndex >= 0;
+			buttonAddTemplate.Enabled = comboBoxNewItemType.SelectedIndex >= 0;
+
+			List<ElementNode> elementList = SelectedElements.ToList();
+			buttonRunHelperSetup.Enabled = elementList.Any();
+			buttonAddProperty.Enabled = elementList.Any();
+			buttonRemoveProperty.Enabled = listViewProperties.Items.Count > 0 && listViewProperties.SelectedItems.Count > 0;
+			buttonConfigureProperty.Enabled = listViewProperties.Items.Count > 0 && listViewProperties.SelectedItems.Count == 1;
+			buttonDeleteElements.Enabled = elementList.Any();
+			buttonRenameElements.Enabled = elementList.Any();
+			buttonSelectDestinationOutputs.Enabled = elementList.Any();
 		}
 
 		private void elementTree_ElementsChanged(object sender, EventArgs e)
 		{
-			PopulateWithNode();
-			OnElementChanged();
+			UpdateFormWithNode();
+			OnElementsChanged();
 		}
 
 		private void elementTree_treeviewAfterSelect(object sender, TreeViewEventArgs e)
 		{
-			PopulateWithNode();
+			UpdateFormWithNode();
 			OnElementSelectionChanged(new ElementNodesEventArgs(elementTree.SelectedElementNodes));
 		}
 
 		private void elementTree_treeviewDeselected(object sender, EventArgs e)
 		{
-			PopulateWithNode();
+			UpdateFormWithNode();
 			OnElementSelectionChanged(new ElementNodesEventArgs(elementTree.SelectedElementNodes));
 		}
 
 		private void listViewProperties_MouseDoubleClick(object sender, MouseEventArgs e)
 		{
-			if (listViewProperties.SelectedItems.Count == 1) {
-				var property = listViewProperties.SelectedItems[0].Tag as IPropertyModuleInstance;
-				if (property != null)
-					property.Setup();
-			}
+			ConfigureSelectedProperties();
 		}
 
 		private void comboBoxNewItemType_SelectedIndexChanged(object sender, EventArgs e)
 		{
-			buttonAddTemplate.Enabled = comboBoxNewItemType.SelectedIndex >= 0;
+			UpdateButtons();
 		}
 
 		private void comboBoxSetupHelperType_SelectedIndexChanged(object sender, EventArgs e)
 		{
-			buttonRunHelperSetup.Enabled = comboBoxSetupHelperType.SelectedIndex >= 0;
+			UpdateButtons();
 		}
 
 		private void listViewProperties_SelectedIndexChanged(object sender, EventArgs e)
 		{
-			buttonAddProperty.Enabled = listViewProperties.SelectedItems.Count > 0;
+			UpdateButtons();
+		}
+
+		private void buttonSelectDestinationOutputs_Click(object sender, EventArgs e)
+		{
+			ControllersAndOutputsSet controllersAndOutputs = new ControllersAndOutputsSet();
+
+			foreach (ElementNode selectedElement in SelectedElements) {
+				foreach (ElementNode leafElementNode in selectedElement.GetLeafEnumerator()) {
+					if (leafElementNode == null || leafElementNode.Element == null)
+						continue;
+
+					IDataFlowComponent component = VixenSystem.DataFlow.GetComponent(leafElementNode.Element.Id);
+					if (component == null)
+						continue;
+
+					IEnumerable<IDataFlowComponent> outputComponents = _findComponentsOfTypeInTreeFromComponent(component, typeof (CommandOutputDataFlowAdapter));
+
+					foreach (IDataFlowComponent outputComponent in outputComponents) {
+						IControllerDevice controller;
+						int outputIndex;
+						VixenSystem.OutputControllers.getOutputDetailsForDataFlowComponent(outputComponent, out controller, out outputIndex);
+
+						if (controller == null)
+							continue;
+
+						if (!controllersAndOutputs.ContainsKey(controller))
+							controllersAndOutputs[controller] = new HashSet<int>();
+
+						controllersAndOutputs[controller].Add(outputIndex);
+					}
+				}
+			}
+
+			MasterForm.SelectControllersAndOutputs(controllersAndOutputs);
+		}
+
+		private IEnumerable<IDataFlowComponent> _findComponentsOfTypeInTreeFromComponent(IDataFlowComponent dataFlowComponent, Type dfctype)
+		{
+			return VixenSystem.DataFlow.GetDestinationsOfComponent(dataFlowComponent)
+				.SelectMany(x => _findComponentsOfTypeInTreeFromComponent(x, dfctype))
+				.Concat(new[] { dataFlowComponent })
+				.Where(dfc => dfctype.IsAssignableFrom(dfc.GetType()))
+				;
+		}
+
+		private void buttonDeleteElements_Click(object sender, EventArgs e)
+		{
+			// TODO: need to consider the filters attached to a element. Hmm.
+
+			DialogResult dr = MessageBox.Show("Are you sure you want to delete these element(s)?", "Delete Elements?",
+			                                  MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+			if (dr != DialogResult.Yes)
+				return;
+
+			// can't delete by ElementNode, as one element can be in multiple places :-(
+			foreach (TreeNode tn in elementTree.SelectedTreeNodes) {
+				elementTree.DeleteNode(tn);
+			}
+
+			elementTree.PopulateNodeTree();
+			OnElementsChanged();
+		}
+
+		private void buttonRenameElements_Click(object sender, EventArgs e)
+		{
+			if (elementTree.RenameSelectedElements()) {
+				OnElementsChanged();
+			}
 		}
 	}
 }

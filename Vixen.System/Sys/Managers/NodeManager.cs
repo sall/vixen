@@ -32,7 +32,7 @@ namespace Vixen.Sys.Managers
 			OnNodesChanged();
 		}
 
-		private ElementNode RootNode
+		public ElementNode RootNode
 		{
 			get
 			{
@@ -98,6 +98,10 @@ namespace Vixen.Sys.Managers
 					parent.Element = new Element(parent.Name);
 					VixenSystem.Elements.AddElement(parent.Element);
 				}
+			}
+
+			if (node.Element != null) {
+				VixenSystem.Elements.RemoveElement(node.Element);
 			}
 
 		}

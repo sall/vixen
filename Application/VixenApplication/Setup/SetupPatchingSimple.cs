@@ -29,15 +29,18 @@ namespace VixenApplication.Setup
 		}
 
 
+		private List<ElementNode> _cachedElementNodes;
 		public void UpdateElementSelection(IEnumerable<ElementNode> nodes)
 		{
-			_UpdateElementDetails(nodes);
+			_cachedElementNodes = nodes.ToList();
+			_UpdateElementDetails(_cachedElementNodes);
 			_updatePatchingSummary();
 		}
 
 		public void UpdateElementDetails(IEnumerable<ElementNode> nodes)
 		{
-			_UpdateElementDetails(nodes);
+			_cachedElementNodes = nodes.ToList();
+			_UpdateElementDetails(_cachedElementNodes);
 			_updatePatchingSummary();
 		}
 
@@ -49,12 +52,10 @@ namespace VixenApplication.Setup
 			_updatePatchingSummary();
 		}
 
-		public void UpdateControllerDetails()
+		public void UpdateControllerDetails(ControllersAndOutputsSet controllersAndOutputs)
 		{
-			if (_cachedControllersAndOutputs == null)
-				return;
-
-			_updateControllerDetails(_cachedControllersAndOutputs);
+			_cachedControllersAndOutputs = controllersAndOutputs;
+			_updateControllerDetails(controllersAndOutputs);
 			_updatePatchingSummary();
 		}
 
@@ -62,6 +63,9 @@ namespace VixenApplication.Setup
 		{
 			get { return this; }
 		}
+
+		public DisplaySetup MasterForm { get; set; }
+
 
 
 		public event EventHandler<FiltersEventArgs> FiltersAdded;
@@ -114,6 +118,8 @@ namespace VixenApplication.Setup
 			labelGroupCount.Text = groupCount.ToString();
 			labelElementCount.Text = leafCount.ToString();
 			labelFilterCount.Text = filterCount.ToString();
+
+			buttonUnpatchElements.Enabled = patchedCount > 0;
 		}
 
 
@@ -248,6 +254,25 @@ namespace VixenApplication.Setup
 			labelOutputCount.Text = (patchedCount + unpatchedCount).ToString();
 			labelPatchedOutputCount.Text = patchedCount.ToString();
 			labelUnpatchedOutputCount.Text = unpatchedCount.ToString();
+
+			buttonUnpatchControllers.Enabled = patchedCount > 0;
+
+			if (checkBoxReverseOutputOrder.Checked) {
+				_controllerInputs.Reverse();
+			}
+
+			labelFirstOutput.Text = "";
+			labelLastOutput.Text = "";
+
+			if (_controllerInputs.Any()) {
+				IControllerDevice controller;
+				int outputIndex;
+				VixenSystem.OutputControllers.getOutputDetailsForDataFlowComponent(_controllerInputs.First().Item, out controller, out outputIndex);
+				labelFirstOutput.Text = string.Format("{0} #{1}", controller.Name, outputIndex + 1);
+
+				VixenSystem.OutputControllers.getOutputDetailsForDataFlowComponent(_controllerInputs.Last().Item, out controller, out outputIndex);
+				labelLastOutput.Text = string.Format("{0} #{1}", controller.Name, outputIndex + 1);
+			}
 		}
 
 
@@ -293,10 +318,10 @@ namespace VixenApplication.Setup
 
 			if (patchSources > 0 && patchDestinations > 0) {
 				if (patchSources > patchDestinations) {
-					warning = "Warning: too many selected elements, some will not be patched to outputs";
+					warning = "Warning: too many elements, some will not be patched from";
 				}
 				if (patchDestinations > patchSources) {
-					warning = "Warning: too many selected controller outputs, some will not be patched from elements";
+					warning = "Warning: too many outputs, some will not be patched to";
 				}
 			}
 
@@ -319,11 +344,11 @@ namespace VixenApplication.Setup
 			int max = Math.Min(_selectedPatchSources.Count, _selectedPatchDestinations.Count);
 
 			for (int i = 0; i < max; i++) {
-				//DataFlowComponentReference dfcr = new DataFlowComponentReference(_selectedPatchSources[i].Item.Component, _selectedPatchSources[i].Item.OutputIndex);
 				VixenSystem.DataFlow.SetComponentSource(_selectedPatchDestinations[i].Item, _selectedPatchSources[i].Item);
 			}
 
 			OnPatchingUpdated();
+			_UpdateEverything(_cachedElementNodes, _cachedControllersAndOutputs);
 
 			MessageBox.Show("Patched " + max + " element patch points to controllers.", "Patching Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
 		}
@@ -331,6 +356,90 @@ namespace VixenApplication.Setup
 		private void radioButtonPatching_CheckedChanged(object sender, EventArgs e)
 		{
 			_updatePatchingSummary();
+		}
+
+
+		private void buttonUnpatchElements_Click(object sender, EventArgs e)
+		{
+			// find all patches that will be removed. keep track of the element->filter patches,
+			// then all other patches, in case we want to keep them.
+			// TODO: eh, I may have written this while drunk, it doesn't seem like a particlarly good way to do it
+
+			List<IDataFlowComponent> directElementChildren = new List<IDataFlowComponent>();
+			List<IDataFlowComponent> nonDirectElementChildren = new List<IDataFlowComponent>();
+
+			foreach (ElementNode selectedNode in _cachedElementNodes) {
+				foreach (ElementNode leafNode in selectedNode.GetLeafEnumerator()) {
+					if (leafNode.Element == null)
+						continue;
+
+					IDataFlowComponent leafNodeComponent = VixenSystem.DataFlow.GetComponent(leafNode.Element.Id);
+
+					List<IDataFlowComponent> children = VixenSystem.DataFlow.GetDestinationsOfComponent(leafNodeComponent).ToList();
+					directElementChildren.AddRange(children);
+
+					foreach (IDataFlowComponent child in children) {
+						nonDirectElementChildren.AddRange(_findComponentsOfTypeInTreeFromComponent(child, typeof(IDataFlowComponent)));
+					}
+				}
+			}
+
+			bool removeFilters = false;
+			if (nonDirectElementChildren.Any(x => x is IOutputFilterModuleInstance)) {
+				DialogResult dr;
+				dr = MessageBox.Show("Some elements are patched to filters.  Should these filters be removed as well?",
+				                     "Remove Filters?", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+
+				if (dr == DialogResult.Cancel)
+					return;
+
+				removeFilters = (dr == DialogResult.Yes);
+			}
+
+			foreach (IDataFlowComponent directElementChild in directElementChildren) {
+				VixenSystem.DataFlow.ResetComponentSource(directElementChild);
+
+				if (removeFilters && directElementChild is IOutputFilterModuleInstance) {
+					VixenSystem.Filters.RemoveFilter(directElementChild as IOutputFilterModuleInstance);
+				}
+			}
+
+			if (removeFilters) {
+				foreach (IDataFlowComponent nonDirectElementChild in nonDirectElementChildren) {
+					if (nonDirectElementChild is IOutputFilterModuleInstance) {
+						VixenSystem.Filters.RemoveFilter(nonDirectElementChild as IOutputFilterModuleInstance);
+					}
+				}
+			}
+
+			OnPatchingUpdated();
+			_UpdateEverything(_cachedElementNodes, _cachedControllersAndOutputs);
+		}
+
+
+		private void buttonUnpatchControllers_Click(object sender, EventArgs e)
+		{
+			foreach (KeyValuePair<IControllerDevice, HashSet<int>> controllerAndOutput in _cachedControllersAndOutputs) {
+				OutputController controller = controllerAndOutput.Key as OutputController;
+				if (controller == null)
+					continue;
+
+				foreach (int i in controllerAndOutput.Value) {
+					IDataFlowComponent outputComponent = controller.GetDataFlowComponentForOutput(controller.Outputs[i]);
+					if (outputComponent == null)
+						continue;
+
+					VixenSystem.DataFlow.ResetComponentSource(outputComponent);
+				}
+			}
+
+			OnPatchingUpdated();
+			_UpdateEverything(_cachedElementNodes, _cachedControllersAndOutputs);
+		}
+
+		private void checkBoxReverseOutputOrder_CheckedChanged(object sender, EventArgs e)
+		{
+			_updateControllerDetails(_cachedControllersAndOutputs);
 		}
 
 
