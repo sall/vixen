@@ -132,7 +132,7 @@ namespace VixenModules.Property.Color
 						}
 
 						skip = !overrideExistingFilters;
-						breakdown = leaf as ColorBreakdownModule;
+						breakdown = leaf.Component as ColorBreakdownModule;
 					} else if (leaf.Component.OutputDataType == DataFlowType.None) {
 						// if it's a dead-end -- ie. most likely a controller output -- skip it
 						skip = true;
@@ -227,6 +227,10 @@ namespace VixenModules.Property.Color
 			if (component is ColorBreakdownModule) {
 				yield return new DataFlowComponentReference(component, -1);
 					// this is a bit iffy -- -1 as a component output index -- but hey.
+			}
+
+			if (component.Outputs == null || component.OutputDataType == DataFlowType.None) {
+				yield break;
 			}
 
 			for (int i = 0; i < component.Outputs.Length; i++) {

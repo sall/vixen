@@ -8,6 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using Common.Controls;
 using Common.Resources.Properties;
+using Vixen.Data.Flow;
 using Vixen.Factory;
 using Vixen.Module;
 using Vixen.Module.Controller;
@@ -31,10 +32,12 @@ namespace VixenApplication.Setup
 			buttonConfigureController.Text = "";
 			buttonNumberChannelsController.BackgroundImage = Resources.attributes_display;
 			buttonNumberChannelsController.Text = "";
-			buttonRenameController.BackgroundImage = Resources.cog_edit;
+			buttonRenameController.BackgroundImage = Resources.pencil;
 			buttonRenameController.Text = "";
 			buttonDeleteController.BackgroundImage = Resources.delete;
 			buttonDeleteController.Text = "";
+			buttonSelectSourceElements.BackgroundImage = Resources.table_select_row;
+			buttonSelectSourceElements.Text = "";
 
 			comboBoxNewControllerType.BeginUpdate();
 			foreach (KeyValuePair<Guid, string> kvp in ApplicationServices.GetAvailableModules<IControllerModuleInstance>()) {
@@ -45,31 +48,21 @@ namespace VixenApplication.Setup
 			if (comboBoxNewControllerType.Items.Count > 0)
 				comboBoxNewControllerType.SelectedIndex = 0;
 
-			controllerTree.treeviewAfterSelect += controllerTree_treeviewAfterSelect;
-			controllerTree.treeviewDeselected += controllerTree_treeviewDeselected;
+			controllerTree.ControllerSelectionChanged += controllerTree_ControllerSelectionChanged;
 			controllerTree.ControllersChanged += controllerTree_ControllersChanged;
 
 			UpdateButtons();
 		}
 
+		void controllerTree_ControllerSelectionChanged(object sender, EventArgs e)
+		{
+			OnControllerSelectionChanged();
+			UpdateButtons();
+		}
+
 		void controllerTree_ControllersChanged(object sender, EventArgs e)
 		{
-			_selectedControllersAndOutputs = null;
 			OnControllersChanged();
-			UpdateButtons();
-		}
-
-		void controllerTree_treeviewDeselected(object sender, EventArgs e)
-		{
-			_selectedControllersAndOutputs = null;
-			OnControllerSelectionChanged();
-			UpdateButtons();
-		}
-
-		void controllerTree_treeviewAfterSelect(object sender, TreeViewEventArgs e)
-		{
-			_selectedControllersAndOutputs = null;
-			OnControllerSelectionChanged();
 			UpdateButtons();
 		}
 
@@ -82,6 +75,8 @@ namespace VixenApplication.Setup
 			buttonDeleteController.Enabled = controllerTree.SelectedControllers.Count() >= 1;
 
 			buttonAddController.Enabled = comboBoxNewControllerType.SelectedIndex >= 0;
+
+			buttonSelectSourceElements.Enabled = controllerTree.SelectedTreeNodes.Count > 0;
 		}
 
 		public ControllersAndOutputsSet BuildSelectedControllersAndOutputs()
@@ -126,16 +121,21 @@ namespace VixenApplication.Setup
 			return result;
 		}
 
-		private ControllersAndOutputsSet _selectedControllersAndOutputs;
 		public ControllersAndOutputsSet SelectedControllersAndOutputs
 		{
-			get { return _selectedControllersAndOutputs ?? (_selectedControllersAndOutputs = BuildSelectedControllersAndOutputs()); }
+			get { return BuildSelectedControllersAndOutputs(); }
+			set
+			{
+				controllerTree.PopulateControllerTree(value);
+			}
 		}
 
 		public Control SetupControllersControl
 		{
 			get { return this; }
 		}
+
+		public DisplaySetup MasterForm { get; set; }
 
 		public void UpdatePatching()
 		{
@@ -168,17 +168,7 @@ namespace VixenApplication.Setup
 			ComboBoxItem item = (comboBoxNewControllerType.SelectedItem as ComboBoxItem);
 
 			if (item != null) {
-				IModuleDescriptor moduleDescriptor = ApplicationServices.GetModuleDescriptor((Guid)item.Value);
-				string defaultName = moduleDescriptor.TypeName;
-				ControllerFactory controllerFactory = new ControllerFactory();
-				OutputController oc = (OutputController)controllerFactory.CreateDevice((Guid)item.Value, defaultName);
-
-				if (controllerTree.RenameControllerWithPrompt(oc)) {
-					VixenSystem.OutputControllers.Add(oc);
-					controllerTree.PopulateControllerTree();
-				} else {
-					// TODO: do we need to 'delete' the output controller at all? ie. has it been 'registered' with system, or module data, etc.?
-				}
+				controllerTree.AddNewControllerOfTypeWithPrompts((Guid) item.Value);
 			}
 		}
 
@@ -189,20 +179,60 @@ namespace VixenApplication.Setup
 
 		private void buttonConfigureController_Click(object sender, EventArgs e)
 		{
-			if (controllerTree.SelectedControllers.Count() > 0)
+			if (controllerTree.SelectedControllers.Count() > 0) {
 				controllerTree.ConfigureController(controllerTree.SelectedControllers.First());
+			}
 		}
 
 		private void buttonNumberChannelsController_Click(object sender, EventArgs e)
 		{
-			if (controllerTree.SelectedControllers.Count() > 0)
+			if (controllerTree.SelectedControllers.Count() > 0) {
 				controllerTree.SetControllerOutputCount(controllerTree.SelectedControllers.First());
+			}
 		}
 
 		private void buttonRenameController_Click(object sender, EventArgs e)
 		{
-			if (controllerTree.SelectedControllers.Count() > 0)
+			if (controllerTree.SelectedControllers.Count() > 0) {
 				controllerTree.RenameControllerWithPrompt(controllerTree.SelectedControllers.First());
+			}
+		}
+
+		private void buttonSelectSourceElements_Click(object sender, EventArgs e)
+		{
+			List<ElementNode> elementNodesToSelect = new List<ElementNode>();
+
+			foreach (KeyValuePair<IControllerDevice, HashSet<int>> controllerAndOutputs in SelectedControllersAndOutputs) {
+				OutputController oc = controllerAndOutputs.Key as OutputController;
+				if (oc == null)
+					continue;
+
+				foreach (int i in controllerAndOutputs.Value) {
+					IDataFlowComponent outputComponent = oc.GetDataFlowComponentForOutput(oc.Outputs[i]);
+					IDataFlowComponent rootComponent = FindRootSourceOfDataComponent(outputComponent);
+
+					if (rootComponent is ElementDataFlowAdapter) {
+						Element element = (rootComponent as ElementDataFlowAdapter).Element;
+						ElementNode elementNode = VixenSystem.Elements.GetElementNodeForElement(element);
+						if (elementNode != null) {
+							elementNodesToSelect.Add(elementNode);
+						}
+					}
+				}
+			}
+
+			MasterForm.SelectElements(elementNodesToSelect);
+		}
+
+		private IDataFlowComponent FindRootSourceOfDataComponent(IDataFlowComponent component)
+		{
+			if (component == null)
+				return null;
+			
+			if (component.Source == null || component.Source.Component == null)
+				return component;
+
+			return FindRootSourceOfDataComponent(component.Source.Component);
 		}
 	}
 }

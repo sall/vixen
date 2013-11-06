@@ -17,9 +17,10 @@ namespace VixenApplication.Setup
 		void UpdateElementSelection(IEnumerable<ElementNode> nodes);
 		void UpdateElementDetails(IEnumerable<ElementNode> nodes);
 		void UpdateControllerSelection(ControllersAndOutputsSet controllersAndOutputs);
-		void UpdateControllerDetails();
+		void UpdateControllerDetails(ControllersAndOutputsSet controllersAndOutputs);
 
 		Control SetupPatchingControl { get; }
+		DisplaySetup MasterForm { get; set; }
 	}
 
 	public class FiltersEventArgs : EventArgs
