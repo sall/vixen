@@ -30,6 +30,14 @@ namespace VixenModules.Output.ConductorOutput
 		byte[] bytes = new byte[16384];
 		int[] mybuffer = new int[16384];
 
+        int intervalcount = 0;
+//        int nextheal = 0;
+        long curmill,modmill;
+        long selfheal = 0, moddelay = 50;
+
+
+        string[] intervaldata = new string[32768];
+
 		Stopwatch sw = new Stopwatch();
 
 		BinaryWriter bw;
@@ -81,6 +89,7 @@ namespace VixenModules.Output.ConductorOutput
             if (_myconductordata.savedata)
             {
                 bw.Close();
+                //System.IO.File.WriteAllLines("c:\\conductorlog.txt", intervaldata); // write debug array
             }
 
 		}
@@ -88,7 +97,7 @@ namespace VixenModules.Output.ConductorOutput
 		void sequenceContext_ContextStarted(object sender, EventArgs e)
 		{
 
-			Vixen.Execution.Context.ISequenceContext sequenceContext = (Vixen.Execution.Context.ISequenceContext)sender;
+    		Vixen.Execution.Context.ISequenceContext sequenceContext = (Vixen.Execution.Context.ISequenceContext)sender;
 
 			//start timer and open output file
 
@@ -100,6 +109,7 @@ namespace VixenModules.Output.ConductorOutput
 			//string path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\vixen";
             if (_myconductordata.savedata)
             {
+                
                 string mypath = sequenceContext.Sequence.FilePath.Substring(0, sequenceContext.Sequence.FilePath.LastIndexOf("\\")) +"\\";
                 string myfilename = sequenceContext.Sequence.Name;
 
@@ -109,6 +119,7 @@ namespace VixenModules.Output.ConductorOutput
 			    }
 
     			bw = new BinaryWriter(new FileStream( string.Format("{0}{1}.seq", mypath, myfilename),FileMode.Create));
+                intervalcount = 0;
             }
 			_sequenceStarted = true;
 
@@ -117,10 +128,60 @@ namespace VixenModules.Output.ConductorOutput
 
 		public override void UpdateState(int chainIndex, Vixen.Commands.ICommand[] outputStates)
 		{
-			
-			if (_sequenceStarted & sw.ElapsedMilliseconds >=50 & _myconductordata.savedata)
+
+            
+			if (_sequenceStarted & sw.ElapsedMilliseconds >=25 & _myconductordata.savedata)
 			{
-				sw.Reset();
+                modmill = sw.ElapsedMilliseconds;
+
+                if (modmill >= 50)
+                {
+                    selfheal = selfheal + (50 - modmill);
+                    moddelay = 50;
+                }
+                else if (selfheal < 0)
+                {
+                    if ((modmill - 50) < selfheal)
+                    {
+                        moddelay = 50 + selfheal;
+                        selfheal = 0;
+                    }
+                    else
+                    {
+                        moddelay = 50 + (modmill - 50);
+                        selfheal = selfheal - (modmill - 50);
+                    }
+                }
+                else
+                {
+                    moddelay = 50;
+                }
+
+
+                while ((sw.ElapsedMilliseconds <  moddelay) & (modmill < 50))
+                {
+                         
+                }
+
+                curmill = sw.ElapsedMilliseconds;
+                if ((curmill > 50) & (modmill <= 50))
+                {
+                    selfheal = selfheal + (50 - curmill);
+                }
+
+
+/*                if (curmill > selfheal & nextheal == 0)
+                {
+                    selfheal = selfheal - (curmill - selfheal);
+                    nextheal = 1;
+                }
+                else
+                {
+                    selfheal = 50;
+                    nextheal = 0;
+                }
+*/
+                sw.Reset();
 				sw.Start();
 
 				// zero out array (there has to be a better way of doing this)
@@ -170,6 +231,17 @@ namespace VixenModules.Output.ConductorOutput
 				// minutes, so a 5 minute sequence will consume 93.75MB of memory.  This is within the 
 				// constraints of modern computers.
 				
+                if (curmill == 50)
+                {
+                    intervaldata[intervalcount] = intervalcount.ToString() + " , " + modmill.ToString() + " , " + curmill.ToString() + " , " + selfheal.ToString() + " , " + moddelay.ToString();
+                }
+                else
+                {
+                    intervaldata[intervalcount] = intervalcount.ToString() + " , " + modmill.ToString() + " , " + curmill.ToString() + " , " + selfheal.ToString() + " , " + moddelay.ToString() + "<---*-*-*-*-*-*-*-*-*-*-*-*-*";   
+                }
+                intervalcount += 1;
+
+
 				bw.Write(bytes);
 				}
 		}
