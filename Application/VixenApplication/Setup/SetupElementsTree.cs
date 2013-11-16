@@ -8,6 +8,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using Common.Resources;
 using Common.Resources.Properties;
 using Common.Controls;
 using Vixen.Data.Flow;
@@ -25,21 +26,21 @@ namespace VixenApplication.Setup
 		{
 			InitializeComponent();
 
-			buttonAddTemplate.BackgroundImage = Resources.add;
+			buttonAddTemplate.Image = Tools.GetIcon(Resources.add, 16);
 			buttonAddTemplate.Text = "";
-			buttonRunHelperSetup.BackgroundImage = Resources.cog_go;
+			buttonRunHelperSetup.Image = Tools.GetIcon(Resources.cog_go, 16);
 			buttonRunHelperSetup.Text = "";
-			buttonAddProperty.BackgroundImage = Resources.add;
+			buttonAddProperty.Image = Tools.GetIcon(Resources.add, 16);
 			buttonAddProperty.Text = "";
-			buttonRemoveProperty.BackgroundImage = Resources.delete;
+			buttonRemoveProperty.Image = Tools.GetIcon(Resources.delete, 16);
 			buttonRemoveProperty.Text = "";
-			buttonConfigureProperty.BackgroundImage = Resources.cog;
+			buttonConfigureProperty.Image = Tools.GetIcon(Resources.cog, 16);
 			buttonConfigureProperty.Text = "";
-			buttonDeleteElements.BackgroundImage = Resources.delete;
+			buttonDeleteElements.Image = Tools.GetIcon(Resources.delete, 16);
 			buttonDeleteElements.Text = "";
-			buttonRenameElements.BackgroundImage = Resources.pencil;
+			buttonRenameElements.Image = Tools.GetIcon(Resources.pencil, 16);
 			buttonRenameElements.Text = "";
-			buttonSelectDestinationOutputs.BackgroundImage = Resources.table_select_row;
+			buttonSelectDestinationOutputs.Image = Tools.GetIcon(Resources.table_select_row, 16);
 			buttonSelectDestinationOutputs.Text = "";
 
 			comboBoxNewItemType.BeginUpdate();
@@ -210,6 +211,10 @@ namespace VixenApplication.Setup
 				bool act = template.SetupTemplate(elementTree.SelectedElementNodes);
 				if (act) {
 					IEnumerable<ElementNode> createdElements = template.GenerateElements(elementTree.SelectedElementNodes);
+					if (createdElements == null || createdElements.Count() == 0) {
+						MessageBox.Show("Could not create elements.  Ensure you use a valid name and try again.");
+						return;
+					}
 					elementTree.PopulateNodeTree(createdElements.FirstOrDefault());
 					OnElementsChanged();
 				}

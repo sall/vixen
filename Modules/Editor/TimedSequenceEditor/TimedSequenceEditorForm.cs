@@ -27,9 +27,11 @@ using System.Threading;
 using Common.Resources.Properties;
 using Common.Controls;
 using WeifenLuo.WinFormsUI.Docking;
+using Vixen.Sys.State.Execution;
 
 namespace VixenModules.Editor.TimedSequenceEditor
 {
+
 	public partial class TimedSequenceEditorForm : Form, IEditorUserInterface, IExecutionControl, ITiming
 	{
 		private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
@@ -117,6 +119,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			toolStripButton_IncreaseTimingSpeed.DisplayStyle = ToolStripItemDisplayStyle.Image;
 			toolStripButton_DecreaseTimingSpeed.Image = Resources.minus;
 			toolStripButton_DecreaseTimingSpeed.DisplayStyle = ToolStripItemDisplayStyle.Image;
+
+			Execution.ExecutionStateChanged += OnExecutionStateChanged;
 		}
 
 		private IDockContent DockingPanels_GetContentFromPersistString(string persistString)
@@ -247,6 +251,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			TimelineControl.CursorMoved -= CursorMovedHandler;
 			TimelineControl.ElementsSelected -= timelineControl_ElementsSelected;
 			TimelineControl.ContextSelected -= timelineControl_ContextSelected;
+
+			Execution.ExecutionStateChanged -= OnExecutionStateChanged;
 
 			//;
 			if (disposing && (components != null))
@@ -1129,6 +1135,21 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		#region Sequence actions (play, pause, etc.)
 
+		private void OnExecutionStateChanged(object sender, EventArgs e)
+		{
+			Console.WriteLine("tse: state changed: " + Execution.State);
+			if (Execution.State.Equals("Closing"))
+			{
+				if (_context != null)
+					CloseSequenceContext();
+				_context = null;
+			}
+			else if (Execution.State.Equals("Open"))
+			{
+				OpenSequenceContext(_sequence);
+			}
+		}
+
 		private void OpenSequenceContext(Vixen.Sys.ISequence sequence)
 		{
 			if (_context != null) {
@@ -1865,12 +1886,30 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		private void toolStripButton_Play_Click(object sender, EventArgs e)
 		{
-			PlaySequence();
+            if (delayOffToolStripMenuItem.Checked == false)
+            {
+                timerPostponePlay.Enabled = true;
+                toolStripButton_Play.Enabled = playToolStripMenuItem.Enabled = false;
+                toolStripButton_Stop.Enabled = stopToolStripMenuItem.Enabled = true;
+            }
+            else
+            {
+                PlaySequence();
+            }
 		}
 
 		private void toolStripButton_Stop_Click(object sender, EventArgs e)
 		{
-			StopSequence();
+            if (timerPostponePlay.Enabled)
+            {
+                timerPostponePlay.Enabled = false;
+                toolStripButton_Play.Enabled = playToolStripMenuItem.Enabled = true;
+                toolStripButton_Stop.Enabled = stopToolStripMenuItem.Enabled = false;
+            }
+            else
+            {
+                StopSequence();
+            }
 		}
 
 		private void toolStripButton_Pause_Click(object sender, EventArgs e)
@@ -2138,7 +2177,16 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		private void playToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			PlaySequence();
+            if (delayOffToolStripMenuItem.Checked == false)
+            {
+                timerPostponePlay.Enabled = true;
+                toolStripButton_Play.Enabled = playToolStripMenuItem.Enabled = false;
+                toolStripButton_Stop.Enabled = stopToolStripMenuItem.Enabled = true;
+            }
+            else
+            {
+                PlaySequence();
+            }
 		}
 
 		private void pauseToolStripMenuItem_Click(object sender, EventArgs e)
@@ -2148,7 +2196,16 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		private void stopToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			StopSequence();
+            if (timerPostponePlay.Enabled)
+            {
+                timerPostponePlay.Enabled = false;
+                toolStripButton_Play.Enabled = playToolStripMenuItem.Enabled = true;
+                toolStripButton_Stop.Enabled = stopToolStripMenuItem.Enabled = false;
+            }
+            else
+            {
+                StopSequence();
+            }
 		}
 
 		private void toolStripMenuItem_SnapTo_CheckedChanged(object sender, EventArgs e)
@@ -2549,6 +2606,33 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				MarksForm.Close();
 			}
 		}
+
+        private void delayOffToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            timerPostponePlay.Interval = 100;
+            delayOffToolStripMenuItem.Checked = true;
+            delay30SecondsToolStripMenuItem.Checked = delay60SecondsToolStripMenuItem.Checked = false;
+        }
+
+        private void delay30SecondsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            timerPostponePlay.Interval = 30000;
+            delay30SecondsToolStripMenuItem.Checked = true;
+            delayOffToolStripMenuItem.Checked = delay60SecondsToolStripMenuItem.Checked = false;
+        }
+
+        private void delay60SecondsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            timerPostponePlay.Interval = 60000;
+            delay60SecondsToolStripMenuItem.Checked = true;
+            delayOffToolStripMenuItem.Checked = delay30SecondsToolStripMenuItem.Checked = false;
+        }
+
+        private void timerPostponePlay_Tick(object sender, EventArgs e)
+        {
+            timerPostponePlay.Enabled = false;
+            PlaySequence();
+        }
 
 	}
 
