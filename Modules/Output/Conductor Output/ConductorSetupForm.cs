@@ -23,11 +23,22 @@ namespace VixenModules.Output.ConductorOutput
         private void ConductorSetupForm_Load(object sender, EventArgs e)
         {
             cmcb.Checked = _savedata.savedata;
+			cmcb2.Checked = _savedata.OutputDebug;
         }
 
         public Boolean SaveData
         {
             get { return this.cmcb.Checked; }
+        }
+
+		public Boolean OutputDebug
+		{
+			get { return this.cmcb2.Checked; }
+		}
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+
         }
 
     }

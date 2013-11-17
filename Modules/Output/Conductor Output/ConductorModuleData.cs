@@ -14,6 +14,8 @@ namespace VixenModules.Output.ConductorOutput
     {
         [DataMember]
         public Boolean savedata;
+		[DataMember]
+		public Boolean OutputDebug;
 
         public override IModuleDataModel Clone()
         {

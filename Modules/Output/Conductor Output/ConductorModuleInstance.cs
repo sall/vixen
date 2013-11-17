@@ -35,6 +35,7 @@ namespace VixenModules.Output.ConductorOutput
         long curmill,modmill;
         long selfheal = 0, moddelay = 50;
 
+        string mypath, myfilename;
 
         string[] intervaldata = new string[32768];
 
@@ -88,8 +89,16 @@ namespace VixenModules.Output.ConductorOutput
 			sw.Stop();
             if (_myconductordata.savedata)
             {
-                bw.Close();
-                //System.IO.File.WriteAllLines("c:\\conductorlog.txt", intervaldata); // write debug array
+				bw.Close();
+				if (_myconductordata.OutputDebug)
+				{
+					if (File.Exists(string.Format("{0}{1}.debug.txt", mypath, myfilename)))
+					{
+						File.Move(string.Format("{0}{1}.debug.txt", mypath, myfilename), string.Format("{0}{1}_{2:MMdd-hhmmss}.debug.txt", mypath, myfilename, DateTime.Now));
+					}
+
+					System.IO.File.WriteAllLines(string.Format("{0}{1}.debug.txt", mypath, myfilename), intervaldata); // write debug array
+				}
             }
 
 		}
@@ -110,16 +119,17 @@ namespace VixenModules.Output.ConductorOutput
             if (_myconductordata.savedata)
             {
                 
-                string mypath = sequenceContext.Sequence.FilePath.Substring(0, sequenceContext.Sequence.FilePath.LastIndexOf("\\")) +"\\";
-                string myfilename = sequenceContext.Sequence.Name;
+                mypath = sequenceContext.Sequence.FilePath.Substring(0, sequenceContext.Sequence.FilePath.LastIndexOf("\\")) +"\\";
+                myfilename = sequenceContext.Sequence.Name;
 
-	    		if (File.Exists(string.Format("{0}{1}.seq", mypath, myfilename)))
-		    	{
-			    	File.Move(string.Format("{0}{1}.seq", mypath, myfilename), string.Format("{0}{1}_{2:MMdd-hhmmss}.seq",mypath,myfilename , DateTime.Now));
-			    }
+                if (File.Exists(string.Format("{0}{1}.seq", mypath, myfilename)))
+                {
+                    File.Move(string.Format("{0}{1}.seq", mypath, myfilename), string.Format("{0}{1}_{2:MMdd-hhmmss}.seq", mypath, myfilename, DateTime.Now));
+                }
 
-    			bw = new BinaryWriter(new FileStream( string.Format("{0}{1}.seq", mypath, myfilename),FileMode.Create));
+                bw = new BinaryWriter(new FileStream(string.Format("{0}{1}.seq", mypath, myfilename), FileMode.Create));
                 intervalcount = 0;
+				selfheal = 0;
             }
 			_sequenceStarted = true;
 
@@ -169,18 +179,6 @@ namespace VixenModules.Output.ConductorOutput
                     selfheal = selfheal + (50 - curmill);
                 }
 
-
-/*                if (curmill > selfheal & nextheal == 0)
-                {
-                    selfheal = selfheal - (curmill - selfheal);
-                    nextheal = 1;
-                }
-                else
-                {
-                    selfheal = 50;
-                    nextheal = 0;
-                }
-*/
                 sw.Reset();
 				sw.Start();
 
@@ -239,11 +237,12 @@ namespace VixenModules.Output.ConductorOutput
                 {
                     intervaldata[intervalcount] = intervalcount.ToString() + " , " + modmill.ToString() + " , " + curmill.ToString() + " , " + selfheal.ToString() + " , " + moddelay.ToString() + "<---*-*-*-*-*-*-*-*-*-*-*-*-*";   
                 }
+
                 intervalcount += 1;
 
 
 				bw.Write(bytes);
-				}
+			}
 		}
 
 		public override bool HasSetup
@@ -258,7 +257,8 @@ namespace VixenModules.Output.ConductorOutput
             if (dialog.ShowDialog() == DialogResult.OK)
             {
                 this._myconductordata.savedata = dialog.SaveData;
-            }
+				this._myconductordata.OutputDebug = dialog.OutputDebug;
+			}
             return true;
 
 		}
