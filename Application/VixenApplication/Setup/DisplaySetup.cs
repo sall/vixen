@@ -35,6 +35,7 @@ namespace VixenApplication
 			InitializeComponent();
 
 			Icon = Common.Resources.Properties.Resources.Icon_Vixen3;
+			buttonHelp.Image = Common.Resources.Tools.GetIcon(Common.Resources.Properties.Resources.help, 16);
 
 			_elementTemplates = Vixen.Services.ApplicationServices.GetAllElementTemplates();
 			_elementSetupHelpers = Vixen.Services.ApplicationServices.GetAllElementSetupHelpers();
@@ -63,8 +64,6 @@ namespace VixenApplication
 			radioButtonElementTree.Checked = true;
 			radioButtonPatchingSimple.Checked = true;
 			radioButtonControllersStandard.Checked = true;
-
-			buttonHelp.Image = new Bitmap(Common.Resources.Properties.Resources.help, new Size(16, 16));
 		}
 
 
@@ -90,6 +89,11 @@ namespace VixenApplication
 		{
 			if (_currentPatchingControl != null) {
 				_currentPatchingControl.UpdateElementDetails(_currentElementControl.SelectedElements);
+			}
+
+			// TODO: this is iffy, should really redo the events for this system
+			if (_currentControllersControl != null) {
+				_currentControllersControl.UpdatePatching();
 			}
 		}
 
@@ -169,6 +173,11 @@ namespace VixenApplication
 		{
 			if (_currentPatchingControl != null) {
 				_currentPatchingControl.UpdateControllerDetails(_currentControllersControl.SelectedControllersAndOutputs);
+			}
+
+			// TODO: this is iffy, should really redo the events for this system
+			if (_currentElementControl != null) {
+				_currentElementControl.UpdatePatching();
 			}
 		}
 
