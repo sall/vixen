@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using Common.Resources;
 using VixenModules.Sequence.Timed;
 using Vixen.Execution;
 using Vixen.Module.Timing;
@@ -39,17 +40,17 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		{
 			InitializeComponent();
 			Icon = Resources.Icon_Vixen3;
-			buttonPlay.BackgroundImage = Resources.control_play_blue;
+			buttonPlay.Image = Tools.GetIcon(Resources.control_play_blue, 16);
 			buttonPlay.Text = "";
-			buttonStop.BackgroundImage = Resources.control_stop_blue;
+			buttonStop.Image = Tools.GetIcon(Resources.control_stop_blue, 16);
 			buttonStop.Text = "";
-			buttonIncreasePlaybackSpeed.BackgroundImage = Resources.plus;
+			buttonIncreasePlaybackSpeed.Image = Tools.GetIcon(Resources.plus, 16);
 			buttonIncreasePlaybackSpeed.Text = "";
-			buttonDecreasePlaySpeed.BackgroundImage = Resources.minus;
+			buttonDecreasePlaySpeed.Image = Tools.GetIcon(Resources.minus, 16);
 			buttonDecreasePlaySpeed.Text = "";
-			buttonIncreaseSelectedMarks.BackgroundImage = Resources.plus;
+			buttonIncreaseSelectedMarks.Image = Tools.GetIcon(Resources.plus, 16);
 			buttonIncreaseSelectedMarks.Text = "";
-			buttonDecreaseSelectedMarks.BackgroundImage = Resources.minus;
+			buttonDecreaseSelectedMarks.Image = Tools.GetIcon(Resources.minus, 16);
 			buttonDecreaseSelectedMarks.Text = "";
 
 			MarkCollections = markCollections;
@@ -569,7 +570,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 					int generatedMarks = (int) (duration.Ticks/interval.Ticks) - 1;
 
-					if (MessageBox.Show(string.Format("From the selected marks, a beat interval of {0:s.ff} seconds was detected ({1:0.00} bpm). This will generate {2} marks. Do you want to continue?", interval,
+					if (MessageBox.Show(string.Format("From the selected marks, a beat interval of {0:%s\\.ff} seconds was detected ({1:0.00} bpm). This will generate {2} marks. Do you want to continue?", interval,
 										 bpm, generatedMarks), "Confirmation", MessageBoxButtons.YesNo) != DialogResult.Yes) {
 						return;
 					}

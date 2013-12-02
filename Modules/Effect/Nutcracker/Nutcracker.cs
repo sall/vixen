@@ -38,7 +38,20 @@ namespace VixenModules.Effect.Nutcracker
 		{
 			int scnt = StringCount;
 			if (scnt < 2)
-				_data.NutcrackerData.PreviewType = NutcrackerEffects.PreviewType.VerticalLine;
+			{
+				//_data.NutcrackerData.PreviewType = NutcrackerEffects.PreviewType.VerticalLine;
+				switch (_data.NutcrackerData.PreviewType)
+				{
+					case NutcrackerEffects.PreviewType.Arch:
+					case NutcrackerEffects.PreviewType.VerticalLine:
+					case NutcrackerEffects.PreviewType.HorizontalLine:
+						break;
+					default:
+						_data.NutcrackerData.PreviewType = NutcrackerEffects.PreviewType.VerticalLine;
+						break;
+				}
+			}
+				
 			_elementData = new EffectIntents();
 
 			foreach (ElementNode node in TargetNodes) {
@@ -129,23 +142,32 @@ namespace VixenModules.Effect.Nutcracker
 
 		private int PixelsPerString(ElementNode parentNode)
 		{
+			//TODO: what would we do if parentNode is null?
 			int pps = 0;
-			// Is this a single string?
 			int leafCount = 0;
 			int groupCount = 0;
-			foreach (ElementNode node in parentNode.Children) {
+			// if no groups are children, then return nChildren
+			// otherwise return the size of the first group
+			ElementNode firstGroup = null;
+			foreach (ElementNode node in parentNode.Children)
+			{
 				if (node.IsLeaf) {
 					leafCount++;
 				}
 				else {
 					groupCount++;
+					if (firstGroup == null)
+						firstGroup = node;
 				}
 			}
 			if (groupCount == 0) {
 				pps = leafCount;
 			}
 			else {
-				pps = PixelsPerString(parentNode.Children.FirstOrDefault());
+				// this needs to be called on a group, first might be an element
+				//pps = PixelsPerStringx(parentNode.Children.FirstOrDefault());
+				// this is marginally better but its not clear what to do about further nesting
+				pps = PixelsPerString(firstGroup);
 			}
 
             if (pps == 0)
