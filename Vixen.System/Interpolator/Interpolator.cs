@@ -36,6 +36,7 @@ namespace Vixen.Interpolator
 	public static class Interpolator
 	{
 		private static Dictionary<Type, object> _interpolators;
+        private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
 
 		static Interpolator()
 		{
@@ -83,16 +84,13 @@ namespace Vixen.Interpolator
 				// at least debug it a bit better if users hit it.
 				// (was having trouble instantiating a LightingValueInterpolator.)
 				if (interpolator == null) {
-					NLog.Logger logging = NLog.LogManager.GetCurrentClassLogger();
-					logging.Error("Interpolator: _FindInassembly: interpolator variable is null. This should never happen, please report it.");
+					Logging.Error("Interpolator: _FindInassembly: interpolator variable is null. This should never happen, please report it.");
 				}
 				if (type == null) {
-					NLog.Logger logging = NLog.LogManager.GetCurrentClassLogger();
-					logging.Error("Interpolator: _FindInassembly: type variable is null. This should never happen, please report it.");
+					Logging.Error("Interpolator: _FindInassembly: type variable is null. This should never happen, please report it.");
 				}
 				if (_interpolators == null) {
-					NLog.Logger logging = NLog.LogManager.GetCurrentClassLogger();
-					logging.Error("Interpolator: _FindInassembly: _interpolators variable is null. This should never happen, please report it.");
+					Logging.Error("Interpolator: _FindInassembly: _interpolators variable is null. This should never happen, please report it.");
 				}
 				_interpolators[type] = interpolator;
 			}

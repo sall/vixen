@@ -21,6 +21,7 @@ namespace Vixen.Sys.Output
 		private IOutputModuleConsumer<IControllerModuleInstance> _outputModuleConsumer;
 		private int? _updateInterval;
 		private IOutputDataPolicyProvider _dataPolicyProvider;
+        private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
 
 		internal OutputController(Guid id, string name, IOutputMediator<CommandOutput> outputMediator,
 		                          IHardware executionControl,
@@ -151,23 +152,39 @@ namespace Vixen.Sys.Output
 		{
 			var sw = System.Diagnostics.Stopwatch.StartNew();
 			if (VixenSystem.ControllerLinking.IsRootController(this) && _ControllerChainModule != null) {
-				_outputMediator.LockOutputs();
+				
 				try {
+                    _outputMediator.LockOutputs();
 					foreach (OutputController controller in this) {
 						if (true)
 						{
 							controller.Outputs.AsParallel().ForAll(x =>
-							{
-								x.Update();
-								x.Command = _GenerateOutputCommand(x);
+                            {
+                                try
+                                {
+                                    x.Update();
+                                    x.Command = _GenerateOutputCommand(x);
+                                }
+                                catch (Exception e)
+                                {
+                                    Logging.ErrorException("Error Generating Output Command", e);
+                                }
+						
 							});
 						}
 						else
 						{
 							foreach( var x in controller.Outputs)
 							{
-								x.Update();
-								x.Command = _GenerateOutputCommand(x);
+                                try
+                                {
+                                    x.Update();
+                                    x.Command = _GenerateOutputCommand(x);
+                                }
+                                catch (Exception e)
+                                {
+                                    Logging.ErrorException("Error Generating Output Command", e);
+                                }
 							}
 						}
 					}

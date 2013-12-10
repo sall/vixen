@@ -18,7 +18,8 @@ namespace Launcher
 	{
 		private EffectIntents _elementData = null;
 		private Data _data;
-
+        private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
+		
 		public Module()
 		{
 			_data = new Data();
@@ -41,8 +42,16 @@ namespace Launcher
 				targetNodes = targetNodes.WithCancellation(cancellationToken.Token);
 			
 			targetNodes.ForAll(node => {
-				IIntent i = new CommandIntent(value, TimeSpan);
-				_elementData.AddIntentForElement(node.Element.Id, i, TimeSpan.Zero);
+                try
+                {
+                    IIntent i = new CommandIntent(value, TimeSpan);
+                    _elementData.AddIntentForElement(node.Element.Id, i, TimeSpan.Zero);
+                }
+                catch (Exception e)
+                {
+                    Logging.ErrorException(e.Message, e);
+                }
+	
 			});
 
 		}

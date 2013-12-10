@@ -35,6 +35,7 @@ namespace VixenModules.Preview.VixenPreview.Direct2D {
 		private long frameCount;
 		private long fps;
 		private Guid DisplayID = Guid.Empty;
+        private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
 
 		public DisplayScene(System.Drawing.Image backgroundImage)
 			: base(desiredFps) {
@@ -228,51 +229,55 @@ namespace VixenModules.Preview.VixenPreview.Direct2D {
 
 
 
-					try
-					{
+					 
 						elementArray.AsParallel().WithCancellation(tokenSource.Token).ForAll(element =>
 						{
-
-							ElementNode node;
-
-							if (!ElementNodeCache.TryGetValue(element.Id, out node))
-							{
-								if (element != null)
-								{
-
-									node = VixenSystem.Elements.GetElementNodeForElement(element);
-									if (node != null)
-										ElementNodeCache.TryAdd(element.Id, node);
-								}
-							}
-
-							if (node != null)
-							{
-								Color pixColor;
+                            try
+                            {
 
 
-								//TODO: Discrete Colors
-								pixColor = IntentHelpers.GetAlphaRGBMaxColorForIntents(element.State);
+                                ElementNode node;
 
-								if (pixColor.A > 0)
-									using (var brush = rt.CreateSolidColorBrush(pixColor.ToColorF())) {
+                                if (!ElementNodeCache.TryGetValue(element.Id, out node))
+                                {
+                                    if (element != null)
+                                    {
 
-										List<PreviewPixel> pixels;
-										if (NodeToPixel.TryGetValue(node, out pixels))
-										{
-											iPixels += pixels.Count;
-											pixels.ForEach(p => RenderPixel(rt, /*channelIntentState, */p, brush));
+                                        node = VixenSystem.Elements.GetElementNodeForElement(element);
+                                        if (node != null)
+                                            ElementNodeCache.TryAdd(element.Id, node);
+                                    }
+                                }
 
-										}
-									}
-							}
+                                if (node != null)
+                                {
+                                    Color pixColor;
+
+
+                                    //TODO: Discrete Colors
+                                    pixColor = IntentHelpers.GetAlphaRGBMaxColorForIntents(element.State);
+
+                                    if (pixColor.A > 0)
+                                        using (var brush = rt.CreateSolidColorBrush(pixColor.ToColorF()))
+                                        {
+
+                                            List<PreviewPixel> pixels;
+                                            if (NodeToPixel.TryGetValue(node, out pixels))
+                                            {
+                                                iPixels += pixels.Count;
+                                                pixels.ForEach(p => RenderPixel(rt, /*channelIntentState, */p, brush));
+
+                                            }
+                                        }
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                Logging.ErrorException(e.Message, e);
+                                tokenSource.Cancel();
+                            }
 						});
-					}
-					catch (Exception)
-					{
-						tokenSource.Cancel();
-						//Console.WriteLine(e.Message);
-					}
+					 
 
 
 					// done w/local bitmap render target

@@ -540,23 +540,38 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 				TimelineControl.grid.SuppressInvalidate = true; //Hold off invalidating the grid while we bulk load.
 				TimelineControl.grid.SupressRendering = true; //Hold off rendering while we load elements. 
-				// This takes quite a bit of time so queue it up
-				taskQueue.Enqueue(Task.Factory.StartNew(() =>
-															{
-																addElementsForEffectNodes(_sequence.SequenceData.EffectData);
-															}));
+                // This takes quite a bit of time so queue it up
+                taskQueue.Enqueue(Task.Factory.StartNew(() =>
+                                                            {
+                                                                try
+                                                                {
+                                                                    addElementsForEffectNodes(_sequence.SequenceData.EffectData);
+                                                                }
+                                                                catch (Exception e)
+                                                                {
+                                                                    Logging.ErrorException(e.Message, e);
+                                                                }
+
+                                                            }));
 				// Now that it is queued up, let 'er rip and start background rendering when complete.
 				Task.Factory.ContinueWhenAll(taskQueue.ToArray(), completedTasks =>
 																	{
-																		// Clear the loading toolbar
-																		loadingWatch.Stop();
-																		TimelineControl.SequenceLoading = false;
-																		loadTimer.Enabled = false;
-																		updateToolStrip4(string.Empty);
-																		TimelineControl.grid.SupressRendering = false;
-																		TimelineControl.grid.SuppressInvalidate = false;
-																		TimelineControl.grid.RenderAllRows();
-																	});
+                                                                        try
+                                                                        {
+                                                                            // Clear the loading toolbar
+                                                                            loadingWatch.Stop();
+                                                                            TimelineControl.SequenceLoading = false;
+                                                                            loadTimer.Enabled = false;
+                                                                            updateToolStrip4(string.Empty);
+                                                                            TimelineControl.grid.SupressRendering = false;
+                                                                            TimelineControl.grid.SuppressInvalidate = false;
+                                                                            TimelineControl.grid.RenderAllRows();
+                                                                        }
+                                                                        catch (Exception e)
+                                                                        {
+                                                                            Logging.ErrorException(e.Message, e);
+                                                                        }
+                                                                    });
 
 				populateGridWithMarks();
 
@@ -688,26 +703,33 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			}
 		}
 		private void populateWaveformAudio()
-		{
-			if (_sequence.GetAllMedia().Any())
-			{
-				IMediaModuleInstance media = _sequence.GetAllMedia().First();
-				Audio audio = media as Audio;
+        {
+            try
+            {
 
-				if (audio.MediaExists)
-				{
-					TimelineControl.Audio = audio;
-					toolStripMenuItem_removeAudio.Enabled = true;
-					PopulateAudioDropdown();
-				}
-				else
-				{
-					string message = String.Format("Audio file not found on the path:\n\n {0}\n\nPlease Check your settings/path.", audio.MediaFilePath);
-					MessageBox.Show(message, "Missing audio file");
-				}
+                if (_sequence.GetAllMedia().Any())
+                {
+                    IMediaModuleInstance media = _sequence.GetAllMedia().First();
+                    Audio audio = media as Audio;
 
+                    if (audio.MediaExists)
+                    {
+                        TimelineControl.Audio = audio;
+                        toolStripMenuItem_removeAudio.Enabled = true;
+                        PopulateAudioDropdown();
+                    }
+                    else
+                    {
+                        string message = String.Format("Audio file not found on the path:\n\n {0}\n\nPlease Check your settings/path.", audio.MediaFilePath);
+                        MessageBox.Show(message, "Missing audio file");
+                    }
+                }
+            }
+            catch (Exception e)
+            {
 
-			}
+                Logging.ErrorException(e.Message, e);
+            }
 		}
 
 		/// <summary>
@@ -1690,28 +1712,36 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			// for the effect, make a single element and add it to every row that represents its target elements
 			node.Effect.TargetNodes.AsParallel().WithCancellation(cancellationTokenSource.Token)
 				.ForAll(target =>
-							{
-								if (_elementNodeToRows.ContainsKey(target))
-								{
-									// Add the element to each row that represents the element this command is in.
-									foreach (Row row in _elementNodeToRows[target])
-									{
-										if (!_effectNodeToElement.ContainsKey(node))
-										{
-											_effectNodeToElement[node] = element;
-										}
-										row.AddElement(element);
-									}
-								}
-								else
-								{
-									// we don't have a row for the element this effect is referencing; most likely, the row has
-									// been deleted, or we're opening someone else's sequence, etc. Big fat TODO: here for that, then.
-									// dunno what we want to do: prompt to add new elements for them? map them to others? etc.
-									string message = "No Timeline.Row is associated with a target ElementNode for this EffectNode. It now exists in the sequence, but not in the GUI.";
-									MessageBox.Show(message);
-									Logging.Error(message);
-								}
+                            {
+                                try
+                                {
+                                    if (_elementNodeToRows.ContainsKey(target))
+                                    {
+                                        // Add the element to each row that represents the element this command is in.
+                                        foreach (Row row in _elementNodeToRows[target])
+                                        {
+                                            if (!_effectNodeToElement.ContainsKey(node))
+                                            {
+                                                _effectNodeToElement[node] = element;
+                                            }
+                                            row.AddElement(element);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // we don't have a row for the element this effect is referencing; most likely, the row has
+                                        // been deleted, or we're opening someone else's sequence, etc. Big fat TODO: here for that, then.
+                                        // dunno what we want to do: prompt to add new elements for them? map them to others? etc.
+                                        string message = "No Timeline.Row is associated with a target ElementNode for this EffectNode. It now exists in the sequence, but not in the GUI.";
+                                        MessageBox.Show(message);
+                                        Logging.Error(message);
+                                    }
+                                }
+                                catch (Exception e)
+                                {
+                                    Logging.ErrorException(e.Message, e);
+                                }
+
 							});
 			TimelineControl.grid.RenderElement(element);
 			return element;

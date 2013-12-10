@@ -8,7 +8,9 @@ using Vixen.Sys.Instrumentation;
 namespace Vixen.Execution.DataSource
 {
 	internal class EffectNodeBuffer : IDataSource
-	{
+    {
+        private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
+
 		private IEnumerable<IEffectNode> _effectNodeSource;
 		private EffectNodeQueue _effectNodeQueue;
 		private BufferSizeInSecondsValue _bufferSizeSecondsValue;
@@ -127,17 +129,23 @@ namespace Vixen.Execution.DataSource
 			IsRunning = true;
 
 			IEnumerator<IEffectNode> dataEnumerator = _effectNodeSource.GetEnumerator();
-			try {
-				while (IsRunning) {
-					while (_IsBufferInadequate() && IsRunning && dataEnumerator.MoveNext() && _effectNodeQueue != null) {
-						_AddToQueue(dataEnumerator.Current);
-					}
+            try
+            {
+                while (IsRunning)
+                {
+                    while (_IsBufferInadequate() && IsRunning && dataEnumerator.MoveNext() && _effectNodeQueue != null)
+                    {
+                        _AddToQueue(dataEnumerator.Current);
+                    }
 
-					// Wait until the buffer is read from.
-					if (_bufferReadSignal != null)
-						_bufferReadSignal.WaitOne();
-				}
-			}
+                    // Wait until the buffer is read from.
+                    if (_bufferReadSignal != null)
+                        _bufferReadSignal.WaitOne();
+                }
+            }
+            catch (Exception e) {
+                Logging.ErrorException(e.Message, e);
+            }
 			finally {
 				dataEnumerator.Dispose();
 				if (_bufferReadSignal != null) {

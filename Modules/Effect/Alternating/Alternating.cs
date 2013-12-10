@@ -22,6 +22,8 @@ namespace VixenModules.Effect.Alternating
 	 
 	public class Alternating : EffectModuleInstanceBase
 	{
+        private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
+		
 		private AlternatingData _data;
 		private EffectIntents _elementData = null;
 		public Alternating()
@@ -44,8 +46,15 @@ namespace VixenModules.Effect.Alternating
 				targetNodes = targetNodes.WithCancellation(cancellationToken.Token);
 			
 			targetNodes.ForAll(node => {
-				if (node != null)
-				RenderNode(node);
+                try
+                {
+                    if (node != null)
+                        RenderNode(node);
+                }
+                catch (Exception e)
+                {
+                    Logging.ErrorException(e.Message, e);
+                }
 			});
 	 
 			 

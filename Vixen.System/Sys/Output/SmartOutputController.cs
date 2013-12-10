@@ -20,6 +20,7 @@ namespace Vixen.Sys.Output
 		private IHardware _executionControl;
 		private IOutputModuleConsumer<ISmartControllerModuleInstance> _outputModuleConsumer;
 		private int? _updateInterval;
+        private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
 
 		internal SmartOutputController(Guid id, string name, IOutputMediator<IntentOutput> outputMediator,
 		                               IHardware executionControl,
@@ -60,11 +61,21 @@ namespace Vixen.Sys.Output
 			_outputMediator.LockOutputs();
 			try {
 				Outputs.AsParallel().ForAll(x =>
-				                            	{
-				                            		x.Update();
-				                            		x.IntentChangeCollection = _GenerateChangeCollection(x);
-				                            	});
-				_UpdateModuleState(_ExtractIntentChangesFromOutputs().ToArray());
+                                                {
+                                                    try
+                                                    {
+                                                        x.Update();
+                                                        x.IntentChangeCollection = _GenerateChangeCollection(x);
+                                                        _UpdateModuleState(_ExtractIntentChangesFromOutputs().ToArray());
+                                                    }
+                                                    catch (Exception e)
+                                                    {
+
+                                                        Logging.ErrorException(e.Message, e);
+                                                    }
+
+                                                });
+			
 			}
 			finally {
 				_outputMediator.UnlockOutputs();

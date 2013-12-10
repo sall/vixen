@@ -10,6 +10,7 @@ namespace Vixen.Execution.DataSource
 	{
 		private EffectNodeQueue _effectNodeQueue;
 		private Thread _dataPumpThread;
+        private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
 
 		public SequenceDataPump()
 		{
@@ -64,17 +65,23 @@ namespace Vixen.Execution.DataSource
 			IsRunning = true;
 
 			IEnumerator<IDataNode> dataEnumerator = Sequence.SequenceData.EffectData.GetEnumerator();
-			try {
-				while (IsRunning) {
-					while (IsRunning && dataEnumerator.MoveNext()) {
-						_effectNodeQueue.Add((IEffectNode) dataEnumerator.Current);
-					}
+            try
+            {
+                while (IsRunning)
+                {
+                    while (IsRunning && dataEnumerator.MoveNext())
+                    {
+                        _effectNodeQueue.Add((IEffectNode)dataEnumerator.Current);
+                    }
 
-					// Wait a bit before checking for more data.
-					//*** Look up a better way than an arbitrary sleep.
-					Thread.Sleep(5);
-				}
-			}
+                    // Wait a bit before checking for more data.
+                    //*** Look up a better way than an arbitrary sleep.
+                    Thread.Sleep(5);
+                }
+            }
+            catch (Exception e) {
+                Logging.ErrorException(e.Message, e);
+            }
 			finally {
 				dataEnumerator.Dispose();
 			}

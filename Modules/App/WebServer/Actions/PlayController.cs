@@ -103,7 +103,18 @@ namespace VixenModules.App.WebServer.Actions
 					return;
 				}
 				Logging.Info(string.Format("Web - Prerendering effects for sequence: {0}", sequence.Name));
-				Parallel.ForEach(sequence.SequenceData.EffectData.Cast<IEffectNode>(), effectNode  => effectNode.Effect.PreRender());
+                Parallel.ForEach(sequence.SequenceData.EffectData.Cast<IEffectNode>(), effectNode =>
+                {
+                    try
+                    {
+                        effectNode.Effect.PreRender();
+                    }
+                    catch (Exception e)
+                    {
+                        Logging.ErrorException(e.Message, e);
+                    }
+                   
+                });
 				
 				_context = VixenSystem.Contexts.CreateSequenceContext(new ContextFeatures(ContextCaching.NoCaching), sequence);
 				_context.ContextEnded += context_ContextEnded;
