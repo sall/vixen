@@ -169,59 +169,63 @@ namespace VersionControl
             if (e.FullPath.Contains("\\.git") || e.FullPath.Contains("\\Logs")) return;
             Task.Factory.StartNew(() =>
             {
-                try
-                {
-
-             
-                lock (fileLockObject)
-                {
-                    //Wait for the file to fully save...
-                    Thread.Sleep(2000);
+	            try
+	            {
 
 
-                    switch (e.ChangeType)
-                    {
+		            lock (fileLockObject)
+		            {
+			            //Wait for the file to fully save...
+			            Thread.Sleep(2000);
 
-                        case WatcherChangeTypes.Changed:
-                            repo.Index.Add(e.FullPath);
-                            if ((repo.Status.Modified.Count + repo.Status.Added.Count +
-                                 repo.Status.Removed.Count) > 0)
-                                repo.Commit(string.Format("Changed {0}{1}", e.Name,
-                                    restoringFile ? " [Restored]" : ""));
-                            break;
-                        case WatcherChangeTypes.Created:
-                            repo.Index.Add(e.FullPath);
-                            if ((repo.Status.Modified.Count + repo.Status.Added.Count +
-                                 repo.Status.Removed.Count) > 0)
-                                repo.Commit(string.Format("Added {0}{1}", e.Name,
-                                    restoringFile ? " [Restored]" : ""));
-                            break;
-                        case WatcherChangeTypes.Deleted:
-                            repo.Index.Delete(e.FullPath);
-                            if ((repo.Status.Modified.Count + repo.Status.Added.Count +
-                                 repo.Status.Removed.Count) > 0)
-                                repo.Commit(string.Format("Deleted {0}{1}", e.Name,
-                                    restoringFile ? " [Restored]" : ""));
-                            break;
-                        case WatcherChangeTypes.Renamed:
-                            repo.Index.Delete(((RenamedEventArgs)e).OldFullPath);
-                            repo.Index.Add(e.FullPath);
-                            if ((repo.Status.Modified.Count + repo.Status.Added.Count +
-                                 repo.Status.Removed.Count) > 0)
-                                repo.Commit(string.Format("Renamed file {0} to {1}{2}",
-                                    ((RenamedEventArgs)e).OldName, e.Name,
-                                    restoringFile ? " [Restored]" : ""));
-                            break;
-                    }
-                }
-                }
-                catch (Exception eee)
-                {
 
-                    Logging.ErrorException(eee.Message,eee);
-                }
+			            switch (e.ChangeType)
+			            {
 
-                restoringFile = false;
+				            case WatcherChangeTypes.Changed:
+					            repo.Index.Add(e.FullPath);
+					            if ((repo.Status.Modified.Count + repo.Status.Added.Count +
+					                 repo.Status.Removed.Count) > 0)
+						            repo.Commit(string.Format("Changed {0}{1}", e.Name,
+							            restoringFile ? " [Restored]" : ""));
+					            break;
+				            case WatcherChangeTypes.Created:
+					            repo.Index.Add(e.FullPath);
+					            if ((repo.Status.Modified.Count + repo.Status.Added.Count +
+					                 repo.Status.Removed.Count) > 0)
+						            repo.Commit(string.Format("Added {0}{1}", e.Name,
+							            restoringFile ? " [Restored]" : ""));
+					            break;
+				            case WatcherChangeTypes.Deleted:
+					            repo.Index.Delete(e.FullPath);
+					            if ((repo.Status.Modified.Count + repo.Status.Added.Count +
+					                 repo.Status.Removed.Count) > 0)
+						            repo.Commit(string.Format("Deleted {0}{1}", e.Name,
+							            restoringFile ? " [Restored]" : ""));
+					            break;
+				            case WatcherChangeTypes.Renamed:
+					            repo.Index.Delete(((RenamedEventArgs) e).OldFullPath);
+					            repo.Index.Add(e.FullPath);
+					            if ((repo.Status.Modified.Count + repo.Status.Added.Count +
+					                 repo.Status.Removed.Count) > 0)
+						            repo.Commit(string.Format("Renamed file {0} to {1}{2}",
+							            ((RenamedEventArgs) e).OldName, e.Name,
+							            restoringFile ? " [Restored]" : ""));
+					            break;
+			            }
+		            }
+	            }
+	            catch (InvalidOperationException ioe)
+	            {
+					//Ignore these errors... 
+	            }
+	            catch (Exception eee)
+	            {
+
+		            Logging.ErrorException(eee.Message, eee);
+	            }
+
+	            restoringFile = false;
                 //Reset the cache when GIT changes
                 Versioning.GitDetails = null;
 

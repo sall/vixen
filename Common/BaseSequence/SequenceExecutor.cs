@@ -14,6 +14,9 @@ namespace BaseSequence
 {
 	public class SequenceExecutor : ISequenceExecutor
 	{
+
+		private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
+
 		private System.Timers.Timer _endCheckTimer;
 		private SynchronizationContext _syncContext;
 		private bool _isRunning;
@@ -288,6 +291,8 @@ namespace BaseSequence
 		private void _Stop()
 		{
 			if (!IsRunning) return;
+try
+			{
 
 			// Stop whatever is driving this crazy train.
 			lock (_endCheckTimer) {
@@ -304,6 +309,13 @@ namespace BaseSequence
 			TimingSource.Stop();
 
 			_StopMedia();
+			
+			}
+			catch (Exception e)
+			{
+					
+				Logging.ErrorException("Error Stopping Sequence Executor",e);
+			}
 		}
 
 		public ITiming TimingSource { get; private set; }
