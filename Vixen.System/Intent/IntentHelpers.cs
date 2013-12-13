@@ -50,8 +50,8 @@ namespace Vixen.Intent
 						G = Math.Max(G, intentColor.G);
 						B = Math.Max(B, intentColor.B);
 					}
-				} else if (value is RGBValue) {
-					RGBValue rv = (RGBValue)value;
+				} else if (value is RGBAValue) {
+					RGBAValue rv = (RGBAValue)value;
 					R = Math.Max(R, rv.R);
 					G = Math.Max(G, rv.G);
 					B = Math.Max(B, rv.B);
@@ -74,8 +74,8 @@ namespace Vixen.Intent
 						if (x is IntentState<LightingValue>) {
 							return (x as IntentState<LightingValue>).GetValue().HueSaturationOnlyColor;
 						}
-						if (x is IntentState<RGBValue>) {
-							return (x as IntentState<RGBValue>).GetValue().Color;
+						if (x is IntentState<RGBAValue>) {
+							return (x as IntentState<RGBAValue>).GetValue().Color;
 						}
 						return Color.Empty;
 					}
@@ -88,8 +88,8 @@ namespace Vixen.Intent
 						if (x is IntentState<LightingValue>) {
 							return (x as IntentState<LightingValue>).GetValue().Intensity;
 						}
-						if (x is IntentState<RGBValue>) {
-							return (x as IntentState<RGBValue>).GetValue().Intensity;
+						if (x is IntentState<RGBAValue>) {
+							return (x as IntentState<RGBAValue>).GetValue().Intensity;
 						}
 						return 0;
 					});

@@ -100,9 +100,9 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			}
 		}
 
-		public override void Handle(IIntent<RGBValue> obj)
+		public override void Handle(IIntent<RGBAValue> obj)
 		{
-			if (obj is StaticArrayIntent<RGBValue>) {
+			if (obj is StaticArrayIntent<RGBAValue>) {
 				Func<TimeSpan, Color> scg = x => obj.GetStateAt(x).ColorWithAplha;
 				Func<TimeSpan, Color> ecg = x => obj.GetStateAt(x - _oneTick).ColorWithAplha;
 				DrawStaticArrayIntent(obj.TimeSpan, _rect, scg, ecg);

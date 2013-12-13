@@ -122,7 +122,7 @@
     <Compile Include="Data\Flow\IDataFlowData.cs" />
     <Compile Include="Data\Policy\DataFlowDataDispatchingDataPolicy.cs" />
     <Compile Include="Data\Policy\SmartControllerDataPolicy.cs" />
-    <Compile Include="Data\Value\RGBValue.cs" />
+    <Compile Include="Data\Value\RGBAValue.cs" />
     <Compile Include="Delegates\Delegates.cs" />
     <Compile Include="Execution\ContextCurrentEffectsFull.cs" />
     <Compile Include="Execution\ContextFeatures.cs" />

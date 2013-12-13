@@ -7,13 +7,13 @@ using Common.Controls.ColorManagement.ColorModels;
 
 namespace Vixen.Data.Value
 {
-	public struct RGBValue : IIntentDataType
+	public struct RGBAValue : IIntentDataType
 	{
 		public byte R;
 		public byte G;
 		public byte B;
 		public byte A;
-		public RGBValue(Color color)
+		public RGBAValue(Color color)
 		{
 			if (color.A == 0) {
 			A = R = G = B = 0;

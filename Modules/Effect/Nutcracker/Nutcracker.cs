@@ -217,9 +217,9 @@ namespace VixenModules.Effect.Nutcracker
 			// that it will parcel out as intent states are called for...
 			
 			// set up arrays to hold the generated colors
-			var pixels = new RGBValue[numElements][];
+			var pixels = new RGBAValue[numElements][];
 			for (int eidx = 0; eidx < numElements; eidx++)
-				pixels[eidx] = new RGBValue[nFrames];
+				pixels[eidx] = new RGBAValue[nFrames];
 
 			// generate all the pixels
 			int pps = PixelsPerString();
@@ -245,7 +245,7 @@ namespace VixenModules.Effect.Nutcracker
 							var color = Color.FromArgb(currentIntensityLevel, c.R, c.G, c.B);
 
 							//pixels[i][frameNum] = new RGBValue(nccore.GetPixel(x, y));
-							pixels[i][frameNum] = new RGBValue(color);
+							pixels[i][frameNum] = new RGBAValue(color);
 							i++;
 						}
 					}
@@ -258,7 +258,7 @@ namespace VixenModules.Effect.Nutcracker
 						var color = Color.FromArgb(currentIntensityLevel, c.R, c.G, c.B);
 
 						//pixels[i][frameNum] = new RGBValue(nccore.GetPixel(x, y));
-						pixels[i][frameNum] = new RGBValue(color);
+						pixels[i][frameNum] = new RGBAValue(color);
 
 						//pixels[i][frameNum] = new RGBValue(nccore.GetPixel(i));
 					}
@@ -270,7 +270,7 @@ namespace VixenModules.Effect.Nutcracker
 			List<Element> elements = node.ToList();
 			for (int eidx = 0; eidx < numElements; eidx++)
 			{
-				IIntent intent = new StaticArrayIntent<RGBValue>(frameTs, pixels[eidx], TimeSpan);
+				IIntent intent = new StaticArrayIntent<RGBAValue>(frameTs, pixels[eidx], TimeSpan);
 				_elementData.AddIntentForElement(elements[eidx].Id, intent, startTime);
 			}
 

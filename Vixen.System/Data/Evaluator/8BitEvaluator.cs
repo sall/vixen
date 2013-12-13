@@ -8,7 +8,7 @@ namespace Vixen.Data.Evaluator
 	public class _8BitEvaluator : Evaluator
 	{
 		// Handling intents as an evaluator.
-		public override void Handle(IIntentState<RGBValue> obj)
+		public override void Handle(IIntentState<RGBAValue> obj)
 		{
 			byte byteLevel = (byte)(byte.MaxValue * obj.GetValue().Intensity);
 			EvaluatorValue = new _8BitCommand(byteLevel);

@@ -6,7 +6,7 @@ namespace Vixen.Data.Evaluator
 {
 	public class _32BitEvaluator : Evaluator
 	{
-		public override void Handle(IIntentState<RGBValue> obj)
+		public override void Handle(IIntentState<RGBAValue> obj)
 		{
 			System.UInt32 level = (System.UInt32)(System.UInt32.MaxValue * obj.GetValue().Intensity);
 			EvaluatorValue = new _32BitCommand(level);

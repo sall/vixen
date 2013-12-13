@@ -232,24 +232,24 @@ namespace VixenModules.OutputFilter.ColorBreakdown
 			return result;
 		}
 
-		public override void Handle(IIntentState<RGBValue> obj)
+		public override void Handle(IIntentState<RGBAValue> obj)
 		{
-			RGBValue value = obj.GetValue();
+			RGBAValue value = obj.GetValue();
 			if (_mixColors) {
 				float maxProportion = _getMaxProportion(value.Color);
 				Color finalColor = Color.FromArgb((int)(_breakdownItem.Color.R * maxProportion),
 												  (int)(_breakdownItem.Color.G * maxProportion),
 												  (int)(_breakdownItem.Color.B * maxProportion));
-				_intentValue = new StaticIntentState<RGBValue>(obj, new RGBValue(finalColor));
+				_intentValue = new StaticIntentState<RGBAValue>(obj, new RGBAValue(finalColor));
 			} else {
 				// if we're not mixing colors, we need to compare the input color against the filter color -- but only the
 				// hue and saturation components; ignore the intensity.
 				HSV inputColor = HSV.FromRGB(value.Color);
 				if (inputColor.H == _breakdownColorAsHSV.H  &&  inputColor.S == _breakdownColorAsHSV.S) {
-					_intentValue = new StaticIntentState<RGBValue>(obj, value);
+					_intentValue = new StaticIntentState<RGBAValue>(obj, value);
 				} else {
 					// TODO: return 'null', or some sort of empty intent state here instead. (null isn't handled well, and we don't have an 'empty' state class.)
-					_intentValue = new StaticIntentState<RGBValue>(obj, new RGBValue(Color.Black));
+					_intentValue = new StaticIntentState<RGBAValue>(obj, new RGBAValue(Color.Black));
 				}
 			}
 		}

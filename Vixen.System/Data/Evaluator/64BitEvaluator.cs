@@ -6,7 +6,7 @@ namespace Vixen.Data.Evaluator
 {
 	public class _64BitEvaluator : Evaluator
 	{
-		public override void Handle(IIntentState<RGBValue> obj)
+		public override void Handle(IIntentState<RGBAValue> obj)
 		{
 			System.UInt64 level = (System.UInt64)(System.UInt64.MaxValue * obj.GetValue().Intensity);
 			EvaluatorValue = new _64BitCommand(level);

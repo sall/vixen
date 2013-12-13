@@ -4,7 +4,7 @@ namespace Vixen.Sys.Dispatch
 {
 	public abstract class IntentStateDispatch : IAnyIntentStateHandler
 	{
-		public virtual void Handle(IIntentState<RGBValue> obj)
+		public virtual void Handle(IIntentState<RGBAValue> obj)
 		{
 		}
 

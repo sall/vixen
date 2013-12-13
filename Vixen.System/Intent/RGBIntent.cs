@@ -3,9 +3,9 @@ using Vixen.Data.Value;
 
 namespace Vixen.Intent
 {
-	public class RGBIntent : LinearIntent<RGBValue>
+	public class RGBIntent : LinearIntent<RGBAValue>
 	{
-		public RGBIntent(RGBValue startValue, RGBValue endValue, TimeSpan timeSpan)
+		public RGBIntent(RGBAValue startValue, RGBAValue endValue, TimeSpan timeSpan)
 			: base(startValue, endValue, timeSpan)
 		{
 		}
