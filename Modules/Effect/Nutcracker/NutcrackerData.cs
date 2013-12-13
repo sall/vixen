@@ -146,9 +146,7 @@ namespace VixenModules.Effect.Nutcracker
 				if (_LevelCurve == null)
 				{
 					//TODO:  change this to the commented out value prior to release.
-					//_LevelCurve = new Curve(new PointPairList(new double[] { 2.0, 98.0 }, new double[] { 98.0, 98.0 }));
-					_LevelCurve = new Curve(new PointPairList(new double[] { 2.0, 98.0 }, new double[] { 2.0, 98.0 }));
-
+					_LevelCurve = new Curve(new PointPairList(new double[] { 2.0, 98.0 }, new double[] { 98.0, 98.0 }));
 				}
 				return _LevelCurve;
 			}
