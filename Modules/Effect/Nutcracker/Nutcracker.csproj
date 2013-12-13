@@ -23,7 +23,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-   <OutputPath>$(SolutionDir)\Release64\Modules\Effect\</OutputPath>
+    <OutputPath>$(SolutionDir)\Release64\Modules\Effect\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
@@ -71,6 +71,11 @@
     <ProjectReference Include="..\..\..\Vixen.System\Vixen.csproj">
       <Project>{50B78623-FCF4-48AF-93FF-FA87C937028F}</Project>
       <Name>Vixen</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\App\Curves\Curves.csproj">
+      <Project>{f0ba7127-61b4-453a-802b-abcb5a0d3d54}</Project>
+      <Name>Curves</Name>
       <Private>False</Private>
     </ProjectReference>
   </ItemGroup>

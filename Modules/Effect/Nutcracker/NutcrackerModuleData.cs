@@ -8,6 +8,8 @@ using Common.Controls.ColorManagement.ColorModels;
 using Vixen.Module;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
+using VixenModules.App.Curves;
+using ZedGraph;
 
 namespace VixenModules.Effect.Nutcracker
 {
@@ -15,10 +17,11 @@ namespace VixenModules.Effect.Nutcracker
 	public class NutcrackerModuleData : ModuleDataModelBase
 	{
 		private NutcrackerData _nutcrackerData = null;
-
+		
 		public NutcrackerModuleData()
 		{
 			_nutcrackerData = new NutcrackerData();
+			
 		}
 
 		[DataMember]
@@ -33,6 +36,7 @@ namespace VixenModules.Effect.Nutcracker
 			}
 			set { _nutcrackerData = value; }
 		}
+		
 
 		public override IModuleDataModel Clone()
 		{

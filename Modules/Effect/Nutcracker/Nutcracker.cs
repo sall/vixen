@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using VixenModules.App.Curves;
 
 namespace VixenModules.Effect.Nutcracker
 {
@@ -106,6 +107,8 @@ namespace VixenModules.Effect.Nutcracker
 			}
 		}
 
+		
+
 		private int StringCount
 		{
 			get
@@ -143,6 +146,8 @@ namespace VixenModules.Effect.Nutcracker
 		private int PixelsPerString(ElementNode parentNode)
 		{
 			//TODO: what would we do if parentNode is null?
+			if (parentNode == null) return 0; //Makes sense right?
+
 			int pps = 0;
 			int leafCount = 0;
 			int groupCount = 0;
@@ -219,9 +224,15 @@ namespace VixenModules.Effect.Nutcracker
 			// generate all the pixels
 			int pps = PixelsPerString();
 			int sc = StringCount;
+
 			for (int frameNum = 0; frameNum < nFrames; frameNum++)
 			{
 				nccore.RenderNextEffect(_data.NutcrackerData.CurrentEffect);
+
+				var currentPercentageOfNutcracker = ((double)frameNum / (double)nFrames) * 100;
+				var currentLevel = _data.NutcrackerData.LevelCurve.GetValue(currentPercentageOfNutcracker);
+				var currentIntensityLevel = (byte)((currentLevel / (double)100) * (double)byte.MaxValue);
+
 				// peel off this frames pixels...
 				if (_data.NutcrackerData.StringOrienation == NutcrackerEffects.StringOrientations.Horizontal)
 				{
@@ -230,7 +241,11 @@ namespace VixenModules.Effect.Nutcracker
 					{
 						for (int x = 0; x < pps; x++)
 						{
-							pixels[i][frameNum] = new RGBValue(nccore.GetPixel(x, y));
+							var c = nccore.GetPixel(x, y);
+							var color = Color.FromArgb(currentIntensityLevel, c.R, c.G, c.B);
+
+							//pixels[i][frameNum] = new RGBValue(nccore.GetPixel(x, y));
+							pixels[i][frameNum] = new RGBValue(color);
 							i++;
 						}
 					}
@@ -239,7 +254,13 @@ namespace VixenModules.Effect.Nutcracker
 				{
 					for (int i = 0; i < numElements; i++)
 					{
-						pixels[i][frameNum] = new RGBValue(nccore.GetPixel(i));
+						var c = nccore.GetPixel(i);
+						var color = Color.FromArgb(currentIntensityLevel, c.R, c.G, c.B);
+
+						//pixels[i][frameNum] = new RGBValue(nccore.GetPixel(x, y));
+						pixels[i][frameNum] = new RGBValue(color);
+
+						//pixels[i][frameNum] = new RGBValue(nccore.GetPixel(i));
 					}
 				}
 			};

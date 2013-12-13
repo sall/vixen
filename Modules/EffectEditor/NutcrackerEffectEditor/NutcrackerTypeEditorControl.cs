@@ -44,8 +44,16 @@ namespace VixenModules.EffectEditor.NutcrackerEffectEditor
 
 		public NutcrackerData NutcrackerDataValue
 		{
-			get { return _data; }
-			set { _data = value; }
+			get
+			{
+				_data.LevelCurve = curveIntensityLevel.CurveValue;
+				return _data;
+			}
+			set
+			{
+				_data = value;
+				curveIntensityLevel.CurveValue = _data.LevelCurve;
+			}
 		}
 
 		public object[] EffectParameterValues
@@ -117,6 +125,7 @@ namespace VixenModules.EffectEditor.NutcrackerEffectEditor
 
 			// Load item from Data
 			SetCurrentEffect(Data.CurrentEffect);
+			curveIntensityLevel.CurveValue = Data.LevelCurve;
 			comboBoxEffect.SelectedItem = Data.CurrentEffect.ToString();
 			trackBarSpeed.Value = Data.Speed;
 			radioButtonHorizontal.Checked = (Data.StringOrienation == NutcrackerEffects.StringOrientations.Horizontal);

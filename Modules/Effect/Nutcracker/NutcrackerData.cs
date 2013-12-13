@@ -13,6 +13,8 @@ using Vixen.Intent;
 using Vixen.Sys;
 using Vixen.Module.Effect;
 using Vixen.Sys.Attribute;
+using VixenModules.App.Curves;
+using ZedGraph;
 
 namespace VixenModules.Effect.Nutcracker
 {
@@ -134,6 +136,24 @@ namespace VixenModules.Effect.Nutcracker
 		[DataMember] public bool PictureTile_ReplaceColor = false;
 		[DataMember] public bool PictureTile_UseSaturation = false;
 		[DataMember] public int PictureTile_ColorReplacementSensitivity = 0;
+
+		private Curve _LevelCurve = null;
+		[DataMember]
+		public Curve LevelCurve
+		{
+			get
+			{
+				if (_LevelCurve == null)
+				{
+					//TODO:  change this to the commented out value prior to release.
+					//_LevelCurve = new Curve(new PointPairList(new double[] { 2.0, 98.0 }, new double[] { 98.0, 98.0 }));
+					_LevelCurve = new Curve(new PointPairList(new double[] { 2.0, 98.0 }, new double[] { 2.0, 98.0 }));
+
+				}
+				return _LevelCurve;
+			}
+			set { _LevelCurve = value; }
+		}
 
 		[OnDeserialized]
 		private void OnDeserialized(StreamingContext context)

@@ -12,15 +12,16 @@ namespace Vixen.Data.Value
 		public byte R;
 		public byte G;
 		public byte B;
-
+		public byte A;
 		public RGBValue(Color color)
 		{
 			if (color.A == 0) {
-				R = G = B = 0;
+			A = R = G = B = 0;
 			} else {
 				R = color.R;
 				G = color.G;
 				B = color.B;
+				A = color.A;
 			}
 		}
 
@@ -29,12 +30,13 @@ namespace Vixen.Data.Value
 		/// </summary>
 		public Color Color
 		{
-			get { return Color.FromArgb(R, G, B); }
+			get { return Color.FromArgb(A,R, G, B); }
 			set
 			{
 				R = value.R;
 				G = value.G;
 				B = value.B;
+				//A = value.A;
 			}
 		}
 
@@ -45,7 +47,7 @@ namespace Vixen.Data.Value
 		{
 			get
 			{
-				return Color.FromArgb((byte) (Intensity * Byte.MaxValue), R, G, B);
+				return Color.FromArgb(A, R, G, B);
 			}
 		}
 
@@ -56,7 +58,8 @@ namespace Vixen.Data.Value
 		{
 			get
 			{
-				return HSV.FromRGB(Color).V;
+				//return HSV.FromRGB(Color).V;
+				return (double)((double)A / (double)byte.MaxValue);
 			}
 		}
 

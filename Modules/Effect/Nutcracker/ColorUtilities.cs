@@ -185,6 +185,7 @@ namespace VixenModules.Effect.Nutcracker
 				return Color.FromArgb(255, v, p, q);
 			}
 		}
+		 
 
 		//public static Color HSVtoColor(HSV hsv)
 		//{
@@ -372,6 +373,7 @@ namespace VixenModules.Effect.Nutcracker
 			//return random.Next(lo, hi);
 			return (float) (random.NextDouble()*(hi - lo) + lo);
 		}
+
 
 		private static void InitRandom()
 		{
