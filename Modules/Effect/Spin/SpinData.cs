@@ -4,6 +4,7 @@ using Vixen.Module;
 using VixenModules.App.ColorGradients;
 using VixenModules.App.Curves;
 using System.ComponentModel;
+using ZedGraph;
 
 namespace VixenModules.Effect.Spin
 {
@@ -77,7 +78,7 @@ namespace VixenModules.Effect.Spin
 			DefaultLevel = 0;
 			StaticColor = Color.Empty;
 			ColorGradient = new ColorGradient(Color.White);
-			PulseCurve = new Curve();
+			PulseCurve =  new Curve(new PointPairList(new double[] { 2.0, 98.0 }, new double[] { 98.0, 2.0 }));
 			ReverseSpin = false;
 			DepthOfEffect = 0;
 		}

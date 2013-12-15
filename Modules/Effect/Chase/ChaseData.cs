@@ -4,6 +4,7 @@ using Vixen.Module;
 using VixenModules.App.ColorGradients;
 using VixenModules.App.Curves;
 using System.Drawing;
+using ZedGraph;
 
 namespace VixenModules.Effect.Chase
 {
@@ -53,7 +54,7 @@ namespace VixenModules.Effect.Chase
 			DefaultLevel = 0;
 			StaticColor = Color.White;
 			ColorGradient = new ColorGradient(Color.White);
-			PulseCurve = new Curve();
+			PulseCurve = new Curve(new PointPairList(new double[] { 2.0, 98.0 }, new double[] { 98.0, 2.0 }));
 			ChaseMovement = new Curve();
 			DepthOfEffect = 0;
 		}
