@@ -107,6 +107,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			undoButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
 			redoButton.Image = Resources.arrow_redo;
 			redoButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
+			redoButton.ButtonType = UndoButtonType.RedoButton;
 			toolStripButton_Cut.Image = Resources.cut;
 			toolStripButton_Cut.DisplayStyle = ToolStripItemDisplayStyle.Image;
 			toolStripButton_Copy.Image = Resources.page_white_copy;
@@ -968,8 +969,32 @@ namespace VixenModules.Editor.TimedSequenceEditor
 						}
 					};
 
+					ToolStripMenuItem itemAlignBoth = new ToolStripMenuItem("Align Both Times");
+					itemAlignBoth.Click += (mySender, myE) =>
+					{
+
+						foreach (Element selectedElement in TimelineControl.SelectedElements)
+						{
+							if (selectedElement.StartTime == element.StartTime && selectedElement.EndTime == element.EndTime) continue;
+							TimelineControl.grid.MoveResizeElementByStartEnd(selectedElement, element.StartTime, element.EndTime);
+						}
+					};
+
+					ToolStripMenuItem itemMatchDuration = new ToolStripMenuItem("Match Duration");
+					itemMatchDuration.Click += (mySender, myE) =>
+					{
+					
+						foreach (Element selectedElement in TimelineControl.SelectedElements)
+						{
+							if (selectedElement.Duration == element.Duration) continue;
+							TimelineControl.grid.MoveResizeElementByStartEnd(selectedElement, selectedElement.StartTime, selectedElement.StartTime + element.Duration);
+						}
+					};
+
 					contextMenuStrip.Items.Add(itemAlignStart);
 					contextMenuStrip.Items.Add(itemAlignEnd);
+					contextMenuStrip.Items.Add(itemAlignBoth);
+					contextMenuStrip.Items.Add(itemMatchDuration);
 
 				}
 			}
@@ -1869,6 +1894,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 						if (_context.IsPaused)
 							PlaySequence();
 						else
+							stoppedByUser = true;
 							StopSequence();
 					}
 					break;
