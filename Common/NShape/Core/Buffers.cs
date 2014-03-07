@@ -701,20 +701,23 @@ namespace Dataweb.Utilities
 
 		static StringExtensions()
 		{
-			upperMap = new byte[256];
-			for (int i = 0; i < upperMap.Length; ++i) upperMap[i] = (byte) i;
-			for (byte i = (byte) 'a'; i <= (byte) 'z'; ++i) upperMap[i] = (byte) (i - (byte) 'a' + (byte) 'A');
-			upperMap[(byte) 'ä'] = (byte) 'Ä';
-			upperMap[(byte) 'ö'] = (byte) 'Ö';
-			upperMap[(byte) 'ü'] = (byte) 'Ü';
-			//
-			lowerMap = new byte[256];
-			for (int i = 0; i < lowerMap.Length; ++i) lowerMap[i] = (byte) i;
-			for (byte i = (byte) 'A'; i <= (byte) 'Z'; ++i) lowerMap[i] = (byte) (i + (byte) 'a' - (byte) 'A');
-			lowerMap[(byte) 'Ä'] = (byte) 'ä';
-			lowerMap[(byte) 'Ö'] = (byte) 'ö';
-			lowerMap[(byte) 'Ü'] = (byte) 'ü';
-			//
+			unchecked
+			{
+				upperMap = new byte[256];
+				for (int i = 0; i < upperMap.Length; ++i) upperMap[i] = (byte) i;
+				for (byte i = (byte) 'a'; i <= (byte) 'z'; ++i) upperMap[i] = (byte) (i - (byte) 'a' + (byte) 'A');
+				upperMap[(byte) 'ä'] = (byte) 'Ä';
+				upperMap[(byte) 'ö'] = (byte) 'Ö';
+				upperMap[(byte) 'ü'] = (byte) 'Ü';
+				//
+				lowerMap = new byte[256];
+				for (int i = 0; i < lowerMap.Length; ++i) lowerMap[i] = (byte) i;
+				for (byte i = (byte) 'A'; i <= (byte) 'Z'; ++i) lowerMap[i] = (byte) (i + (byte) 'a' - (byte) 'A');
+				lowerMap[(byte) 'Ä'] = (byte) 'ä';
+				lowerMap[(byte) 'Ö'] = (byte) 'ö';
+				lowerMap[(byte) 'Ü'] = (byte) 'ü';
+				//
+			}
 			umlautReplacementMap =
 				"\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89S\x8bO\x8d\x8e\x8f" +
 				"\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99s\x9bo\x9d\x9eY" +
