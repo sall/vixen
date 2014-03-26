@@ -17,7 +17,7 @@ namespace VixenModules.EffectEditor.PapagayoEditor
 
         public override string Description
         {
-            get { return "An editor for Papagayo Animations."; }
+            get { return "An editor for Papagayo Animations"; }
         }
 
         public override Type ModuleClass

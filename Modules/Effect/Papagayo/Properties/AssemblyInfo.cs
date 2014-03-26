@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("PapagayoEditor")]
+[assembly: AssemblyTitle("Papagayo")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Papagayo Editor")]
+[assembly: AssemblyProduct("Papagayo")]
 [assembly: AssemblyCopyright("Copyright ©  2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("5b7501c3-728c-4842-a3a1-8649381e16c3")]
+[assembly: Guid("fa7d3c4d-5700-431b-b2b6-581e1f92385b")]
 
 // Version information for an assembly consists of the following four values:
 //
