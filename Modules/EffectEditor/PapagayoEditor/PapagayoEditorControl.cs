@@ -22,7 +22,13 @@ namespace VixenModules.EffectEditor.PapagayoEditor
 
         public object[] EffectParameterValues
         {
-            get { return new object[] { 0 }; }
+            get { return new object[] { PGOFilename }; }
+            set { PGOFilename = "Dude"; }
+        }
+
+        public String PGOFilename
+        {
+            get { return "Test"; }
             set {  }
         }
     }

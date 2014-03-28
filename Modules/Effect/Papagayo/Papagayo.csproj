@@ -91,9 +91,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Images\Effect16.png" />
-    <Content Include="Images\Effect48.png" />
-    <Content Include="Images\Effect64.png" />
+    <EmbeddedResource Include="Images\Effect16.png" />
+    <EmbeddedResource Include="Images\Effect48.png" />
+    <EmbeddedResource Include="Images\Effect64.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

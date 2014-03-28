@@ -62,7 +62,7 @@ namespace VixenModules.Effect.Papagayo
             get
             {
                 return new ParameterSignature(
-                    new ParameterSpecification("Level", typeof(double))
+                    new ParameterSpecification("PGOFilename", typeof(String))
                     );
             }
         }
