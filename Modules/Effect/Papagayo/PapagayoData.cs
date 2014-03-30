@@ -8,11 +8,14 @@ using Vixen.Module;
 namespace VixenModules.Effect.Papagayo
 {
     [DataContract]
-    public class PapagayoData : ModuleDataModelBase
+    internal class PapagayoData : ModuleDataModelBase
     {
+        [DataMember]
+        public String PGOFilename { get; set; }
 
         public PapagayoData()
         {
+            PGOFilename = "Dude!";
         }
 
         public override IModuleDataModel Clone()

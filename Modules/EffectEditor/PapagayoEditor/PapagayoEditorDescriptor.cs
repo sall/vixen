@@ -8,7 +8,8 @@ namespace VixenModules.EffectEditor.PapagayoEditor
 {
     internal class PapagayoEditorDescriptor : EffectEditorModuleDescriptorBase
     {
-        private static Guid _typeId = new Guid("{5F078B66-2961-4187-8C08-8EBEEA669671}");
+        private static Guid _typeId = new Guid("{2F6E6E27-8BA7-400F-A62A-8441149AEEF0}");
+        private static Guid _effectId = new Guid("{52F17F4B-2159-4820-8660-05CD9D1F47C1}");
 
         public override string Author
         {
@@ -47,7 +48,7 @@ namespace VixenModules.EffectEditor.PapagayoEditor
 
         public override Guid EffectTypeId
         {
-            get { return Guid.Empty; }
+            get { return _effectId; }
         }
     }
 }

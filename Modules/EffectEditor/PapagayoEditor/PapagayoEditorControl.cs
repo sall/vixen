@@ -13,23 +13,71 @@ namespace VixenModules.EffectEditor.PapagayoEditor
 {
     public partial class PapagayoEditorControl : UserControl, IEffectEditorControl
     {
+        private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
         public PapagayoEditorControl()
         {
             InitializeComponent();
+            pgoFileNameLabel.Text = "None";
         }
 
         public IEffect TargetEffect { get; set; }
 
         public object[] EffectParameterValues
         {
-            get { return new object[] { PGOFilename }; }
-            set { PGOFilename = "Dude"; }
+            get 
+            { 
+                return new object[] 
+                { 
+                    PGOFilename 
+                }; 
+            }
+
+            set
+            {
+                if (value.Length != 1)
+                {
+                    Logging.Warn("Papagaya effect parameters set with " + value.Length + " parameters");
+                    return;
+                }
+
+                PGOFilename = (string)value[0];
+            }
         }
 
         public String PGOFilename
         {
-            get { return "Test"; }
-            set {  }
+            get { return pgoFileNameLabel.Text; }
+            set { pgoFileNameLabel.Text = value; }
+        }
+
+        private string setSrcFile()
+        {
+            string retVal = PGOFilename;
+            FileDialog openDialog = new OpenFileDialog();
+
+            openDialog.Filter = "Papagayo files (*.pgo)|*.pgo|All files (*.*)|*.*";
+            openDialog.FilterIndex = 1;
+            if (openDialog.ShowDialog() == DialogResult.OK)
+            {
+                retVal = openDialog.FileName;
+            }
+            return retVal;
+        }
+
+        private void loadPapagayoFile()
+        {
+            try
+            {
+                m_papagayoData.Load(PGOFilename);
+            }
+            catch (Exception) { }
+        }
+
+        private void PGOFileButton_Click(object sender, EventArgs e)
+        {
+            PGOFilename = setSrcFile();
+
+           // srcFileImport(tmpSrcFile);
         }
     }
 }

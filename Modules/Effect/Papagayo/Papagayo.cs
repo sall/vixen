@@ -49,5 +49,16 @@ namespace VixenModules.Effect.Papagayo
             get { return _data; }
             set { _data = value as PapagayoData; }
         }
+
+        [Value]
+        public String PGOFilename 			
+        {
+            get { return _data.PGOFilename; }
+			set
+			{
+				_data.PGOFilename = value;
+				IsDirty = true;
+			}
+		}
     }
 }
