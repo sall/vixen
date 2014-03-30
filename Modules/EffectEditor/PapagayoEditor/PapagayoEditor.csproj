@@ -50,10 +50,6 @@
     <CodeAnalysisRuleSet>ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AlternatingEditor, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Release\Modules\EffectEditor\AlternatingEditor.dll</HintPath>
-    </Reference>
     <Reference Include="CustomValueEditor, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\Release\Modules\EffectEditor\CustomValueEditor.dll</HintPath>
@@ -86,6 +82,10 @@
     <ProjectReference Include="..\..\..\Vixen.System\Vixen.csproj">
       <Project>{50b78623-fcf4-48af-93ff-fa87c937028f}</Project>
       <Name>Vixen</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Effect\Papagayo\Papagayo.csproj">
+      <Project>{6de9a846-ac25-40b6-b8b2-b306ec9f2569}</Project>
+      <Name>Papagayo</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

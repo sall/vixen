@@ -8,12 +8,14 @@ using System.Text;
 using System.Windows.Forms;
 using Vixen.Module.EffectEditor;
 using Vixen.Module.Effect;
+using VixenModules.Effect.Papagayo;
 
 namespace VixenModules.EffectEditor.PapagayoEditor
 {
     public partial class PapagayoEditorControl : UserControl, IEffectEditorControl
     {
         private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
+//TODO - get from Papagayo Data        private PapagayoDoc m_papagayoData = null;
         public PapagayoEditorControl()
         {
             InitializeComponent();
@@ -68,7 +70,7 @@ namespace VixenModules.EffectEditor.PapagayoEditor
         {
             try
             {
-                m_papagayoData.Load(PGOFilename);
+//TODO                m_papagayoData.Load(PGOFilename);
             }
             catch (Exception) { }
         }

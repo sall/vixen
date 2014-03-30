@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Papagayo</RootNamespace>
     <AssemblyName>Papagayo</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -79,9 +80,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LipSyncPhoneme.cs" />
+    <Compile Include="LipSyncPhrase.cs" />
+    <Compile Include="LipSyncVoice.cs" />
+    <Compile Include="LipSyncWord.cs" />
     <Compile Include="Papagayo.cs" />
     <Compile Include="PapagayoData.cs" />
     <Compile Include="PapagayoDescriptor.cs" />
+    <Compile Include="PapagayoDoc.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
