@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Express 2013 for Windows Desktop
-VisualStudioVersion = 12.0.21005.1
+VisualStudioVersion = 12.0.30110.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vixen", "Vixen.System\Vixen.csproj", "{50B78623-FCF4-48AF-93FF-FA87C937028F}"
 EndProject
@@ -345,6 +345,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PapagayoEditor", "Modules\EffectEditor\PapagayoEditor\PapagayoEditor.csproj", "{7BB805C0-CE84-4FEC-9419-91579CCF4838}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Papagayo", "Modules\Effect\Papagayo\Papagayo.csproj", "{6DE9A846-AC25-40B6-B8B2-B306EC9F2569}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LipSyncBreakdown", "Modules\PostFilter\LipSync\LipSync\LipSyncBreakdown.csproj", "{B32BD3AF-DCF7-4D79-9F51-A76669CCE2C6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1575,6 +1577,20 @@ Global
 		{6DE9A846-AC25-40B6-B8B2-B306EC9F2569}.Release|x64.Build.0 = Release|x64
 		{6DE9A846-AC25-40B6-B8B2-B306EC9F2569}.Release|x86.ActiveCfg = Release|x86
 		{6DE9A846-AC25-40B6-B8B2-B306EC9F2569}.Release|x86.Build.0 = Release|x86
+		{B32BD3AF-DCF7-4D79-9F51-A76669CCE2C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B32BD3AF-DCF7-4D79-9F51-A76669CCE2C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B32BD3AF-DCF7-4D79-9F51-A76669CCE2C6}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{B32BD3AF-DCF7-4D79-9F51-A76669CCE2C6}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{B32BD3AF-DCF7-4D79-9F51-A76669CCE2C6}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B32BD3AF-DCF7-4D79-9F51-A76669CCE2C6}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B32BD3AF-DCF7-4D79-9F51-A76669CCE2C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B32BD3AF-DCF7-4D79-9F51-A76669CCE2C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B32BD3AF-DCF7-4D79-9F51-A76669CCE2C6}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{B32BD3AF-DCF7-4D79-9F51-A76669CCE2C6}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{B32BD3AF-DCF7-4D79-9F51-A76669CCE2C6}.Release|x64.ActiveCfg = Release|x64
+		{B32BD3AF-DCF7-4D79-9F51-A76669CCE2C6}.Release|x64.Build.0 = Release|x64
+		{B32BD3AF-DCF7-4D79-9F51-A76669CCE2C6}.Release|x86.ActiveCfg = Release|x86
+		{B32BD3AF-DCF7-4D79-9F51-A76669CCE2C6}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1682,6 +1698,7 @@ Global
 		{F7A80169-6310-4585-9D58-A6F6F5C5B380} = {25A1ED22-180F-4B61-84FC-55790AA11254}
 		{ED386F64-644A-439D-AB12-96E341F20EDF} = {EC3DEE21-95FE-46E0-B34D-86D86361517D}
 		{C80B084A-064A-422C-B66E-58AB9ED7B32C} = {EC3DEE21-95FE-46E0-B34D-86D86361517D}
+		{B32BD3AF-DCF7-4D79-9F51-A76669CCE2C6} = {EC3DEE21-95FE-46E0-B34D-86D86361517D}
 		{F7975FD4-E1E1-4E96-88FD-6CA89A7DD77C} = {741290E1-6A59-4AA2-90D0-CB39B7448BA7}
 		{2572F3DF-7CF2-4B6C-9FC2-8E11D0BC08D6} = {C64A0DA3-349F-4D36-A434-9F6DCC1410DB}
 		{9EFE1059-E2DC-4576-B9E3-4AE3F998CB28} = {B21B530A-394C-4A30-8325-FB859613FAA5}
