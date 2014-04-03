@@ -1,4 +1,4 @@
-﻿namespace VixenModules.OutputFilter.LipSync
+﻿namespace VixenModules.OutputFilter.LipSyncBreakdown
 {
     partial class LipSyncBreakdownItemControl
     {
@@ -68,6 +68,7 @@
             this.Controls.Add(this.phonemeCheckListBox);
             this.Controls.Add(this.buttonDelete);
             this.Controls.Add(this.elementNameTB);
+            this.DoubleBuffered = true;
             this.Name = "LipSyncBreakdownItemControl";
             this.Size = new System.Drawing.Size(560, 45);
             this.ResumeLayout(false);

@@ -8,7 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using Vixen.Data.Value;
 
-namespace VixenModules.OutputFilter.LipSync
+namespace VixenModules.OutputFilter.LipSyncBreakdown
 {
     public partial class LipSyncBreakdownItemControl : UserControl
     {

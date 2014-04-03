@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>VixenModules.OutputFilter.LipSync</RootNamespace>
-    <AssemblyName>LipSync</AssemblyName>
+    <AssemblyName>LipSyncBreakdown</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -40,7 +40,7 @@
     <CodeAnalysisRuleSet>ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <OutputPath>bin\x86\Release\</OutputPath>
+    <OutputPath>..\..\..\Release\Modules\OutputFilter\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
@@ -82,10 +82,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LipSyncBreakdownData.cs" />
-    <Compile Include="LipSyncBreakdownDescriptor.cs" />
-    <Compile Include="LipSyncBreakdownFilter.cs" />
-    <Compile Include="LipSyncBreakdownItem.cs" />
     <Compile Include="LipSyncBreakdownModule.cs" />
     <Compile Include="LipSyncBreakdownItemControl.cs">
       <SubType>UserControl</SubType>
@@ -93,7 +89,6 @@
     <Compile Include="LipSyncBreakdownItemControl.Designer.cs">
       <DependentUpon>LipSyncBreakdownItemControl.cs</DependentUpon>
     </Compile>
-    <Compile Include="LipSyncBreakdownOutput.cs" />
     <Compile Include="LipSyncBreakdownSetup.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -103,9 +98,17 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Common\Controls\Controls.csproj">
+      <Project>{a54fb6a1-a9c3-488c-b961-41b8dbc81b36}</Project>
+      <Name>Controls</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\..\Vixen.System\Vixen.csproj">
       <Project>{50b78623-fcf4-48af-93ff-fa87c937028f}</Project>
       <Name>Vixen</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\App\Curves\Curves.csproj">
+      <Project>{f0ba7127-61b4-453a-802b-abcb5a0d3d54}</Project>
+      <Name>Curves</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -115,6 +118,9 @@
     <EmbeddedResource Include="LipSyncBreakdownSetup.resx">
       <DependentUpon>LipSyncBreakdownSetup.cs</DependentUpon>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

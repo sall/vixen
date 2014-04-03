@@ -95,6 +95,10 @@
       <Project>{50b78623-fcf4-48af-93ff-fa87c937028f}</Project>
       <Name>Vixen</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\PostFilter\LipSync\LipSync\LipSyncBreakdown.csproj">
+      <Project>{b32bd3af-dcf7-4d79-9f51-a76669cce2c6}</Project>
+      <Name>LipSyncBreakdown</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Images\Effect16.png" />

@@ -1,4 +1,4 @@
-﻿namespace VixenModules.OutputFilter.LipSync
+﻿namespace VixenModules.OutputFilter.LipSyncBreakdown
 {
     partial class LipSyncBreakdownSetup
     {
@@ -40,14 +40,27 @@
             // 
             // tableLayoutPanelControls
             // 
+            this.tableLayoutPanelControls.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.tableLayoutPanelControls.AutoScroll = true;
+            this.tableLayoutPanelControls.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.Single;
             this.tableLayoutPanelControls.ColumnCount = 1;
             this.tableLayoutPanelControls.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
-            this.tableLayoutPanelControls.Location = new System.Drawing.Point(26, 91);
+            this.tableLayoutPanelControls.Location = new System.Drawing.Point(12, 91);
             this.tableLayoutPanelControls.Name = "tableLayoutPanelControls";
-            this.tableLayoutPanelControls.RowCount = 1;
+            this.tableLayoutPanelControls.RowCount = 6;
             this.tableLayoutPanelControls.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanelControls.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 360F));
-            this.tableLayoutPanelControls.Size = new System.Drawing.Size(560, 360);
+            this.tableLayoutPanelControls.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanelControls.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanelControls.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanelControls.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanelControls.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanelControls.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanelControls.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanelControls.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanelControls.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanelControls.Size = new System.Drawing.Size(588, 360);
             this.tableLayoutPanelControls.TabIndex = 0;
             // 
             // buttonApplyTemplate
@@ -82,10 +95,10 @@
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(23, 20);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(507, 13);
+            this.label1.Size = new System.Drawing.Size(516, 13);
             this.label1.TabIndex = 10;
-            this.label1.Text = "Select a pre-configured template from the drop-down box, or build a custom lipsyn" +
-    "c breakdown filter below.";
+            this.label1.Text = "0 Select a pre-configured template from the drop-down box, or build a custom lips" +
+    "ync breakdown filter below.";
             // 
             // buttonOK
             // 
@@ -134,8 +147,11 @@
             this.Controls.Add(this.tableLayoutPanelControls);
             this.MinimumSize = new System.Drawing.Size(400, 480);
             this.Name = "LipSyncBreakdownSetup";
+            this.ShowIcon = false;
+            this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "LipSyncSetup";
+            this.Load += new System.EventHandler(this.LipSyncBreakdownSetup_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 
