@@ -16,7 +16,7 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
 {
     public partial class LipSyncBreakdownSetup : Form, IElementSetupHelper
     {
-        private readonly LipSyncBreakdownData _data;
+        private  LipSyncBreakdownData _data;
         private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
 
         public LipSyncBreakdownSetup()

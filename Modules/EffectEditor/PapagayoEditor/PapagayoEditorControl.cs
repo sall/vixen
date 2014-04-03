@@ -8,8 +8,8 @@ using System.Text;
 using System.Windows.Forms;
 using Vixen.Module.EffectEditor;
 using Vixen.Module.Effect;
-using VixenModules.Effect.Papagayo;
-
+//using VixenModules.Effect.Papagayo;
+//
 namespace VixenModules.EffectEditor.PapagayoEditor
 {
     public partial class PapagayoEditorControl : UserControl, IEffectEditorControl

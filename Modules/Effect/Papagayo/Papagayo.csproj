@@ -7,7 +7,7 @@
     <ProjectGuid>{6DE9A846-AC25-40B6-B8B2-B306EC9F2569}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Papagayo</RootNamespace>
+    <RootNamespace>VixenModules.Effect.Papagayo</RootNamespace>
     <AssemblyName>Papagayo</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -94,10 +94,6 @@
     <ProjectReference Include="..\..\..\Vixen.System\Vixen.csproj">
       <Project>{50b78623-fcf4-48af-93ff-fa87c937028f}</Project>
       <Name>Vixen</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\PostFilter\LipSync\LipSync\LipSyncBreakdown.csproj">
-      <Project>{b32bd3af-dcf7-4d79-9f51-a76669cce2c6}</Project>
-      <Name>LipSyncBreakdown</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

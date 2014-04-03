@@ -79,19 +79,14 @@
       <Project>{50b78623-fcf4-48af-93ff-fa87c937028f}</Project>
       <Name>Vixen</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Effect\Papagayo\Papagayo.csproj">
-      <Project>{6de9a846-ac25-40b6-b8b2-b306ec9f2569}</Project>
-      <Name>Papagayo</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\PostFilter\LipSync\LipSync\LipSyncBreakdown.csproj">
-      <Project>{b32bd3af-dcf7-4d79-9f51-a76669cce2c6}</Project>
-      <Name>LipSyncBreakdown</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="PapagayoEditorControl.resx">
       <DependentUpon>PapagayoEditorControl.cs</DependentUpon>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

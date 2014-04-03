@@ -263,9 +263,10 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
         public string Name { get; set; }
 
         [DataMember]
-        public List<LipSyncBreakdownItemPhoneme> PhonemeList { get; set; }
+       public List<LipSyncBreakdownItemPhoneme> PhonemeList { get; set; }
     }
 
+    [DataContract]
     public class LipSyncBreakdownItemPhoneme
     {
         public LipSyncBreakdownItemPhoneme()
@@ -286,8 +287,10 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
             this.isChecked = isChecked;
         }
 
+        [DataMember]
         public string phonemeName { get; set; }
 
+        [DataMember]
         public bool isChecked { get; set; }
     }
 

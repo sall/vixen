@@ -110,12 +110,6 @@
     <Compile Include="DataZipForm.Designer.cs">
       <DependentUpon>DataZipForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Setup\ElementTemplates\LipSync.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Setup\ElementTemplates\LipSync.Designer.cs">
-      <DependentUpon>LipSync.cs</DependentUpon>
-    </Compile>
     <Compile Include="Setup\DisplaySetup.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -316,9 +310,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="SelectProfile.resx">
       <DependentUpon>SelectProfile.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Setup\ElementTemplates\LipSync.resx">
-      <DependentUpon>LipSync.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Setup\ElementTemplates\StarBurst.resx">
       <DependentUpon>StarBurst.cs</DependentUpon>
