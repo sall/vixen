@@ -83,12 +83,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="LipSyncBreakdownModule.cs" />
-    <Compile Include="LipSyncBreakdownItemControl.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="LipSyncBreakdownItemControl.Designer.cs">
-      <DependentUpon>LipSyncBreakdownItemControl.cs</DependentUpon>
-    </Compile>
     <Compile Include="LipSyncBreakdownSetup.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -104,9 +98,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="LipSyncBreakdownItemControl.resx">
-      <DependentUpon>LipSyncBreakdownItemControl.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="LipSyncBreakdownSetup.resx">
       <DependentUpon>LipSyncBreakdownSetup.cs</DependentUpon>
     </EmbeddedResource>

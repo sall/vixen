@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Drawing;
 using System.Windows.Forms;
 using Vixen.Data.Flow;
 using Vixen.Module.Effect;
@@ -34,9 +35,12 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
         {
             get
             {
+                /*
                 return
                     tableLayoutPanelControls.Controls.OfType<LipSyncBreakdownItemControl>().Select(
                         itemControl => itemControl.LipSyncBreakdownItem).ToList();
+                 */
+                return null;
             }
         }
 
@@ -150,45 +154,92 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
             comboBoxTemplates.Items.Clear();
             comboBoxTemplates.Items.Add("HolidayCoro");
             comboBoxTemplates.SelectedIndex = 0;
+
+
+            DataGridViewCheckBoxColumn bc = new DataGridViewCheckBoxColumn();
+            bc.HeaderText = "Hello World";
+            bc.Width = 25;
+            bc.Resizable = DataGridViewTriState.False;
+            
+
+            dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.EnableResizing;
+            dataGridView1.ColumnHeadersHeight = 100;
+            dataGridView1.EditMode = DataGridViewEditMode.EditOnEnter;
+            dataGridView1.AllowUserToAddRows = false;
+            dataGridView1.RowHeadersVisible = true;
+
+            dataGridView1.Columns.Add(bc);
+            for (int x = 0; x < 10; x++)
+            {
+                DataGridViewRow newRow = new DataGridViewRow();
+                dataGridView1.Rows.Add(newRow);
+                newRow.HeaderCell.Value = "Phoneme" + x;
+                dataGridView1[0, x].Value = true;
+            }
+            dataGridView1.AutoResizeRowHeadersWidth(DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders);
+        }
+
+        private void dataGridView1_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
+        {
+            if ((e.RowIndex == -1) && (e.ColumnIndex >=0))
+            {
+                e.PaintBackground(e.CellBounds, true);
+                e.Graphics.TranslateTransform(e.CellBounds.Left , e.CellBounds.Bottom);
+                e.Graphics.RotateTransform(270);
+                e.Graphics.DrawString(e.FormattedValue.ToString(),e.CellStyle.Font,Brushes.Black,5,5);
+                e.Graphics.ResetTransform();
+                e.Handled=true;
+            }
         }
 
         private void buttonAddString_Click(object sender, EventArgs e)
         {
-            addControl(new LipSyncBreakdownItemControl());
+            //addControl(new LipSyncBreakdownItemControl());
         }
 
         private void control_DeleteRequested(object sender, EventArgs e)
         {
+            /*
             LipSyncBreakdownItemControl control = sender as LipSyncBreakdownItemControl;
             if (control == null)
                 return;
 
             removeControl(control);
+             */
         }
 
+        /*
         private void removeControl(LipSyncBreakdownItemControl control)
         {
+            
             if (!tableLayoutPanelControls.Controls.Contains(control))
                 return;
 
             tableLayoutPanelControls.Controls.Remove(control);
             control.DeleteRequested -= control_DeleteRequested;
+             
         }
+        */
 
+        /*
         private void addControl(LipSyncBreakdownItemControl control)
         {
+            
             control.DeleteRequested += control_DeleteRequested;
             tableLayoutPanelControls.Controls.Add(control);
         }
+        */
 
         private void buttonApplyTemplate_Click(object sender, EventArgs e)
         {
+            /*
             foreach (LipSyncBreakdownItemControl control in tableLayoutPanelControls.Controls.OfType<LipSyncBreakdownItemControl>())
             {
 				removeControl(control);
 			}
 
 			tableLayoutPanelControls.Controls.Clear();
+            */
 
 			string template = comboBoxTemplates.SelectedItem.ToString();
 			switch (template) 
@@ -207,7 +258,7 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
                     outlineItem.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("WQ", true));
                     outlineItem.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("etc", true));
                     outlineItem.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("Rest", true));
-                    addControl(new LipSyncBreakdownItemControl(outlineItem));
+//                    addControl(new LipSyncBreakdownItemControl(outlineItem));
 
                     LipSyncBreakdownItem eyesTop = new LipSyncBreakdownItem();
                     eyesTop.Name = "Eyes Top";
@@ -222,7 +273,7 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
                     eyesTop.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("WQ", true));
                     eyesTop.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("etc", true));
                     eyesTop.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("Rest", true));
-                    addControl(new LipSyncBreakdownItemControl(eyesTop));
+//                    addControl(new LipSyncBreakdownItemControl(eyesTop));
 
                     LipSyncBreakdownItem eyesBottom = new LipSyncBreakdownItem();
                     eyesBottom.Name = "Eyes Bottom";
@@ -237,7 +288,7 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
                     eyesBottom.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("WQ", true));
                     eyesBottom.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("etc", true));
                     eyesBottom.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("Rest", true));
-                    addControl(new LipSyncBreakdownItemControl(eyesBottom));
+//                    addControl(new LipSyncBreakdownItemControl(eyesBottom));
 
                     LipSyncBreakdownItem mouthTop = new LipSyncBreakdownItem();
                     mouthTop.Name = "Mouth Top";
@@ -252,7 +303,7 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
                     mouthTop.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("WQ", false));
                     mouthTop.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("etc", false));
                     mouthTop.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("Rest", false));
-                    addControl(new LipSyncBreakdownItemControl(mouthTop));
+//                    addControl(new LipSyncBreakdownItemControl(mouthTop));
 
                     LipSyncBreakdownItem mouthMiddle = new LipSyncBreakdownItem();
                     mouthMiddle.Name = "Mouth Middle";
@@ -267,7 +318,7 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
                     mouthMiddle.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("WQ", false));
                     mouthMiddle.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("etc", false));
                     mouthMiddle.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("Rest", false));
-                    addControl(new LipSyncBreakdownItemControl(mouthMiddle));
+//                    addControl(new LipSyncBreakdownItemControl(mouthMiddle));
 
                     LipSyncBreakdownItem mouthBottom = new LipSyncBreakdownItem();
                     mouthBottom.Name = "Mouth Bottom";
@@ -282,7 +333,7 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
                     mouthBottom.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("WQ", false));
                     mouthBottom.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("etc", false));
                     mouthBottom.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("Rest", false));
-                    addControl(new LipSyncBreakdownItemControl(mouthBottom));
+//                    addControl(new LipSyncBreakdownItemControl(mouthBottom));
 
                     LipSyncBreakdownItem mouthNarrow = new LipSyncBreakdownItem();
                     mouthNarrow.Name = "Mouth Narrow";
@@ -297,7 +348,7 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
                     mouthNarrow.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("WQ", false));
                     mouthNarrow.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("etc", true));
                     mouthNarrow.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("Rest", false));
-                    addControl(new LipSyncBreakdownItemControl(mouthNarrow));
+//                    addControl(new LipSyncBreakdownItemControl(mouthNarrow));
 
                     LipSyncBreakdownItem mouthO = new LipSyncBreakdownItem();
                     mouthO.Name = "Mouth O";
@@ -312,7 +363,7 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
                     mouthO.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("WQ", true));
                     mouthO.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("etc", true));
                     mouthO.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("Rest", false));
-                    addControl(new LipSyncBreakdownItemControl(mouthO));
+//                    addControl(new LipSyncBreakdownItemControl(mouthO));
                     break;
 
 				default:
