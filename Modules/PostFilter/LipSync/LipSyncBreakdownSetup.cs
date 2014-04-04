@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
 using Vixen.Data.Flow;
@@ -17,18 +18,89 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
 {
     public partial class LipSyncBreakdownSetup : Form, IElementSetupHelper
     {
-        private  LipSyncBreakdownData _data;
+        private LipSyncBreakdownData _data;
         private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
+        private DataTable holidayCoroDataTable;
+        private DataTable defaultDataTable;
 
         public LipSyncBreakdownSetup()
-		{
-			InitializeComponent();
-		}
+        {
+            InitializeComponent();
+            SetupTemplates();
+        }
 
         public LipSyncBreakdownSetup(LipSyncBreakdownData breakdownData)
         {
             InitializeComponent();
             _data = breakdownData;
+            SetupTemplates();
+        }
+
+        private void SetupTemplates()
+        {
+            defaultDataTable = new DataTable("Default");
+            defaultDataTable.Columns.Add(" ", typeof(string));
+            defaultDataTable.Columns.Add("Phoneme1", typeof(System.Boolean));
+
+            //String #1
+            DataRow row = defaultDataTable.NewRow();
+            row.ItemArray = new object[] { "String#1", true };
+            defaultDataTable.Rows.Add(row);
+
+
+            holidayCoroDataTable = new DataTable("HolidaCoro");
+            holidayCoroDataTable.Columns.Add(" ", typeof(string));
+            holidayCoroDataTable.Columns.Add("AI", typeof(System.Boolean));
+            holidayCoroDataTable.Columns.Add("E", typeof(System.Boolean));
+            holidayCoroDataTable.Columns.Add("O", typeof(System.Boolean));
+            holidayCoroDataTable.Columns.Add("U", typeof(System.Boolean));
+            holidayCoroDataTable.Columns.Add("FV", typeof(System.Boolean));
+            holidayCoroDataTable.Columns.Add("L", typeof(System.Boolean));
+            holidayCoroDataTable.Columns.Add("MPB", typeof(System.Boolean));
+            holidayCoroDataTable.Columns.Add("WQ", typeof(System.Boolean));
+            holidayCoroDataTable.Columns.Add("etc", typeof(System.Boolean));
+            holidayCoroDataTable.Columns.Add("Rest", typeof(System.Boolean));
+
+            //Outline
+            row = holidayCoroDataTable.NewRow();
+            row.ItemArray = new object[] { "Outline", true, true, true, true, true, true, true, true, true, true };
+            holidayCoroDataTable.Rows.Add(row);
+
+            //Eyes Top
+            row = holidayCoroDataTable.NewRow();
+            row.ItemArray = new object[] { "Eyes Top", true, true, true, true, true, true, true, true, true, true };
+            holidayCoroDataTable.Rows.Add(row);
+
+            //Eyes Bottom
+            row = holidayCoroDataTable.NewRow();
+            row.ItemArray = new object[] { "Eyes Bottom", true, true, true, true, true, true, true, true, true, true };
+            holidayCoroDataTable.Rows.Add(row);
+
+            //Mouth Top
+            row = holidayCoroDataTable.NewRow();
+            row.ItemArray = new object[] { "Mouth Top", true, true, false, false, false, true, true, false, false, false };
+            holidayCoroDataTable.Rows.Add(row);
+
+            //Mouth Middle
+            row = holidayCoroDataTable.NewRow();
+            row.ItemArray = new object[] { "Mouth Middle", false, true, false, false, false, true, false, false, false, false };
+            holidayCoroDataTable.Rows.Add(row);
+
+            //Mouth Bottom
+            row = holidayCoroDataTable.NewRow();
+            row.ItemArray = new object[] { "Mouth Bottom", true, false, false, false, false, true, false, false, false, false };
+            holidayCoroDataTable.Rows.Add(row);
+
+            //Mouth Narrow
+            row = holidayCoroDataTable.NewRow();
+            row.ItemArray = new object[] { "Mouth Narrow", false, false, false, false, true, false, false, false, true, false };
+            holidayCoroDataTable.Rows.Add(row);
+
+            //Mouth Bottom
+            row = holidayCoroDataTable.NewRow();
+            row.ItemArray = new object[] { "Mouth Bottom", false, false, true, true, false, false, false, true, true, false };
+            holidayCoroDataTable.Rows.Add(row);
+
         }
 
         public List<LipSyncBreakdownItem> BreakdownItems
@@ -104,26 +176,7 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
                 foreach (IDataFlowComponentReference reference in references)
                 {
                     int outputIndex = reference.OutputIndex;
-/*
-                    if (reference.Component is LipSyncBreakdownModule)
-                    {
-                        switch (existingBehaviour)
-                        {
-                            case ExistingBehaviour.DoNothing:
-                                modulesSkipped++;
-                                continue;
 
-                            case ExistingBehaviour.UpdateExisting:
-                                (reference.Component as DimmingCurveModule).DimmingCurve = _curve;
-                                modulesConfigured++;
-                                continue;
-
-                            case ExistingBehaviour.AddNew:
-                                outputIndex = 0;
-                                break;
-                        }
-                    }
-*/
                     outputIndex = 0;
 
                     // assuming we're making a new one and going from there
@@ -142,12 +195,7 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
 
         private void LipSyncBreakdownSetup_Load(object sender, EventArgs e)
         {
-//            tableLayoutPanelControls.Controls.Clear();
-//
-//            foreach (LipSyncBreakdownItem breakdownItem in _data.BreakdownItems)
-//            {
-//                addControl(new LipSyncBreakdownItemControl(breakdownItem));
-//            }
+
 
             // let's just make up some hardcoded templates. Can expand on this later; probably don't need to,
             // people can request new ones and stuff if they want.
@@ -155,40 +203,37 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
             comboBoxTemplates.Items.Add("HolidayCoro");
             comboBoxTemplates.SelectedIndex = 0;
 
+            updatedataGridView1(defaultDataTable);
 
-            DataGridViewCheckBoxColumn bc = new DataGridViewCheckBoxColumn();
-            bc.HeaderText = "Hello World";
-            bc.Width = 25;
-            bc.Resizable = DataGridViewTriState.False;
-            
+
+        }
+
+        private void updatedataGridView1(DataTable dataSource)
+        {
 
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.EnableResizing;
             dataGridView1.ColumnHeadersHeight = 100;
             dataGridView1.EditMode = DataGridViewEditMode.EditOnEnter;
             dataGridView1.AllowUserToAddRows = false;
             dataGridView1.RowHeadersVisible = true;
-
-            dataGridView1.Columns.Add(bc);
-            for (int x = 0; x < 10; x++)
-            {
-                DataGridViewRow newRow = new DataGridViewRow();
-                dataGridView1.Rows.Add(newRow);
-                newRow.HeaderCell.Value = "Phoneme" + x;
-                dataGridView1[0, x].Value = true;
-            }
             dataGridView1.AutoResizeRowHeadersWidth(DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders);
+            dataGridView1.DataSource = dataSource;
+            dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
+
+
+
         }
 
         private void dataGridView1_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
         {
-            if ((e.RowIndex == -1) && (e.ColumnIndex >=0))
+            if ((e.RowIndex == -1) && (e.ColumnIndex >= 0))
             {
                 e.PaintBackground(e.CellBounds, true);
-                e.Graphics.TranslateTransform(e.CellBounds.Left , e.CellBounds.Bottom);
+                e.Graphics.TranslateTransform(e.CellBounds.Left, e.CellBounds.Bottom);
                 e.Graphics.RotateTransform(270);
-                e.Graphics.DrawString(e.FormattedValue.ToString(),e.CellStyle.Font,Brushes.Black,5,5);
+                e.Graphics.DrawString(e.FormattedValue.ToString(), e.CellStyle.Font, Brushes.Black, 5, 5);
                 e.Graphics.ResetTransform();
-                e.Handled=true;
+                e.Handled = true;
             }
         }
 
@@ -232,145 +277,25 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
 
         private void buttonApplyTemplate_Click(object sender, EventArgs e)
         {
-            /*
-            foreach (LipSyncBreakdownItemControl control in tableLayoutPanelControls.Controls.OfType<LipSyncBreakdownItemControl>())
+
+
+            string template = comboBoxTemplates.SelectedItem.ToString();
+            switch (template)
             {
-				removeControl(control);
-			}
-
-			tableLayoutPanelControls.Controls.Clear();
-            */
-
-			string template = comboBoxTemplates.SelectedItem.ToString();
-			switch (template) 
-            {
-				case "HolidayCoro":
-                    LipSyncBreakdownItem outlineItem = new LipSyncBreakdownItem();
-                    outlineItem.Name = "Outline";
-                    outlineItem.PhonemeList.Clear();
-                    outlineItem.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("AI", true));
-                    outlineItem.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("E", true));
-                    outlineItem.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("O", true));
-                    outlineItem.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("U", true));
-                    outlineItem.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("FV", true));
-                    outlineItem.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("L", true));
-                    outlineItem.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("MBP", true));
-                    outlineItem.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("WQ", true));
-                    outlineItem.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("etc", true));
-                    outlineItem.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("Rest", true));
-//                    addControl(new LipSyncBreakdownItemControl(outlineItem));
-
-                    LipSyncBreakdownItem eyesTop = new LipSyncBreakdownItem();
-                    eyesTop.Name = "Eyes Top";
-                    eyesTop.PhonemeList.Clear();
-                    eyesTop.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("AI", true));
-                    eyesTop.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("E", true));
-                    eyesTop.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("O", true));
-                    eyesTop.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("U", true));
-                    eyesTop.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("FV", true));
-                    eyesTop.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("L", true));
-                    eyesTop.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("MBP", true));
-                    eyesTop.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("WQ", true));
-                    eyesTop.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("etc", true));
-                    eyesTop.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("Rest", true));
-//                    addControl(new LipSyncBreakdownItemControl(eyesTop));
-
-                    LipSyncBreakdownItem eyesBottom = new LipSyncBreakdownItem();
-                    eyesBottom.Name = "Eyes Bottom";
-                    eyesBottom.PhonemeList.Clear();
-                    eyesBottom.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("AI", true));
-                    eyesBottom.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("E", true));
-                    eyesBottom.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("O", true));
-                    eyesBottom.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("U", true));
-                    eyesBottom.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("FV", true));
-                    eyesBottom.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("L", true));
-                    eyesBottom.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("MBP", true));
-                    eyesBottom.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("WQ", true));
-                    eyesBottom.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("etc", true));
-                    eyesBottom.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("Rest", true));
-//                    addControl(new LipSyncBreakdownItemControl(eyesBottom));
-
-                    LipSyncBreakdownItem mouthTop = new LipSyncBreakdownItem();
-                    mouthTop.Name = "Mouth Top";
-                    mouthTop.PhonemeList.Clear();
-                    mouthTop.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("AI", true));
-                    mouthTop.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("E", true));
-                    mouthTop.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("O", false));
-                    mouthTop.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("U", false));
-                    mouthTop.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("FV", false));
-                    mouthTop.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("L", true));
-                    mouthTop.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("MBP", true));
-                    mouthTop.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("WQ", false));
-                    mouthTop.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("etc", false));
-                    mouthTop.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("Rest", false));
-//                    addControl(new LipSyncBreakdownItemControl(mouthTop));
-
-                    LipSyncBreakdownItem mouthMiddle = new LipSyncBreakdownItem();
-                    mouthMiddle.Name = "Mouth Middle";
-                    mouthMiddle.PhonemeList.Clear();
-                    mouthMiddle.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("AI", false));
-                    mouthMiddle.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("E", true));
-                    mouthMiddle.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("O", false));
-                    mouthMiddle.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("U", false));
-                    mouthMiddle.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("FV", false));
-                    mouthMiddle.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("L", true));
-                    mouthMiddle.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("MBP", false));
-                    mouthMiddle.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("WQ", false));
-                    mouthMiddle.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("etc", false));
-                    mouthMiddle.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("Rest", false));
-//                    addControl(new LipSyncBreakdownItemControl(mouthMiddle));
-
-                    LipSyncBreakdownItem mouthBottom = new LipSyncBreakdownItem();
-                    mouthBottom.Name = "Mouth Bottom";
-                    mouthBottom.PhonemeList.Clear();
-                    mouthBottom.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("AI", true));
-                    mouthBottom.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("E", false));
-                    mouthBottom.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("O", false));
-                    mouthBottom.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("U", false));
-                    mouthBottom.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("FV", false));
-                    mouthBottom.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("L", false));
-                    mouthBottom.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("MBP", false));
-                    mouthBottom.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("WQ", false));
-                    mouthBottom.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("etc", false));
-                    mouthBottom.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("Rest", false));
-//                    addControl(new LipSyncBreakdownItemControl(mouthBottom));
-
-                    LipSyncBreakdownItem mouthNarrow = new LipSyncBreakdownItem();
-                    mouthNarrow.Name = "Mouth Narrow";
-                    mouthNarrow.PhonemeList.Clear();
-                    mouthNarrow.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("AI", false));
-                    mouthNarrow.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("E", false));
-                    mouthNarrow.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("O", false));
-                    mouthNarrow.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("U", false));
-                    mouthNarrow.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("FV", true));
-                    mouthNarrow.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("L", false));
-                    mouthNarrow.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("MBP", false));
-                    mouthNarrow.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("WQ", false));
-                    mouthNarrow.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("etc", true));
-                    mouthNarrow.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("Rest", false));
-//                    addControl(new LipSyncBreakdownItemControl(mouthNarrow));
-
-                    LipSyncBreakdownItem mouthO = new LipSyncBreakdownItem();
-                    mouthO.Name = "Mouth O";
-                    mouthO.PhonemeList.Clear();
-                    mouthO.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("AI", false));
-                    mouthO.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("E", false));
-                    mouthO.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("O", true));
-                    mouthO.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("U", true));
-                    mouthO.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("FV", false));
-                    mouthO.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("L", false));
-                    mouthO.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("MBP", false));
-                    mouthO.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("WQ", true));
-                    mouthO.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("etc", true));
-                    mouthO.PhonemeList.Add(new LipSyncBreakdownItemPhoneme("Rest", false));
-//                    addControl(new LipSyncBreakdownItemControl(mouthO));
+                case "HolidayCoro":
+                    updatedataGridView1(holidayCoroDataTable);
                     break;
 
-				default:
-					Logging.Error("Color Breakdown Setup: got an unknown template to apply: " + template);
-					MessageBox.Show("Error applying template: Unknown template.");
-					break;
-			}
-		}
+                default:
+                    Logging.Error("Lipsync Breakdown Setup: got an unknown template to apply: " + template);
+                    MessageBox.Show("Error applying template: Unknown template.");
+                    break;
+            }
+        }
+
+        private void LipSyncBreakdownSetup_Layout(object sender, LayoutEventArgs e)
+        {
+
+        }
     }
 }
