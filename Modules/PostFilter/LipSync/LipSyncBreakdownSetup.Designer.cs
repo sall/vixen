@@ -28,7 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.buttonApplyTemplate = new System.Windows.Forms.Button();
             this.comboBoxTemplates = new System.Windows.Forms.ComboBox();
             this.label3 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
@@ -36,18 +35,9 @@
             this.buttonCancel = new System.Windows.Forms.Button();
             this.buttonAddString = new System.Windows.Forms.Button();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
+            this.button1 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
-            // 
-            // buttonApplyTemplate
-            // 
-            this.buttonApplyTemplate.Location = new System.Drawing.Point(231, 45);
-            this.buttonApplyTemplate.Name = "buttonApplyTemplate";
-            this.buttonApplyTemplate.Size = new System.Drawing.Size(111, 25);
-            this.buttonApplyTemplate.TabIndex = 14;
-            this.buttonApplyTemplate.Text = "Apply Template";
-            this.buttonApplyTemplate.UseVisualStyleBackColor = true;
-            this.buttonApplyTemplate.Click += new System.EventHandler(this.buttonApplyTemplate_Click);
             // 
             // comboBoxTemplates
             // 
@@ -117,16 +107,26 @@
             this.dataGridView1.TabIndex = 18;
             this.dataGridView1.CellPainting += new System.Windows.Forms.DataGridViewCellPaintingEventHandler(this.dataGridView1_CellPainting);
             // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(241, 46);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.TabIndex = 19;
+            this.button1.Text = "Appy";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.applyButton_Click);
+            // 
             // LipSyncBreakdownSetup
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(563, 468);
+            this.Controls.Add(this.button1);
             this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.buttonAddString);
             this.Controls.Add(this.buttonOK);
             this.Controls.Add(this.buttonCancel);
-            this.Controls.Add(this.buttonApplyTemplate);
             this.Controls.Add(this.comboBoxTemplates);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label1);
@@ -145,7 +145,6 @@
 
         #endregion
 
-        private System.Windows.Forms.Button buttonApplyTemplate;
         private System.Windows.Forms.ComboBox comboBoxTemplates;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label1;
@@ -153,6 +152,7 @@
         private System.Windows.Forms.Button buttonCancel;
         private System.Windows.Forms.Button buttonAddString;
         private System.Windows.Forms.DataGridView dataGridView1;
+        private System.Windows.Forms.Button button1;
 
     }
 }

@@ -22,6 +22,7 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
         private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
         private DataTable holidayCoroDataTable;
         private DataTable defaultDataTable;
+        private DataTable currentDataTable;
 
         public LipSyncBreakdownSetup()
         {
@@ -34,6 +35,7 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
             InitializeComponent();
             _data = breakdownData;
             SetupTemplates();
+            this.BreakdownItems = _data.BreakdownItems;
         }
 
         private void SetupTemplates()
@@ -101,21 +103,66 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
             row.ItemArray = new object[] { "Mouth Bottom", false, false, true, true, false, false, false, true, true, false };
             holidayCoroDataTable.Rows.Add(row);
 
+            currentDataTable = defaultDataTable.Copy();
+
+            if (comboBoxTemplates.Items.Count == 0)
+            {
+                // let's just make up some hardcoded templates. Can expand on this later; probably don't need to,
+                // people can request new ones and stuff if they want.
+                comboBoxTemplates.Items.Clear();
+                comboBoxTemplates.Items.Add("Default");
+                comboBoxTemplates.Items.Add("HolidayCoro");
+                comboBoxTemplates.SelectedIndex = 0;
+
+            }
+
         }
 
         public List<LipSyncBreakdownItem> BreakdownItems
         {
             get
             {
-                /*
-                return
-                    tableLayoutPanelControls.Controls.OfType<LipSyncBreakdownItemControl>().Select(
-                        itemControl => itemControl.LipSyncBreakdownItem).ToList();
-                 */
-                return null;
-            }
-        }
+                List<LipSyncBreakdownItem> retVal = new List<LipSyncBreakdownItem>();
+                foreach(DataRow dr in currentDataTable.Rows)
+                {
+                    LipSyncBreakdownItem item = new LipSyncBreakdownItem();
+                    item.Name = dr[0].ToString();
 
+                    for(int theCount = 1; theCount < dr.ItemArray.Count(); theCount++)
+                    {
+                        item.PhonemeList.Add(
+                            dr.Table.Columns[theCount].ColumnName,(Boolean)dr[theCount]
+                         );
+                    }
+
+                    retVal.Add(item);
+                }
+                return retVal;
+            }
+
+            set
+            {
+                currentDataTable = new DataTable();
+                currentDataTable.Columns.Add(" ", typeof(string));
+                Dictionary<string,Boolean>.KeyCollection theKeys =  value[0].PhonemeList.Keys;
+                foreach(string columnName in theKeys)
+                {
+                    currentDataTable.Columns.Add(columnName, typeof(Boolean));
+                }
+
+                int theCount = 1;
+                foreach (LipSyncBreakdownItem lsbItem in value)
+                {
+                    DataRow dr = currentDataTable.Rows.Add();
+                    dr[0] = lsbItem.Name;
+                    foreach(string key in theKeys)
+                    {
+                        dr[key] = lsbItem.PhonemeList[key];                    
+                    }
+                }
+              }
+        }
+        
         public string HelperName
         {
             get { return "Phoneme Mapping"; }
@@ -154,6 +201,11 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
             }
         }
 
+        private void LipSyncBreakdownSetup_Load(object sender, EventArgs e)
+        {
+             updatedataGridView1();
+        }
+
         public bool Perform(IEnumerable<ElementNode> selectedNodes)
         {
             DialogResult dr = ShowDialog();
@@ -184,6 +236,9 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
                     VixenSystem.DataFlow.SetComponentSource(breakdownModule, reference.Component, outputIndex);
                     VixenSystem.Filters.AddFilter(breakdownModule);
 
+                    breakdownModule.BreakdownItems = this.BreakdownItems;
+                    breakdownModule.CreateOutputs();
+
                     modulesCreated++;
                     modulesConfigured++;
                 }
@@ -192,36 +247,17 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
             MessageBox.Show(modulesCreated + " Phoneme Curves created, " + modulesConfigured + " configured, and " + modulesSkipped + " skipped.");
             return true;
         }
-
-        private void LipSyncBreakdownSetup_Load(object sender, EventArgs e)
+        
+        private void updatedataGridView1()
         {
-
-
-            // let's just make up some hardcoded templates. Can expand on this later; probably don't need to,
-            // people can request new ones and stuff if they want.
-            comboBoxTemplates.Items.Clear();
-            comboBoxTemplates.Items.Add("HolidayCoro");
-            comboBoxTemplates.SelectedIndex = 0;
-
-            updatedataGridView1(defaultDataTable);
-
-
-        }
-
-        private void updatedataGridView1(DataTable dataSource)
-        {
-
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.EnableResizing;
             dataGridView1.ColumnHeadersHeight = 100;
             dataGridView1.EditMode = DataGridViewEditMode.EditOnEnter;
             dataGridView1.AllowUserToAddRows = false;
             dataGridView1.RowHeadersVisible = true;
             dataGridView1.AutoResizeRowHeadersWidth(DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders);
-            dataGridView1.DataSource = dataSource;
+            dataGridView1.DataSource = currentDataTable;
             dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
-
-
-
         }
 
         private void dataGridView1_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
@@ -253,48 +289,29 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
              */
         }
 
-        /*
-        private void removeControl(LipSyncBreakdownItemControl control)
+        private void applyButton_Click(object sender, EventArgs e)
         {
-            
-            if (!tableLayoutPanelControls.Controls.Contains(control))
-                return;
-
-            tableLayoutPanelControls.Controls.Remove(control);
-            control.DeleteRequested -= control_DeleteRequested;
-             
-        }
-        */
-
-        /*
-        private void addControl(LipSyncBreakdownItemControl control)
-        {
-            
-            control.DeleteRequested += control_DeleteRequested;
-            tableLayoutPanelControls.Controls.Add(control);
-        }
-        */
-
-        private void buttonApplyTemplate_Click(object sender, EventArgs e)
-        {
-
-
             string template = comboBoxTemplates.SelectedItem.ToString();
             switch (template)
             {
+                case "Default":
+                    {
+                        currentDataTable = defaultDataTable.Copy();
+                        updatedataGridView1();
+                        break;
+                    }
                 case "HolidayCoro":
-                    updatedataGridView1(holidayCoroDataTable);
-                    break;
+                    {
+                        currentDataTable = holidayCoroDataTable.Copy();
+                        updatedataGridView1();
+                        break;
+                    }
 
                 default:
                     Logging.Error("Lipsync Breakdown Setup: got an unknown template to apply: " + template);
                     MessageBox.Show("Error applying template: Unknown template.");
                     break;
             }
-        }
-
-        private void LipSyncBreakdownSetup_Layout(object sender, LayoutEventArgs e)
-        {
 
         }
     }

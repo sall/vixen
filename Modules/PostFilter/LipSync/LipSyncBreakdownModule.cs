@@ -96,7 +96,7 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
             set
             {
                 _data = (LipSyncBreakdownData)value;
-                _CreateOutputs();
+                CreateOutputs();
             }
         }
 
@@ -107,7 +107,7 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
             set
             {
                 _data.BreakdownItems = value;
-                _CreateOutputs();
+                CreateOutputs();
             }
         }
 
@@ -123,16 +123,23 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
                 if (setup.ShowDialog() == DialogResult.OK)
                 {
                     _data.BreakdownItems = setup.BreakdownItems;
-                    _CreateOutputs();
+                    CreateOutputs();
                     return true;
                 }
             }
             return false;
         }
 
-        private void _CreateOutputs()
+        public void CreateOutputs()
         {
-            _outputs = _data.BreakdownItems.Select(x => new LipSyncBreakdownOutput(x)).ToArray();
+            if (_data.BreakdownItems != null)
+            {
+                _outputs = _data.BreakdownItems.Select(x => new LipSyncBreakdownOutput(x)).ToArray();
+            }
+            else
+            {
+                _data = null;
+            }
         }
     }
 
@@ -152,7 +159,6 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
 
         [DataMember]
         public List<LipSyncBreakdownItem> BreakdownItems { get; set; }
-
     }
 
     internal class LipSyncBreakdownFilter : IntentStateDispatch
@@ -256,17 +262,17 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
         public LipSyncBreakdownItem()
         {
             Name = "Unnamed";
-            PhonemeList = new List<LipSyncBreakdownItemPhoneme>();
+            PhonemeList = new Dictionary<string,Boolean>();
         }
 
         [DataMember]
         public string Name { get; set; }
 
         [DataMember]
-       public List<LipSyncBreakdownItemPhoneme> PhonemeList { get; set; }
+        public Dictionary<string,Boolean> PhonemeList { get; set; }
     }
-
-    [DataContract]
+/*
+     [DataContract]
     public class LipSyncBreakdownItemPhoneme
     {
         public LipSyncBreakdownItemPhoneme()
@@ -286,14 +292,12 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
             this.phonemeName = phonemeName;
             this.isChecked = isChecked;
         }
-
+     
         [DataMember]
         public string phonemeName { get; set; }
 
         [DataMember]
         public bool isChecked { get; set; }
     }
-
-
-
+*/
 }
