@@ -36,6 +36,7 @@
             this.buttonAddString = new System.Windows.Forms.Button();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.button1 = new System.Windows.Forms.Button();
+            this.button2 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -76,6 +77,7 @@
             this.buttonOK.TabIndex = 16;
             this.buttonOK.Text = "OK";
             this.buttonOK.UseVisualStyleBackColor = true;
+            this.buttonOK.Click += new System.EventHandler(this.buttonOK_Click);
             // 
             // buttonCancel
             // 
@@ -92,7 +94,7 @@
             // 
             this.buttonAddString.Location = new System.Drawing.Point(26, 420);
             this.buttonAddString.Name = "buttonAddString";
-            this.buttonAddString.Size = new System.Drawing.Size(75, 23);
+            this.buttonAddString.Size = new System.Drawing.Size(88, 23);
             this.buttonAddString.TabIndex = 17;
             this.buttonAddString.Text = "Add String";
             this.buttonAddString.UseVisualStyleBackColor = true;
@@ -117,11 +119,22 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.applyButton_Click);
             // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(129, 420);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(88, 23);
+            this.button2.TabIndex = 20;
+            this.button2.Text = "Add Phoneme";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
+            // 
             // LipSyncBreakdownSetup
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(563, 468);
+            this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.buttonAddString);
@@ -153,6 +166,7 @@
         private System.Windows.Forms.Button buttonAddString;
         private System.Windows.Forms.DataGridView dataGridView1;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button button2;
 
     }
 }

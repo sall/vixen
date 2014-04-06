@@ -7,7 +7,7 @@
     <ProjectGuid>{B32BD3AF-DCF7-4D79-9F51-A76669CCE2C6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>VixenModules.OutputFilter.LipSync</RootNamespace>
+    <RootNamespace>VixenModules.OutputFilter.LipSyncBreakdown</RootNamespace>
     <AssemblyName>LipSyncBreakdown</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -82,6 +82,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LipSyncBreakdownAddPhoneme.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="LipSyncBreakdownAddPhoneme.Designer.cs">
+      <DependentUpon>LipSyncBreakdownAddPhoneme.cs</DependentUpon>
+    </Compile>
     <Compile Include="LipSyncBreakdownModule.cs" />
     <Compile Include="LipSyncBreakdownSetup.cs">
       <SubType>Form</SubType>
@@ -98,6 +104,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="LipSyncBreakdownAddPhoneme.resx">
+      <DependentUpon>LipSyncBreakdownAddPhoneme.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="LipSyncBreakdownSetup.resx">
       <DependentUpon>LipSyncBreakdownSetup.cs</DependentUpon>
     </EmbeddedResource>

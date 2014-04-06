@@ -100,7 +100,7 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
 
             //Mouth Bottom
             row = holidayCoroDataTable.NewRow();
-            row.ItemArray = new object[] { "Mouth Bottom", false, false, true, true, false, false, false, true, true, false };
+            row.ItemArray = new object[] { "Mouth O", false, false, true, true, false, false, false, true, true, false };
             holidayCoroDataTable.Rows.Add(row);
 
             currentDataTable = defaultDataTable.Copy();
@@ -150,7 +150,6 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
                     currentDataTable.Columns.Add(columnName, typeof(Boolean));
                 }
 
-                int theCount = 1;
                 foreach (LipSyncBreakdownItem lsbItem in value)
                 {
                     DataRow dr = currentDataTable.Rows.Add();
@@ -273,9 +272,21 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
             }
         }
 
+        private void addNewString(string stringName)
+        {
+            DataRow dr = currentDataTable.Rows.Add(stringName);
+
+            int cellCount = currentDataTable.Columns.Count;
+
+            for (int j = 1; j < cellCount; j++)
+            {
+                dr[j] = true;
+            }
+        }
+
         private void buttonAddString_Click(object sender, EventArgs e)
         {
-            //addControl(new LipSyncBreakdownItemControl());
+            addNewString("New String");
         }
 
         private void control_DeleteRequested(object sender, EventArgs e)
@@ -313,6 +324,48 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
                     break;
             }
 
+        }
+
+        private void buttonOK_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            LipSyncBreakdownAddPhoneme addDialog = new LipSyncBreakdownAddPhoneme();
+            DialogResult result = addDialog.ShowDialog();
+            bool doAdd = true;
+
+            if (result == DialogResult.OK)
+            {
+                string requestedName = addDialog.PhonemeName;
+                foreach(DataColumn dc in currentDataTable.Columns)
+                {
+                    if (dc.ColumnName == requestedName)
+                    {
+                        doAdd = false;
+                        break;
+                    }
+                }
+               
+                if ((doAdd) && 
+                    (!String.IsNullOrWhiteSpace(requestedName)) &&
+                    (!String.IsNullOrEmpty(requestedName)))
+                {
+                    currentDataTable.Columns.Add(requestedName, typeof(System.Boolean));
+
+                    int columnIndex = currentDataTable.Columns.Count - 1;
+                    foreach (DataRow dr in currentDataTable.Rows)
+                    {
+                        dr[columnIndex] = true;
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Invalid or Duplicate Phoneme Name");
+                }
+            }
         }
     }
 }
