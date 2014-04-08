@@ -5,22 +5,26 @@ using System.Text;
 using System.Runtime.Serialization;
 using Vixen.Module;
 
-namespace VixenModules.Effect.Papagayo
+namespace VixenModules.Effect.LipSync
 {
     [DataContract]
-    internal class PapagayoData : ModuleDataModelBase
+    internal class LipSyncData : ModuleDataModelBase
     {
+        [DataMember]
+        public String StaticPhoneme { get; set; }
+
         [DataMember]
         public String PGOFilename { get; set; }
 
-        public PapagayoData()
+        public LipSyncData()
         {
-            PGOFilename = "Dude!";
+            StaticPhoneme = "";
+            PGOFilename = "";
         }
 
         public override IModuleDataModel Clone()
         {
-            PapagayoData result = new PapagayoData();
+            LipSyncData result = new LipSyncData();
             return result;
         }
     }

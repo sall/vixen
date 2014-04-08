@@ -342,9 +342,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Resources", "Common\Resourc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "K8055 Controller", "Modules\Output\K8055 Controller\K8055 Controller.csproj", "{988C89F2-F9A3-41CD-832E-18CFAADD210F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PapagayoEditor", "Modules\EffectEditor\PapagayoEditor\PapagayoEditor.csproj", "{7BB805C0-CE84-4FEC-9419-91579CCF4838}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LipSyncEditor", "Modules\EffectEditor\PapagayoEditor\LipSyncEditor.csproj", "{7BB805C0-CE84-4FEC-9419-91579CCF4838}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Papagayo", "Modules\Effect\Papagayo\Papagayo.csproj", "{6DE9A846-AC25-40B6-B8B2-B306EC9F2569}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LipSync", "Modules\Effect\Papagayo\LipSync.csproj", "{6DE9A846-AC25-40B6-B8B2-B306EC9F2569}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LipSyncBreakdown", "Modules\PostFilter\LipSync\LipSyncBreakdown.csproj", "{B32BD3AF-DCF7-4D79-9F51-A76669CCE2C6}"
 EndProject

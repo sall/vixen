@@ -3,7 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Text;
 
-namespace VixenModules.Effect.Papagayo
+namespace VixenModules.Effect.LipSync
 {
     class LipSyncWord
     {

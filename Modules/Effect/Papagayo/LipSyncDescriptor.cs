@@ -5,15 +5,15 @@ using System.Text;
 using Vixen.Sys;
 using Vixen.Module.Effect;
 
-namespace VixenModules.Effect.Papagayo
+namespace VixenModules.Effect.LipSync
 {
-    public class PapagayoDescriptor : EffectModuleDescriptorBase
+    public class LipSyncDescriptor : EffectModuleDescriptorBase
     {
         private static Guid _typeId = new Guid("{52F17F4B-2159-4820-8660-05CD9D1F47C1}");
 
         public override string EffectName
         {
-            get { return "Papagayo"; }
+            get { return "LipSync"; }
         }
 
         public override EffectGroups EffectGroup
@@ -28,12 +28,12 @@ namespace VixenModules.Effect.Papagayo
 
         public override Type ModuleClass
         {
-            get { return typeof(Papagayo); }
+            get { return typeof(LipSync); }
         }
 
         public override Type ModuleDataClass
         {
-            get { return typeof(PapagayoData); }
+            get { return typeof(LipSyncData); }
         }
 
         public override string Author
@@ -48,7 +48,7 @@ namespace VixenModules.Effect.Papagayo
 
         public override string Description
         {
-            get { return "Incorporate Papagyo Lipsync Files"; }
+            get { return "Incorporate Lipsync Files and Data"; }
         }
 
         public override string Version
@@ -61,6 +61,7 @@ namespace VixenModules.Effect.Papagayo
             get
             {
                 return new ParameterSignature(
+                    new ParameterSpecification("StaticPhoneme", typeof(string),false),
                     new ParameterSpecification("PGOFilename", typeof(string),false)
                     );
             }

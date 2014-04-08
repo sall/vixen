@@ -4,31 +4,14 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{6DE9A846-AC25-40B6-B8B2-B306EC9F2569}</ProjectGuid>
+    <ProjectGuid>{7BB805C0-CE84-4FEC-9419-91579CCF4838}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>VixenModules.Effect.Papagayo</RootNamespace>
-    <AssemblyName>Papagayo</AssemblyName>
+    <RootNamespace>VixenModules.EffectEditor.LipSyncEditor</RootNamespace>
+    <AssemblyName>LipSyncEditor</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
@@ -40,7 +23,7 @@
     <CodeAnalysisRuleSet>ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <OutputPath>..\..\..\Release\Modules\Effect\</OutputPath>
+    <OutputPath>..\..\..\Release\Modules\EffectEditor\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
@@ -58,7 +41,7 @@
     <CodeAnalysisRuleSet>ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>..\..\..\Release64\Modules\Effect\</OutputPath>
+    <OutputPath>..\..\..\Release64\Modules\EffectEditor\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
@@ -72,7 +55,8 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -80,14 +64,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LipSyncPhoneme.cs" />
-    <Compile Include="LipSyncPhrase.cs" />
-    <Compile Include="LipSyncVoice.cs" />
-    <Compile Include="LipSyncWord.cs" />
-    <Compile Include="Papagayo.cs" />
-    <Compile Include="PapagayoData.cs" />
-    <Compile Include="PapagayoDescriptor.cs" />
-    <Compile Include="PapagayoDoc.cs" />
+    <Compile Include="LipSyncEditorControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="LipSyncEditorControl.Designer.cs">
+      <DependentUpon>LipSyncEditorControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="LipSyncEditorDescriptor.cs" />
+    <Compile Include="LipSyncEditorModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -97,9 +81,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Images\Effect16.png" />
-    <EmbeddedResource Include="Images\Effect48.png" />
-    <EmbeddedResource Include="Images\Effect64.png" />
+    <EmbeddedResource Include="LipSyncEditorControl.resx">
+      <DependentUpon>LipSyncEditorControl.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

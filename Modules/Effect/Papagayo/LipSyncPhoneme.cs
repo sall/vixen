@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace VixenModules.Effect.Papagayo
+namespace VixenModules.Effect.LipSync
 {
-    class LipSyncPhoneme
+    public class LipSyncPhoneme
     {
         string m_Text = null;
         int m_startFrame = 0;

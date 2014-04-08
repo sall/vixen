@@ -12,17 +12,17 @@ using Vixen.Sys;
 using Vixen.Sys.Attribute;
 using System.Threading.Tasks;
 
-namespace VixenModules.Effect.Papagayo
+namespace VixenModules.Effect.LipSync
 {
 
-    public class Papagayo : EffectModuleInstanceBase
+    public class LipSync : EffectModuleInstanceBase
     {
-        private PapagayoData _data;
+        private LipSyncData _data;
         private EffectIntents _elementData = null;
 
-        public Papagayo()
+        public LipSync()
         {
-            _data = new PapagayoData();
+            _data = new LipSyncData();
         }
 
         protected override void TargetNodesChanged()
@@ -46,7 +46,18 @@ namespace VixenModules.Effect.Papagayo
         public override IModuleDataModel ModuleData
         {
             get { return _data; }
-            set { _data = value as PapagayoData; }
+            set { _data = value as LipSyncData; }
+        }
+
+        [Value]
+        public String StaticPhoneme
+        {
+            get { return _data.StaticPhoneme; }
+            set
+            {
+                _data.StaticPhoneme = value;
+                IsDirty = true;
+            }
         }
 
         [Value]

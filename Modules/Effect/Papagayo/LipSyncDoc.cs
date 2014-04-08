@@ -5,12 +5,12 @@ using System.Text;
 using System.Xml;
 using Vixen;
 
-namespace VixenModules.Effect.Papagayo
+namespace VixenModules.Effect.LipSync
 {
-    enum PhonemeType { AI, E, O, U, FV, L, MBP, WQ, etc, Rest };
-    class PapagayoDoc
-    {
+    public enum PhonemeType { AI, E, O, U, FV, L, MBP, WQ, etc, Rest };
 
+    public class LipSyncDoc
+    {
         int m_state = 0;
         string m_soundPath;
         float m_fps;
@@ -20,57 +20,15 @@ namespace VixenModules.Effect.Papagayo
         XmlNode m_fileNameNode = null;
         XmlNode m_settingsNode = null;
         string m_fileNameStr = null;
-        private static Dictionary<string, PapagayoDoc> m_instances = null;
         Dictionary<string, Dictionary<string, List<Int32>>> m_channelMap = null;
-
-
         bool m_isValid;
 
-        public static void GetInstance(string refName, ref PapagayoDoc docObj)
-        {
-            if (m_instances == null)
-            {
-                m_instances = new Dictionary<string, PapagayoDoc>();
-            }
-
-            if (m_instances.ContainsKey(refName) == false)
-            {
-                m_instances[refName] = new PapagayoDoc();
-            }
-            docObj = m_instances[refName];
-        }
-
-        private PapagayoDoc()
+        public LipSyncDoc()
         {
             m_isValid = false;
             m_voices = new Dictionary<string, LipSyncVoice>();
         }
 
-        public string SourceFileName
-        {
-            get
-            {
-                if (m_fileNameNode == null)
-                {
-                    m_fileNameNode = m_settingsNode.SelectSingleNode("Settings/Papagayo_Source");
-                    m_fileNameStr = Convert.ToString(m_fileNameNode.InnerText);
-                }
-                return m_fileNameStr;
-            }
-        }
-
-        public Dictionary<string, Dictionary<string, List<Int32>>> ChannelMap
-        {
-            get
-            {
-                if (this.m_channelMap == null)
-                {
-                    m_channelMap = new Dictionary<string, Dictionary<string, List<int>>>();
-//                    LoadXmlData();
-                }
-                return m_channelMap;
-            }
-        }
 
 #if false
         private bool LoadXmlData()
