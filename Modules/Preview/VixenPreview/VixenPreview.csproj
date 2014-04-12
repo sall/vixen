@@ -132,6 +132,7 @@
     <Compile Include="ResizePreviewForm.Designer.cs">
       <DependentUpon>ResizePreviewForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Shapes\PreviewBitmapShape.cs" />
     <Compile Include="Shapes\PreviewCustom.cs" />
     <Compile Include="Shapes\PreviewCustomCreateForm.cs">
       <SubType>Form</SubType>
@@ -150,6 +151,13 @@
     </Compile>
     <Compile Include="Shapes\PreviewCustomSetupControl.Designer.cs">
       <DependentUpon>PreviewCustomSetupControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Shapes\PreviewLipSync.cs" />
+    <Compile Include="Shapes\PreviewLipSyncControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Shapes\PreviewLipSyncControl.Designer.cs">
+      <DependentUpon>PreviewLipSyncControl.cs</DependentUpon>
     </Compile>
     <Compile Include="Shapes\PreviewPixelGrid.cs" />
     <Compile Include="Shapes\PreviewPixelGridSetupControl.cs">
@@ -334,6 +342,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Shapes\PreviewCustomSetupControl.resx">
       <DependentUpon>PreviewCustomSetupControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Shapes\PreviewLipSyncControl.resx">
+      <DependentUpon>PreviewLipSyncControl.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Shapes\PreviewPixelGridSetupControl.resx">
       <DependentUpon>PreviewPixelGridSetupControl.cs</DependentUpon>
