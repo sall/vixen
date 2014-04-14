@@ -77,17 +77,20 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 
             int pixelColor;
             _myBitmapfp.Lock();
-            for (int x = 0; x < _myBitmapfp.Width; x++)
+            Int32 maxWidth = _myBitmapfp.Width;
+            Int32 maxHeight = _myBitmapfp.Height;
+
+            for (int x = 0; x < maxWidth; x++)
             {
-                for (int y = 0; y < _myBitmapfp.Height; y++)
+                for (int y = 0; y < maxHeight; y++)
                 {
                     pixelColor = _myBitmapfp.GetPixel(x, y).ToArgb();
                     if (selected)
                     {
                         if ((x == 0) ||
                             (y == 0) ||
-                            (x == (_myBitmapfp.Height - 1)) ||
-                            (y == (_myBitmapfp.Width - 1)))
+                            (x == maxWidth - 1) ||
+                            (y == maxHeight - 1))
                         {
                             pixelColor = (int)((long)pixelColor & 0xFF000000) + 0x0000FF00;
                         }
@@ -107,11 +110,27 @@ namespace VixenModules.Preview.VixenPreview.Shapes
             DrawSelectPoints(fp);
         }
 
+        public override int Left
+        {
+            get
+            {
+                return _topLeft.X;
+            }
+        }
+
         public override int Right
         {
             get
             {
-                return _topRight.X;
+                return _topRight.X; 
+            }
+        }
+
+        public override int Top
+        {
+            get
+            {
+                return _topLeft.Y;
             }
         }
 
@@ -284,10 +303,10 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 
         private Rectangle MyRect()
         {
-            return new Rectangle(_topLeft.X,
-                                 _topLeft.Y,
-                                 _topRight.X - _topLeft.X,
-                                 _bottomLeft.Y - _topLeft.Y);
+            return new Rectangle(Convert.ToInt32(_topLeft.X * ZoomLevel),
+                                 Convert.ToInt32(_topLeft.Y * ZoomLevel),
+                                 Convert.ToInt32((_topRight.X - _topLeft.X) * ZoomLevel),
+                                 Convert.ToInt32((_bottomLeft.Y - _topLeft.Y) * ZoomLevel));
         }
 
         public override bool ShapeInRect(Rectangle rect)
