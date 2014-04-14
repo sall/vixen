@@ -28,8 +28,6 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 //			ResizePixels();
 		}
 
-
-
         public override DisplayItemBaseControl GetSetupControl()
 		{
 			Shapes.DisplayItemBaseControl setupControl = null;
@@ -41,6 +39,25 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 			return setupControl;
 		}
 
+		[Browsable(false)]
+		public override StringTypes StringType
+		{
+			get { return StringTypes.Other; }
+			set { _stringType = value; }
+        }
+
+        [Browsable(false)]
+        public virtual int PixelSize
+        {
+            get { return base.PixelSize; }
+            set { base.PixelSize = value; }
+        }
+        [Browsable(false)]
+        public override List<PreviewBaseShape> Strings
+        {
+            get { return base.Strings; }
+            set { base.Strings = value; }
+        }
 
 	}
 }

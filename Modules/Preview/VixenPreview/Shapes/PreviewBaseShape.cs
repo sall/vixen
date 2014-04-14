@@ -31,7 +31,7 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 		{
 			Standard,
 			Pixel,
-			//            Flood
+            Other
 		}
 
 		private bool _selected = false;

@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Runtime.Serialization;
 using System.ComponentModel;
 using System.Windows.Controls;
+using System.Drawing.Design;
 using Vixen.Sys;
 
 namespace VixenModules.Preview.VixenPreview.Shapes
@@ -22,64 +23,88 @@ namespace VixenModules.Preview.VixenPreview.Shapes
         [DataMember]
         private PreviewPoint _bottomRight;
 
+        private List<PreviewPoint> _cornerPoints;
+        private FastPixel.FastPixel _myBitmapfp;
         private PreviewPoint topLeftStart, topRightStart, bottomLeftStart, bottomRightStart;
+        
+
+        [DataMember]
+        private string _imageDir;
+
+        private Bitmap _currentBitmap;
 
         public PreviewLipSync(PreviewPoint point1, ElementNode selectedNode, double zoomLevel)
         {
             ZoomLevel = zoomLevel;
+
+            _currentBitmap =
+                new Bitmap("C:\\Users\\Administrator\\Documents\\Vixen 3\\Module Data Files\\LipSync\\Mouths\\Papagayo\\AI.jpg");
+
             _topLeft = PointToZoomPoint(point1);
-            _topRight = new PreviewPoint(_topLeft);
-            _bottomLeft = new PreviewPoint(_topLeft);
-            _bottomRight = new PreviewPoint(_topLeft);
+            _topRight = new PreviewPoint(_topLeft.X + _currentBitmap.Width, _topLeft.Y);
+            _bottomLeft = new PreviewPoint(_topLeft.X, _topLeft.Y + _currentBitmap.Height);
+            _bottomRight = new PreviewPoint(_topRight.X, _bottomLeft.Y);
 
             _strings = new List<PreviewBaseShape>();
 
-/*
 
-            if (selectedNode != null)
-            {
-                List<ElementNode> children = PreviewTools.GetLeafNodes(selectedNode);
-                int stringCount = selectedNode.Children.Count();
-                if (stringCount >= 4)
-                {
-                    int spokePixelCount = 0;
-                    foreach (ElementNode node in selectedNode.Children)
-                    {
-                        spokePixelCount = Math.Max(spokePixelCount, node.Children.Count());
-                    }
+            _cornerPoints = new List<PreviewPoint>();
+            _cornerPoints.Add(_topLeft);
+            _cornerPoints.Add(_topRight);
+            _cornerPoints.Add(_bottomLeft);
+            _cornerPoints.Add(_bottomRight);
 
-                    StringType = StringTypes.Pixel;
-
-                    foreach (ElementNode node in selectedNode.Children)
-                    {
-                        PreviewLine line;
-                        line = new PreviewLine(new PreviewPoint(10, 10), new PreviewPoint(20, 20), spokePixelCount, node, ZoomLevel);
-
-                        line.PixelColor = Color.White;
-                        _strings.Add(line);
-                    }
-                }
-            }
-
-            if (_strings.Count == 0)
-            {
-                // Just add lines, they will be layed out in Layout()
-                for (int i = 0; i < 8; i++)
-                {
-                    PreviewLine line;
-                    line = new PreviewLine(new PreviewPoint(10, 10), new PreviewPoint(20, 20), 10, selectedNode, ZoomLevel);
-                    line.PixelColor = Color.White;
-                    _strings.Add(line);
-                }
-            }
-*/
             Layout();
         }
 
         [OnDeserialized]
         private new void OnDeserialized(StreamingContext context)
         {
+            _cornerPoints = new List<PreviewPoint>();
+            _cornerPoints.Add(_topLeft);
+            _cornerPoints.Add(_topRight);
+            _cornerPoints.Add(_bottomLeft);
+            _cornerPoints.Add(_bottomRight);
+
+            _currentBitmap = new Bitmap("C:\\Users\\Administrator\\Documents\\Vixen 3\\Module Data Files\\LipSync\\Mouths\\Papagayo\\AI.jpg");
+
             Layout();
+        }
+
+        public override void Draw(FastPixel.FastPixel fp, bool editMode, List<ElementNode> highlightedElements, bool selected,
+                         bool forceDraw)
+        {
+
+            int pixelColor;
+            _myBitmapfp.Lock();
+            for (int x = 0; x < _myBitmapfp.Width; x++)
+            {
+                for (int y = 0; y < _myBitmapfp.Height; y++)
+                {
+                    pixelColor = _myBitmapfp.GetPixel(x, y).ToArgb();
+                    if (selected)
+                    {
+                        if ((x == 0) ||
+                            (y == 0) ||
+                            (x == (_myBitmapfp.Height - 1)) ||
+                            (y == (_myBitmapfp.Width - 1)))
+                        {
+                            pixelColor = (int)((long)pixelColor & 0xFF000000) + 0x0000FF00;
+                        }
+                        else
+                        {
+                            pixelColor = (0xFFFFFF ^ pixelColor);
+                        }
+                    }
+
+                    fp.SetPixel(Convert.ToInt32(this._topLeft.X * ZoomLevel) + x,
+                                Convert.ToInt32(this._topLeft.Y * ZoomLevel) + y,
+                                Color.FromArgb(pixelColor));
+                }
+            }
+            _myBitmapfp.Unlock(false);
+
+            DrawSelectPoints(fp);
         }
 
         public override int Right
@@ -95,6 +120,20 @@ namespace VixenModules.Preview.VixenPreview.Shapes
             get
             {
                 return _bottomLeft.Y;
+            }
+        }
+
+        [DataMember,
+         CategoryAttribute("Settings"),
+         DescriptionAttribute("The name of this string. Used in templates to distinguish various strings."),
+         DisplayName("Name")]
+        public string Name
+        {
+            get { return base.Name; }
+            set
+            {
+                base.Name = value;
+                FireOnPropertiesChanged(this, this);
             }
         }
 
@@ -152,15 +191,16 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 
         public override void Layout()
         {
-            if (_topLeft != null && _bottomRight != null)
+            if (_topLeft != null && _bottomRight != null && _currentBitmap != null)
             {
-                Bitmap testBitMap = new Bitmap("C:\\Users\\Administrator\\Documents\\Vixen 3\\Module Data Files\\LipSync\\Mouths\\Papagayo\\AI.jpg");
-                _topRight.X = _topLeft.X + testBitMap.Width;
-                _bottomRight.X = _topRight.X;
-                _bottomLeft.Y = _topLeft.Y + testBitMap.Height;
-                _bottomRight.Y = _bottomLeft.Y;
-                Graphics g = Graphics.FromImage(testBitMap);
-                g.DrawImage(testBitMap, _topLeft.X, _topLeft.Y, (_topRight.X - _topLeft.X), (_bottomLeft.Y - _topLeft.Y));
+                Bitmap testBitMap = 
+                    new Bitmap(_currentBitmap,
+                    new Size(Math.Max(1,Convert.ToInt32((_topRight.X - _topLeft.X)*ZoomLevel)), 
+                             Math.Max(1,Convert.ToInt32((_bottomLeft.Y - _topLeft.Y) * ZoomLevel))));
+
+                _myBitmapfp = new FastPixel.FastPixel(testBitMap);
+
+
             }
         }
 
@@ -207,8 +247,8 @@ namespace VixenModules.Preview.VixenPreview.Shapes
                     _topRight.X = _bottomRight.X;
                     _bottomLeft.Y = _bottomRight.Y;
                 }
-
                 Layout();
+                SelectDragPoints();
             }
             // If we get here, we're moving
             else
@@ -239,26 +279,31 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 
         public override void SelectDragPoints()
         {
-            List<PreviewPoint> points = new List<PreviewPoint>();
-            points.Add(_topLeft);
-            points.Add(_topRight);
-            points.Add(_bottomLeft);
-            points.Add(_bottomRight);
-            SetSelectPoints(points, null);
+            SetSelectPoints(_cornerPoints.ToList(), null);
+        }
+
+        private Rectangle MyRect()
+        {
+            return new Rectangle(_topLeft.X,
+                                 _topLeft.Y,
+                                 _topRight.X - _topLeft.X,
+                                 _bottomLeft.Y - _topLeft.Y);
+        }
+
+        public override bool ShapeInRect(Rectangle rect)
+        {
+            if (rect.IntersectsWith(MyRect()))
+            {
+                return true;
+            }
+            return false;
         }
 
         public override bool PointInShape(PreviewPoint point)
         {
-            foreach (PreviewPixel pixel in Pixels)
-            {
-                Rectangle r = new Rectangle(pixel.X - (SelectPointSize / 2), pixel.Y - (SelectPointSize / 2), SelectPointSize,
-                                            SelectPointSize);
-                if (point.X >= r.X && point.X <= r.X + r.Width && point.Y >= r.Y && point.Y <= r.Y + r.Height)
-                {
-                    return true;
-                }
-            }
-            return false;
+            Rectangle pointRect = 
+                new Rectangle(point.ToPoint(), new Size(0, 0));
+            return ShapeInRect(pointRect);
         }
 
         public override void SetSelectPoint(PreviewPoint point)
@@ -326,6 +371,15 @@ namespace VixenModules.Preview.VixenPreview.Shapes
             _bottomLeft.Y = bottomLeftStart.Y;
 
             Resize(aspect);
+        }
+
+        [Editor(typeof(PreviewSetImageDir), typeof(UITypeEditor)),
+         CategoryAttribute("Settings"),
+         DisplayName("Image Dir")]
+        public virtual string ImageDir
+        {
+            get { return _imageDir; }
+            set { _imageDir = value; }
         }
 
     }
