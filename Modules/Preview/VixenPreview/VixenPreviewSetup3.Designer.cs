@@ -521,7 +521,7 @@
             // 
             // buttonLipSync
             // 
-            this.buttonLipSync.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("buttonLipSync.BackgroundImage")));
+            this.buttonLipSync.BackgroundImage = global::VixenModules.Preview.VixenPreview.Properties.Resources.Lips;
             this.buttonLipSync.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.buttonLipSync.FlatAppearance.BorderColor = System.Drawing.Color.White;
             this.buttonLipSync.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
@@ -529,7 +529,7 @@
             this.buttonLipSync.Name = "buttonLipSync";
             this.buttonLipSync.Size = new System.Drawing.Size(22, 22);
             this.buttonLipSync.TabIndex = 13;
-            this.toolTip.SetToolTip(this.buttonLipSync, "Star Burst");
+            this.toolTip.SetToolTip(this.buttonLipSync, "Lip Sync");
             this.buttonLipSync.UseVisualStyleBackColor = true;
             this.buttonLipSync.Click += new System.EventHandler(this.toolbarButton_Click);
             // 

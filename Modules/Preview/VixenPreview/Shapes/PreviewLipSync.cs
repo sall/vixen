@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Drawing;
@@ -8,6 +9,8 @@ using System.ComponentModel;
 using System.Windows.Controls;
 using System.Drawing.Design;
 using Vixen.Sys;
+using Vixen.Sys.Attribute;
+using System.Resources;
 
 namespace VixenModules.Preview.VixenPreview.Shapes
 {
@@ -35,10 +38,9 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 
         public PreviewLipSync(PreviewPoint point1, ElementNode selectedNode, double zoomLevel)
         {
-            ZoomLevel = zoomLevel;
+            _currentBitmap = PreviewLipSync.DefaultBitmap;
 
-            _currentBitmap =
-                new Bitmap("C:\\Users\\Administrator\\Documents\\Vixen 3\\Module Data Files\\LipSync\\Mouths\\Papagayo\\AI.jpg");
+            ZoomLevel = zoomLevel;
 
             _topLeft = PointToZoomPoint(point1);
             _topRight = new PreviewPoint(_topLeft.X + _currentBitmap.Width, _topLeft.Y);
@@ -57,6 +59,15 @@ namespace VixenModules.Preview.VixenPreview.Shapes
             Layout();
         }
 
+        static private Bitmap DefaultBitmap
+        {
+            get
+            {
+                ResourceManager rm = Properties.Resources.ResourceManager;
+                return (Bitmap)rm.GetObject("Lips");
+            }
+        }
+
         [OnDeserialized]
         private new void OnDeserialized(StreamingContext context)
         {
@@ -66,7 +77,7 @@ namespace VixenModules.Preview.VixenPreview.Shapes
             _cornerPoints.Add(_bottomLeft);
             _cornerPoints.Add(_bottomRight);
 
-            _currentBitmap = new Bitmap("C:\\Users\\Administrator\\Documents\\Vixen 3\\Module Data Files\\LipSync\\Mouths\\Papagayo\\AI.jpg");
+            _currentBitmap = PreviewLipSync.DefaultBitmap;
 
             Layout();
         }
