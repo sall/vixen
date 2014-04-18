@@ -90,7 +90,7 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
 
             //Mouth Bottom
             row = holidayCoroDataTable.NewRow();
-            row.ItemArray = new object[] { "Mouth Bottom", true, false, false, false, false, true, false, false, false, false };
+            row.ItemArray = new object[] { "Mouth Bottom", true, false, false, false, false, false, false, false, false, false };
             holidayCoroDataTable.Rows.Add(row);
 
             //Mouth Narrow
@@ -100,7 +100,7 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
 
             //Mouth Bottom
             row = holidayCoroDataTable.NewRow();
-            row.ItemArray = new object[] { "Mouth O", false, false, true, true, false, false, false, true, true, false };
+            row.ItemArray = new object[] { "Mouth O", false, false, true, true, false, false, false, true, false, false };
             holidayCoroDataTable.Rows.Add(row);
 
             currentDataTable = defaultDataTable.Copy();

@@ -42,8 +42,8 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 		[Browsable(false)]
 		public override StringTypes StringType
 		{
-			get { return StringTypes.Other; }
-			set { _stringType = value; }
+			get { return StringTypes.Standard; }
+			//set { _stringType = value; }
         }
 
         [Browsable(false)]
@@ -51,12 +51,6 @@ namespace VixenModules.Preview.VixenPreview.Shapes
         {
             get { return base.PixelSize; }
             set { base.PixelSize = value; }
-        }
-        [Browsable(false)]
-        public override List<PreviewBaseShape> Strings
-        {
-            get { return base.Strings; }
-            set { base.Strings = value; }
         }
 
 	}

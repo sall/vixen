@@ -30,8 +30,7 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 		public enum StringTypes
 		{
 			Standard,
-			Pixel,
-            Other
+			Pixel
 		}
 
 		private bool _selected = false;

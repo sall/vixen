@@ -34,11 +34,14 @@ namespace VixenModules.Preview.VixenPreview.Shapes
         [DataMember]
         private string _imageDir;
 
+        private Dictionary<string, Bitmap> _phonemeBitmaps;
+
         private Bitmap _currentBitmap;
 
         public PreviewLipSync(PreviewPoint point1, ElementNode selectedNode, double zoomLevel)
         {
-            _currentBitmap = PreviewLipSync.DefaultBitmap;
+            _currentBitmap = this.DefaultBitmap;
+            this._imageDir = null;
 
             ZoomLevel = zoomLevel;
 
@@ -47,7 +50,7 @@ namespace VixenModules.Preview.VixenPreview.Shapes
             _bottomLeft = new PreviewPoint(_topLeft.X, _topLeft.Y + _currentBitmap.Height);
             _bottomRight = new PreviewPoint(_topRight.X, _bottomLeft.Y);
 
-            _strings = new List<PreviewBaseShape>();
+            //_strings = new List<PreviewBaseShape>();
 
 
             _cornerPoints = new List<PreviewPoint>();
@@ -59,13 +62,66 @@ namespace VixenModules.Preview.VixenPreview.Shapes
             Layout();
         }
 
-        static private Bitmap DefaultBitmap
+         private Bitmap DefaultBitmap
         {
             get
             {
                 ResourceManager rm = Properties.Resources.ResourceManager;
-                return (Bitmap)rm.GetObject("Lips");
+                return (Bitmap)rm.GetObject("Preview");
             }
+        }
+
+        private void LoadResourceBitmaps()
+        {
+            ResourceManager rm = Properties.Resources.ResourceManager;
+
+            _phonemeBitmaps = new Dictionary<string, Bitmap>();
+            _phonemeBitmaps.Add("AI",(Bitmap)rm.GetObject("AI"));
+            _phonemeBitmaps.Add("E",(Bitmap)rm.GetObject("E"));
+            _phonemeBitmaps.Add("etc",(Bitmap)rm.GetObject("etc"));
+            _phonemeBitmaps.Add("FV",(Bitmap)rm.GetObject("FV"));
+            _phonemeBitmaps.Add("L",(Bitmap)rm.GetObject("L"));
+            _phonemeBitmaps.Add("MBP",(Bitmap)rm.GetObject("MBP"));
+            _phonemeBitmaps.Add("O",(Bitmap)rm.GetObject("O"));
+            _phonemeBitmaps.Add("PREVIEW",(Bitmap)rm.GetObject("Preview"));
+            _phonemeBitmaps.Add("REST", (Bitmap)rm.GetObject("Rest"));
+            _phonemeBitmaps.Add("U", (Bitmap)rm.GetObject("U"));
+            _phonemeBitmaps.Add("WQ", (Bitmap)rm.GetObject("WQ"));
+        }
+
+        private void LoadBitmaps()
+        {
+            Bitmap bitmap;
+            _phonemeBitmaps = new Dictionary<string, Bitmap>();
+
+            if ((_imageDir != null) && (_imageDir.Length > 0))
+            {
+                DirectoryInfo d = new DirectoryInfo(_imageDir);
+                if (d.Exists == true)
+                {
+                    foreach (var file in d.GetFiles())
+                    {
+                        try
+                        {
+                            bitmap = new Bitmap(file.FullName);
+                            _phonemeBitmaps.Add(file.Name.ToUpper(), bitmap);
+                        }
+                        catch (Exception e) { }
+                    }
+                }
+            }
+
+            if (_phonemeBitmaps.Count == 0)
+            {
+                LoadResourceBitmaps();
+            }
+
+            if (_phonemeBitmaps.Keys.Contains("PREVIEW") == false)
+            {
+                _phonemeBitmaps.Add("PREVIEW", _phonemeBitmaps.ElementAtOrDefault(0).Value);
+            }
+
+            _currentBitmap = _phonemeBitmaps["PREVIEW"];
         }
 
         [OnDeserialized]
@@ -77,8 +133,8 @@ namespace VixenModules.Preview.VixenPreview.Shapes
             _cornerPoints.Add(_bottomLeft);
             _cornerPoints.Add(_bottomRight);
 
-            _currentBitmap = PreviewLipSync.DefaultBitmap;
-
+            _currentBitmap = this.DefaultBitmap;
+            LoadBitmaps();
             Layout();
         }
 
@@ -409,7 +465,41 @@ namespace VixenModules.Preview.VixenPreview.Shapes
         public virtual string ImageDir
         {
             get { return _imageDir; }
-            set { _imageDir = value; }
+            set 
+            { 
+                _imageDir = value;
+                LoadBitmaps();
+                Layout();
+            }
+        }
+
+        public override List<PreviewBaseShape> Strings
+        {
+            get
+            {
+                if (_strings != null)
+                {
+                    //Instead of going through the strings multiple times.. do it once
+                    // set all the sub-strings to match the connection state for elements
+                    foreach (PreviewBaseShape line in _strings)
+                        line.connectStandardStrings = this.connectStandardStrings;
+
+                    // Set all the StringTypes in the substrings
+                    foreach (PreviewBaseShape line in _strings)
+                    {
+                        line.StringType = _stringType;
+                    }
+                }
+
+                List<PreviewBaseShape> stringsResult = _strings;
+                if (stringsResult == null)
+                {
+                    stringsResult = new List<PreviewBaseShape>();
+                    stringsResult.Add(this);
+                }
+                return stringsResult;
+            }
+            set { _strings = value; }
         }
 
     }
