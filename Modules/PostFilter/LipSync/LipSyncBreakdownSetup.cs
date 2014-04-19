@@ -12,8 +12,8 @@ using Vixen.Rule;
 using Vixen.Services;
 using Vixen.Sys;
 using Vixen.Module;
-
-
+using System.Resources;
+using System.Reflection;
 namespace VixenModules.OutputFilter.LipSyncBreakdown
 {
     public partial class LipSyncBreakdownSetup : Form, IElementSetupHelper
@@ -23,6 +23,8 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
         private DataTable holidayCoroDataTable;
         private DataTable defaultDataTable;
         private DataTable currentDataTable;
+        private ResourceManager lipSyncRM;
+        private static Dictionary<string, Bitmap> _phonemeBitmaps = null;
 
         public LipSyncBreakdownSetup()
         {
@@ -112,10 +114,11 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
                 comboBoxTemplates.Items.Clear();
                 comboBoxTemplates.Items.Add("Default");
                 comboBoxTemplates.Items.Add("HolidayCoro");
-                comboBoxTemplates.SelectedIndex = 0;
+                comboBoxTemplates.SelectedIndex = 0; 
 
             }
 
+    
         }
 
         public List<LipSyncBreakdownItem> BreakdownItems
@@ -200,8 +203,33 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
             }
         }
 
+        private void LoadResourceBitmaps()
+        {
+            if (_phonemeBitmaps == null)
+            {
+                Assembly assembly = Assembly.Load("LipSync, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
+                if (assembly != null)
+                {
+                    lipSyncRM = new ResourceManager("VixenModules.Effect.LipSync.LipSyncResources", assembly);
+                    _phonemeBitmaps = new Dictionary<string, Bitmap>();
+                    _phonemeBitmaps.Add("AI", (Bitmap)lipSyncRM.GetObject("AI"));
+                    _phonemeBitmaps.Add("E", (Bitmap)lipSyncRM.GetObject("E"));
+                    _phonemeBitmaps.Add("ETC", (Bitmap)lipSyncRM.GetObject("etc"));
+                    _phonemeBitmaps.Add("FV", (Bitmap)lipSyncRM.GetObject("FV"));
+                    _phonemeBitmaps.Add("L", (Bitmap)lipSyncRM.GetObject("L"));
+                    _phonemeBitmaps.Add("MBP", (Bitmap)lipSyncRM.GetObject("MBP"));
+                    _phonemeBitmaps.Add("O", (Bitmap)lipSyncRM.GetObject("O"));
+                    _phonemeBitmaps.Add("PREVIEW", (Bitmap)lipSyncRM.GetObject("Preview"));
+                    _phonemeBitmaps.Add("REST", (Bitmap)lipSyncRM.GetObject("rest"));
+                    _phonemeBitmaps.Add("U", (Bitmap)lipSyncRM.GetObject("U"));
+                    _phonemeBitmaps.Add("WQ", (Bitmap)lipSyncRM.GetObject("WQ"));
+                }
+            }
+        }
+
         private void LipSyncBreakdownSetup_Load(object sender, EventArgs e)
         {
+            LoadResourceBitmaps();
              updatedataGridView1();
         }
 

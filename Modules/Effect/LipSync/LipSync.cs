@@ -5,6 +5,8 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+using System.Resources;
 using Vixen.Commands;
 using Vixen.Data.Value;
 using Vixen.Intent;
@@ -12,7 +14,7 @@ using Vixen.Module;
 using Vixen.Module.Effect;
 using Vixen.Sys;
 using Vixen.Sys.Attribute;
-using System.Threading.Tasks;
+
 
 namespace VixenModules.Effect.LipSync
 {
@@ -21,10 +23,13 @@ namespace VixenModules.Effect.LipSync
     {
         private LipSyncData _data;
         private EffectIntents _elementData = null;
+        static Dictionary<string, Bitmap> _phonemeBitmaps = null;
 
         public LipSync()
         {
             _data = new LipSyncData();
+            LoadResourceBitmaps();
+           
         }
 
         protected override void TargetNodesChanged()
@@ -90,6 +95,28 @@ namespace VixenModules.Effect.LipSync
 			}
 		}
 
+
+        private void LoadResourceBitmaps()
+        {
+            if (_phonemeBitmaps == null)
+            {
+                ResourceManager rm = LipSyncResources.ResourceManager;
+                _phonemeBitmaps = new Dictionary<string, Bitmap>();
+                _phonemeBitmaps.Add("AI", (Bitmap)rm.GetObject("AI"));
+                _phonemeBitmaps.Add("E", (Bitmap)rm.GetObject("E"));
+                _phonemeBitmaps.Add("ETC", (Bitmap)rm.GetObject("etc"));
+                _phonemeBitmaps.Add("FV", (Bitmap)rm.GetObject("FV"));
+                _phonemeBitmaps.Add("L", (Bitmap)rm.GetObject("L"));
+                _phonemeBitmaps.Add("MBP", (Bitmap)rm.GetObject("MBP"));
+                _phonemeBitmaps.Add("O", (Bitmap)rm.GetObject("O"));
+                _phonemeBitmaps.Add("PREVIEW", (Bitmap)rm.GetObject("Preview"));
+                _phonemeBitmaps.Add("REST", (Bitmap)rm.GetObject("rest"));
+                _phonemeBitmaps.Add("U", (Bitmap)rm.GetObject("U"));
+                _phonemeBitmaps.Add("WQ", (Bitmap)rm.GetObject("WQ"));
+
+            }
+        }
+
         public override bool ForceGenerateVisualRepresentation { get { return true; } }
 
         public override void GenerateVisualRepresentation(System.Drawing.Graphics g, System.Drawing.Rectangle clipRectangle)
@@ -98,22 +125,33 @@ namespace VixenModules.Effect.LipSync
             {
 
                 string DisplayValue = StaticPhoneme;
-
-                Font AdjustedFont = Vixen.Common.Graphics.GetAdjustedFont(g, DisplayValue, clipRectangle, "Vixen.Fonts.DigitalDream.ttf");
-                using (var StringBrush = new SolidBrush(Color.White))
+                Bitmap displayImage = null;
+                Bitmap scaledImage = null;
+                if (_phonemeBitmaps.TryGetValue(StaticPhoneme, out displayImage) == true)
                 {
-                    using (var backgroundBrush = new SolidBrush(Color.DarkGray))
-                    {
-                        g.FillRectangle(backgroundBrush, clipRectangle);
-                    }
-                    g.DrawString(DisplayValue, AdjustedFont, StringBrush, 4, 4);
-                    //base.GenerateVisualRepresentation(g, clipRectangle);
+                    scaledImage = new Bitmap(displayImage, 
+                                            Math.Min(clipRectangle.Height,clipRectangle.Width), 
+                                            clipRectangle.Height);
+                    g.DrawImage(scaledImage, clipRectangle.X,clipRectangle.Y);
                 }
-
+                if ((scaledImage != null) && (scaledImage.Width < clipRectangle.Width))
+                {
+                    clipRectangle.X += scaledImage.Width;
+                    clipRectangle.Width -= scaledImage.Width;
+                    Font AdjustedFont = Vixen.Common.Graphics.GetAdjustedFont(g, DisplayValue, clipRectangle, "Vixen.Fonts.DigitalDream.ttf");
+                    using (var StringBrush = new SolidBrush(Color.Yellow))
+                    {
+                        using (var backgroundBrush = new SolidBrush(Color.Green))
+                        {
+                            g.FillRectangle(backgroundBrush, clipRectangle);
+                        }
+                        g.DrawString(DisplayValue, AdjustedFont, StringBrush, 4 + scaledImage.Width, 4);
+                    }
+                }
+                
             }
             catch (Exception e)
             {
-
                 Console.WriteLine(e.ToString());
             }
         }

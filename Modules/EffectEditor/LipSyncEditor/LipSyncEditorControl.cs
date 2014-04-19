@@ -5,10 +5,11 @@ using System.Drawing;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Reflection;
+using System.Resources;
 using System.Windows.Forms;
 using Vixen.Module.EffectEditor;
 using Vixen.Module.Effect;
-
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
@@ -19,11 +20,51 @@ namespace VixenModules.EffectEditor.LipSyncEditor
     {
         private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
         private static List<string> helperStrings = new List<string>();
-
+        private static Dictionary<string, Bitmap> _phonemeBitmaps = null;
+        private ResourceManager lipSyncRM = null;
         public LipSyncEditorControl()
         {
             InitializeComponent();
             pgoFileNameLabel.Text = "None";
+            imageListView.View = View.LargeIcon;
+            imageListView.LabelEdit = false;
+            imageListView.AllowColumnReorder = false;
+            imageListView.CheckBoxes = false;
+            imageListView.FullRowSelect = false;
+            imageListView.GridLines = false;
+            imageListView.Sorting = SortOrder.Ascending;
+            imageListView.MultiSelect = false;
+            imageListView.HideSelection = false;
+
+            imageList1.ImageSize = new Size(48,48);
+
+            LoadResourceBitmaps();
+
+
+        }
+
+        private void LoadResourceBitmaps()
+        {
+            if (_phonemeBitmaps == null)
+            {
+                Assembly assembly = Assembly.Load("LipSync, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
+                if (assembly != null)
+                {
+                    lipSyncRM = new ResourceManager("VixenModules.Effect.LipSync.LipSyncResources", assembly);
+                    _phonemeBitmaps = new Dictionary<string, Bitmap>();
+                    _phonemeBitmaps.Add("AI", (Bitmap)lipSyncRM.GetObject("AI"));
+                    _phonemeBitmaps.Add("E", (Bitmap)lipSyncRM.GetObject("E"));
+                    _phonemeBitmaps.Add("ETC", (Bitmap)lipSyncRM.GetObject("etc"));
+                    _phonemeBitmaps.Add("FV", (Bitmap)lipSyncRM.GetObject("FV"));
+                    _phonemeBitmaps.Add("L", (Bitmap)lipSyncRM.GetObject("L"));
+                    _phonemeBitmaps.Add("MBP", (Bitmap)lipSyncRM.GetObject("MBP"));
+                    _phonemeBitmaps.Add("O", (Bitmap)lipSyncRM.GetObject("O"));
+                    _phonemeBitmaps.Add("PREVIEW", (Bitmap)lipSyncRM.GetObject("Preview"));
+                    _phonemeBitmaps.Add("REST", (Bitmap)lipSyncRM.GetObject("rest"));
+                    _phonemeBitmaps.Add("U", (Bitmap)lipSyncRM.GetObject("U"));
+                    _phonemeBitmaps.Add("WQ", (Bitmap)lipSyncRM.GetObject("WQ"));
+                }
+            }
         }
 
         public IEffect TargetEffect { get; set; }
@@ -35,7 +76,7 @@ namespace VixenModules.EffectEditor.LipSyncEditor
                 return new object[] 
                 {
                     StaticPhoneme,
-                    PGOFilename 
+                    PGOFilename
                 }; 
             }
 
@@ -43,8 +84,23 @@ namespace VixenModules.EffectEditor.LipSyncEditor
             {
                 if (value.Length != 2)
                 {
-                    Logging.Warn("Papagaya effect parameters set with " + value.Length + " parameters");
+                    Logging.Warn("LipSync effect parameters set with " + value.Length + " parameters");
                     return;
+                }
+
+                imageList1.Images.Clear();
+                imageListView.Items.Clear();
+                staticPhoneMeCombo.Items.Clear();
+
+                // Initialize the ImageList objects with bitmaps.
+                foreach (string key in _phonemeBitmaps.Keys)
+                {
+                    if (!key.Equals("PREVIEW"))
+                    {
+                        imageList1.Images.Add(key, _phonemeBitmaps[key]);
+                        imageListView.Items.Add(key, key);
+                        staticPhoneMeCombo.Items.Add(key);
+                    }
                 }
                 StaticPhoneme = (string)value[0];
                 PGOFilename = (string)value[1];
@@ -61,9 +117,22 @@ namespace VixenModules.EffectEditor.LipSyncEditor
             set 
             { 
                 staticPhoneMeCombo.Text = value;
-                addHelperString(value);
+                selectImageListItem(value);
             }
         }
+
+        private void selectImageListItem(string text)
+        {
+            foreach (ListViewItem viewItem in imageListView.Items)
+            {
+                if (viewItem.Text == text)
+                {
+                    viewItem.Selected = true;
+                    break;
+                }
+            }
+        }
+
         public String PGOFilename
         {
             get { return pgoFileNameLabel.Text; }
@@ -107,22 +176,12 @@ namespace VixenModules.EffectEditor.LipSyncEditor
             setControlStates();
         }
 
-        private void addHelperString(string helperString)
-        {
-            if ((helperStrings.Contains(helperString) == false) &&
-                (helperString != ""))
-            {
-                helperStrings.Add(helperString);
-            }
-        }
-
         private void LipSyncEditorControl_Leave(object sender, EventArgs e)
         {
             string tempVal;
             if (staticRadioButton.Checked)
             {
                 tempVal = staticPhoneMeCombo.Text.Trim();
-                addHelperString(tempVal);
                 StaticPhoneme = tempVal;
                 PGOFilename = "";
             }
@@ -158,8 +217,21 @@ namespace VixenModules.EffectEditor.LipSyncEditor
                 {
                     staticPhoneMeCombo.SelectedIndex = 0;
                 }
-                
             }
+        }
+
+        private void staticPhoneMeCombo_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            selectImageListItem(staticPhoneMeCombo.Text);
+        }
+
+        private void imageListView_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ListView.SelectedListViewItemCollection items = imageListView.SelectedItems;
+            if (items.Count > 0)
+            {
+                staticPhoneMeCombo.Text = imageListView.SelectedItems[0].Text;
+            }        
         }
     }
 }
