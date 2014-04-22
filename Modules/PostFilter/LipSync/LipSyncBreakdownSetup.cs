@@ -29,6 +29,7 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
         public LipSyncBreakdownSetup()
         {
             InitializeComponent();
+            LoadResourceBitmaps();
             SetupTemplates();
         }
 
@@ -36,74 +37,49 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
         {
             InitializeComponent();
             _data = breakdownData;
+            LoadResourceBitmaps();
             SetupTemplates();
             this.BreakdownItems = _data.BreakdownItems;
         }
 
+        private DataTable SetupDataTable(string name, string[] strings)
+        {
+            DataTable dt = new DataTable(name);
+            dt.Columns.Add(" ", typeof(string));
+
+            foreach (string key in _phonemeBitmaps.Keys)
+            {
+                if (key != "PREVIEW")
+                {
+                    dt.Columns.Add(key, typeof(System.Boolean));
+                }
+            }
+
+            foreach(string stringName in strings)
+            {
+                DataRow row = dt.NewRow();
+                object[] data = new object[dt.Columns.Count];
+                data[0] = stringName;
+                for (int j = 1; j < dt.Columns.Count; j++)
+                {
+                    data[j] = false;
+                }
+                row.ItemArray = data;
+                dt.Rows.Add(row);
+            }
+
+            return dt;
+        }
+
         private void SetupTemplates()
         {
-            defaultDataTable = new DataTable("Default");
-            defaultDataTable.Columns.Add(" ", typeof(string));
-            defaultDataTable.Columns.Add("Phoneme1", typeof(System.Boolean));
-
-            //String #1
-            DataRow row = defaultDataTable.NewRow();
-            row.ItemArray = new object[] { "String#1", true };
-            defaultDataTable.Rows.Add(row);
+            defaultDataTable = SetupDataTable("Default", new string[] {"String #1"});
 
 
-            holidayCoroDataTable = new DataTable("HolidaCoro");
-            holidayCoroDataTable.Columns.Add(" ", typeof(string));
-            holidayCoroDataTable.Columns.Add("AI", typeof(System.Boolean));
-            holidayCoroDataTable.Columns.Add("E", typeof(System.Boolean));
-            holidayCoroDataTable.Columns.Add("O", typeof(System.Boolean));
-            holidayCoroDataTable.Columns.Add("U", typeof(System.Boolean));
-            holidayCoroDataTable.Columns.Add("FV", typeof(System.Boolean));
-            holidayCoroDataTable.Columns.Add("L", typeof(System.Boolean));
-            holidayCoroDataTable.Columns.Add("MPB", typeof(System.Boolean));
-            holidayCoroDataTable.Columns.Add("WQ", typeof(System.Boolean));
-            holidayCoroDataTable.Columns.Add("etc", typeof(System.Boolean));
-            holidayCoroDataTable.Columns.Add("Rest", typeof(System.Boolean));
 
-            //Outline
-            row = holidayCoroDataTable.NewRow();
-            row.ItemArray = new object[] { "Outline", true, true, true, true, true, true, true, true, true, true };
-            holidayCoroDataTable.Rows.Add(row);
-
-            //Eyes Top
-            row = holidayCoroDataTable.NewRow();
-            row.ItemArray = new object[] { "Eyes Top", true, true, true, true, true, true, true, true, true, true };
-            holidayCoroDataTable.Rows.Add(row);
-
-            //Eyes Bottom
-            row = holidayCoroDataTable.NewRow();
-            row.ItemArray = new object[] { "Eyes Bottom", true, true, true, true, true, true, true, true, true, true };
-            holidayCoroDataTable.Rows.Add(row);
-
-            //Mouth Top
-            row = holidayCoroDataTable.NewRow();
-            row.ItemArray = new object[] { "Mouth Top", true, true, false, false, false, true, true, false, false, false };
-            holidayCoroDataTable.Rows.Add(row);
-
-            //Mouth Middle
-            row = holidayCoroDataTable.NewRow();
-            row.ItemArray = new object[] { "Mouth Middle", false, true, false, false, false, true, false, false, false, false };
-            holidayCoroDataTable.Rows.Add(row);
-
-            //Mouth Bottom
-            row = holidayCoroDataTable.NewRow();
-            row.ItemArray = new object[] { "Mouth Bottom", true, false, false, false, false, false, false, false, false, false };
-            holidayCoroDataTable.Rows.Add(row);
-
-            //Mouth Narrow
-            row = holidayCoroDataTable.NewRow();
-            row.ItemArray = new object[] { "Mouth Narrow", false, false, false, false, true, false, false, false, true, false };
-            holidayCoroDataTable.Rows.Add(row);
-
-            //Mouth Bottom
-            row = holidayCoroDataTable.NewRow();
-            row.ItemArray = new object[] { "Mouth O", false, false, true, true, false, false, false, true, false, false };
-            holidayCoroDataTable.Rows.Add(row);
+            holidayCoroDataTable = SetupDataTable("HolidayCoro", 
+                new string[] { "Outline", "Eyes Top", "Eyes Bottom", "Mouth Top", 
+                                "Mouth Middle", "Mouth Bottom", "Mouth Narrow", "Mouth O" });
 
             currentDataTable = defaultDataTable.Copy();
 
@@ -115,10 +91,7 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
                 comboBoxTemplates.Items.Add("Default");
                 comboBoxTemplates.Items.Add("HolidayCoro");
                 comboBoxTemplates.SelectedIndex = 0; 
-
             }
-
-    
         }
 
         public List<LipSyncBreakdownItem> BreakdownItems
@@ -229,7 +202,6 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
 
         private void LipSyncBreakdownSetup_Load(object sender, EventArgs e)
         {
-            LoadResourceBitmaps();
              updatedataGridView1();
         }
 
@@ -284,17 +256,34 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
             dataGridView1.RowHeadersVisible = true;
             dataGridView1.AutoResizeRowHeadersWidth(DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders);
             dataGridView1.DataSource = currentDataTable;
-            dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
+            //dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
+            for (int j = 1; j < dataGridView1.Columns.Count; j++)
+            {
+                dataGridView1.Columns[j].Width = 53;
+            }
         }
 
         private void dataGridView1_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
         {
+            string phonemeStr;
+            Bitmap phonemeBitmap;
+
             if ((e.RowIndex == -1) && (e.ColumnIndex >= 0))
             {
                 e.PaintBackground(e.CellBounds, true);
                 e.Graphics.TranslateTransform(e.CellBounds.Left, e.CellBounds.Bottom);
                 e.Graphics.RotateTransform(270);
-                e.Graphics.DrawString(e.FormattedValue.ToString(), e.CellStyle.Font, Brushes.Black, 5, 5);
+                phonemeStr = e.FormattedValue.ToString();
+                if (_phonemeBitmaps.TryGetValue(phonemeStr, out phonemeBitmap))
+                {
+                    e.Graphics.DrawImage(new Bitmap(_phonemeBitmaps[phonemeStr], 48, 48), 5, 5);
+                    e.Graphics.DrawString(phonemeStr, e.CellStyle.Font, Brushes.Black, 55, 5);
+                }
+                else
+                {
+                    e.Graphics.DrawString(phonemeStr, e.CellStyle.Font, Brushes.Black, 5, 5);
+                }
+   
                 e.Graphics.ResetTransform();
                 e.Handled = true;
             }
@@ -308,7 +297,7 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
 
             for (int j = 1; j < cellCount; j++)
             {
-                dr[j] = true;
+                dr[j] = false;
             }
         }
 
@@ -319,13 +308,7 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
 
         private void control_DeleteRequested(object sender, EventArgs e)
         {
-            /*
-            LipSyncBreakdownItemControl control = sender as LipSyncBreakdownItemControl;
-            if (control == null)
-                return;
 
-            removeControl(control);
-             */
         }
 
         private void applyButton_Click(object sender, EventArgs e)
@@ -357,43 +340,6 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
         private void buttonOK_Click(object sender, EventArgs e)
         {
 
-        }
-
-        private void button2_Click(object sender, EventArgs e)
-        {
-            LipSyncBreakdownAddPhoneme addDialog = new LipSyncBreakdownAddPhoneme();
-            DialogResult result = addDialog.ShowDialog();
-            bool doAdd = true;
-
-            if (result == DialogResult.OK)
-            {
-                string requestedName = addDialog.PhonemeName;
-                foreach(DataColumn dc in currentDataTable.Columns)
-                {
-                    if (dc.ColumnName == requestedName)
-                    {
-                        doAdd = false;
-                        break;
-                    }
-                }
-               
-                if ((doAdd) && 
-                    (!String.IsNullOrWhiteSpace(requestedName)) &&
-                    (!String.IsNullOrEmpty(requestedName)))
-                {
-                    currentDataTable.Columns.Add(requestedName, typeof(System.Boolean));
-
-                    int columnIndex = currentDataTable.Columns.Count - 1;
-                    foreach (DataRow dr in currentDataTable.Rows)
-                    {
-                        dr[columnIndex] = true;
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("Invalid or Duplicate Phoneme Name");
-                }
-            }
         }
     }
 }

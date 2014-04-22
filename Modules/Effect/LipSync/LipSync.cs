@@ -29,7 +29,6 @@ namespace VixenModules.Effect.LipSync
         {
             _data = new LipSyncData();
             LoadResourceBitmaps();
-           
         }
 
         protected override void TargetNodesChanged()
@@ -38,27 +37,22 @@ namespace VixenModules.Effect.LipSync
         }
 
         protected override void _PreRender(CancellationTokenSource tokenSource = null)
-        {
-           
+        { 
             _elementData = new EffectIntents();
 
             if (_data == null)
                 return;
 
-            ICommand command = new StringCommand(StaticPhoneme);
-
-            CommandValue value = new CommandValue(command);
+            PhonemeValue value = new PhonemeValue(StaticPhoneme);
 
             foreach (ElementNode node in TargetNodes)
             {
                 if (tokenSource != null && tokenSource.IsCancellationRequested)
                     return;
 
-                IIntent intent = new CommandIntent(value, TimeSpan);
+                IIntent intent = new PhonemeIntent(value, TimeSpan);
                 _elementData.AddIntentForElement(node.Element.Id, intent, TimeSpan.Zero);
             }
-           
-
         }
 
 

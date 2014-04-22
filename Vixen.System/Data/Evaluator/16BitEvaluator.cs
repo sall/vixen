@@ -21,5 +21,10 @@ namespace Vixen.Data.Evaluator
 		{
 			EvaluatorValue = new _16BitCommand((ushort)(ushort.MaxValue * obj.GetValue().Position));
 		}
+
+        public override void Handle(IIntentState<PhonemeValue> obj)
+        {
+            EvaluatorValue = new _16BitCommand((byte)(byte.MaxValue * obj.GetValue().Intensity));
+        }
 	}
 }

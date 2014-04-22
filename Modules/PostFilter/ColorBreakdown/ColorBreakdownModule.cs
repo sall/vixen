@@ -275,6 +275,39 @@ namespace VixenModules.OutputFilter.ColorBreakdown
 				}
 			}
 		}
+
+        //More of a placeholder at the moment, only pass on intensity, color information to follow
+        public override void Handle(IIntentState<PhonemeValue> obj)
+        {
+
+            PhonemeValue phonemeValue = obj.GetValue();
+            if (_mixColors)
+            {
+                _intentValue = new StaticIntentState<PhonemeValue>(obj,
+                                                                    new PhonemeValue(
+                                                                        phonemeValue.Phoneme,
+                                                                        _breakdownItem.Color,
+                                                                        phonemeValue.Intensity *
+                                                                        _getMaxProportion(phonemeValue.HueSaturationOnlyColor)));
+            }
+            else
+            {
+                // if we're not mixing colors, we need to compare the input color against the filter color -- but only the
+                // hue and saturation components; ignore the intensity.
+                if (phonemeValue.Hue == _breakdownColorAsHSV.H && phonemeValue.Saturation == _breakdownColorAsHSV.S)
+                {
+                    _intentValue = new StaticIntentState<PhonemeValue>(obj, phonemeValue);
+                }
+                else
+                {
+                    // TODO: return 'null', or some sort of empty intent state here instead. (null isn't handled well, and we don't have an 'empty' state class.)
+                    _intentValue = new StaticIntentState<PhonemeValue>(obj, new PhonemeValue(phonemeValue.Phoneme,_breakdownItem.Color, 0));
+                }
+            }
+
+        
+        
+        }
 	}
 
 
