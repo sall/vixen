@@ -285,8 +285,6 @@ namespace VixenModules.Preview.VixenPreview.Shapes
                              Math.Max(1,Convert.ToInt32((_bottomLeft.Y - _topLeft.Y) * ZoomLevel))));
 
                 _myBitmapfp = new FastPixel.FastPixel(testBitMap);
-
-
             }
         }
 
@@ -501,6 +499,5 @@ namespace VixenModules.Preview.VixenPreview.Shapes
             }
             set { _strings = value; }
         }
-
     }
 }

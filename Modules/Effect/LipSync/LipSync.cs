@@ -43,7 +43,7 @@ namespace VixenModules.Effect.LipSync
             if (_data == null)
                 return;
 
-            PhonemeValue value = new PhonemeValue(StaticPhoneme);
+            PhonemeValue value = new PhonemeValue(StaticPhoneme,Color.White);
 
             foreach (ElementNode node in TargetNodes)
             {

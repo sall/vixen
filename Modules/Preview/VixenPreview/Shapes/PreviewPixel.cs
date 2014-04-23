@@ -16,7 +16,7 @@ using System.Xml.Serialization;
 namespace VixenModules.Preview.VixenPreview.Shapes
 {
 	[DataContract]
-	public class PreviewPixel : IDisposable
+	public class PreviewPixel : IPreviewAtom, IDisposable
 	{
 		private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
 		private Color color = Color.White;

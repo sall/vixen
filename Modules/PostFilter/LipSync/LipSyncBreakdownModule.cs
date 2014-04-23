@@ -181,17 +181,18 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
         {
             bool state = false;
             PhonemeValue value = obj.GetValue();
+            PhonemeValue newValue;
             
             bool success = _breakdownItem.PhonemeList.TryGetValue(value.Phoneme, out state);
             if ((success == true) && (state == true))
             {
-
+                newValue = value;
             }
             else
             {
-
+                newValue = new PhonemeValue(value.Phoneme, value.FullColor, 0);
             }
-            _intentValue = new StaticIntentState<PhonemeValue>(obj, value);
+            _intentValue = new StaticIntentState<PhonemeValue>(obj, newValue);
         }
 
         public override void Handle(IIntentState<RGBValue> obj)
