@@ -132,7 +132,6 @@
     <Compile Include="ResizePreviewForm.Designer.cs">
       <DependentUpon>ResizePreviewForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Shapes\IPreviewAtom.cs" />
     <Compile Include="Shapes\PreviewBitmapShape.cs" />
     <Compile Include="Shapes\PreviewCustom.cs" />
     <Compile Include="Shapes\PreviewCustomCreateForm.cs">
@@ -160,6 +159,7 @@
     <Compile Include="Shapes\PreviewLipSyncControl.Designer.cs">
       <DependentUpon>PreviewLipSyncControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="Shapes\PreviewPixelFacade.cs" />
     <Compile Include="Shapes\PreviewPixelGrid.cs" />
     <Compile Include="Shapes\PreviewPixelGridSetupControl.cs">
       <SubType>UserControl</SubType>

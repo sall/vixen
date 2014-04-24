@@ -36,25 +36,30 @@ namespace VixenModules.Effect.LipSync
 
         }
 
-        protected override void _PreRender(CancellationTokenSource tokenSource = null)
-        { 
-            _elementData = new EffectIntents();
+		protected override void _PreRender(CancellationTokenSource tokenSource = null)
+		{
+			_elementData = new EffectIntents();
+			
+			foreach (ElementNode node in TargetNodes) {
+				if (tokenSource != null && tokenSource.IsCancellationRequested)
+					return;
+				
+				if (node != null)
+					RenderNode(node);
+			}
+		}
 
-            if (_data == null)
-                return;
-
-            PhonemeValue value = new PhonemeValue(StaticPhoneme,Color.White);
-
-            foreach (ElementNode node in TargetNodes)
+        // renders the given node to the internal ElementData dictionary. If the given node is
+        // not a element, will recursively descend until we render its elements.
+        private void RenderNode(ElementNode node)
+        {
+            foreach (ElementNode elementNode in node.GetLeafEnumerator())
             {
-                if (tokenSource != null && tokenSource.IsCancellationRequested)
-                    return;
-
-                IIntent intent = new PhonemeIntent(value, TimeSpan);
-                _elementData.AddIntentForElement(node.Element.Id, intent, TimeSpan.Zero);
+                PhonemeValue phonemeValue = new PhonemeValue(StaticPhoneme, Color.White);
+                IIntent intent = new PhonemeIntent(phonemeValue,TimeSpan);
+                _elementData.AddIntentForElement(elementNode.Element.Id, intent, TimeSpan.Zero);
             }
         }
-
 
         protected override EffectIntents _Render()
         {
