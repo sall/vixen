@@ -252,6 +252,9 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
 
         [DataMember]
         public Dictionary<string,Boolean> PhonemeList { get; set; }
+
+        [DataMember]
+        public Color DefaultColor { get; set; }
     }
 /*
      [DataContract]

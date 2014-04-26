@@ -20,17 +20,15 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
     {
         private LipSyncBreakdownData _data;
         private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
-        private DataTable holidayCoroDataTable;
-        private DataTable defaultDataTable;
         private DataTable currentDataTable;
         private ResourceManager lipSyncRM;
         private static Dictionary<string, Bitmap> _phonemeBitmaps = null;
+        private List<string> _rowNames = new List<string>();
 
         public LipSyncBreakdownSetup()
         {
             InitializeComponent();
             LoadResourceBitmaps();
-            SetupTemplates();
         }
 
         public LipSyncBreakdownSetup(LipSyncBreakdownData breakdownData)
@@ -38,7 +36,6 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
             InitializeComponent();
             _data = breakdownData;
             LoadResourceBitmaps();
-            SetupTemplates();
             this.BreakdownItems = _data.BreakdownItems;
         }
 
@@ -54,44 +51,25 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
                     dt.Columns.Add(key, typeof(System.Boolean));
                 }
             }
+            dt.Columns.Add("BaseColor", typeof(Color));
 
             foreach(string stringName in strings)
             {
                 DataRow row = dt.NewRow();
                 object[] data = new object[dt.Columns.Count];
                 data[0] = stringName;
-                for (int j = 1; j < dt.Columns.Count; j++)
+                for (int j = 1; j < dt.Columns.Count - 1; j++)
                 {
                     data[j] = false;
                 }
+                
+                data[dt.Columns.Count - 1] = Color.Green;
+
                 row.ItemArray = data;
                 dt.Rows.Add(row);
             }
 
             return dt;
-        }
-
-        private void SetupTemplates()
-        {
-            defaultDataTable = SetupDataTable("Default", new string[] {"String #1"});
-
-
-
-            holidayCoroDataTable = SetupDataTable("HolidayCoro", 
-                new string[] { "Outline", "Eyes Top", "Eyes Bottom", "Mouth Top", 
-                                "Mouth Middle", "Mouth Bottom", "Mouth Narrow", "Mouth O" });
-
-            currentDataTable = defaultDataTable.Copy();
-
-            if (comboBoxTemplates.Items.Count == 0)
-            {
-                // let's just make up some hardcoded templates. Can expand on this later; probably don't need to,
-                // people can request new ones and stuff if they want.
-                comboBoxTemplates.Items.Clear();
-                comboBoxTemplates.Items.Add("Default");
-                comboBoxTemplates.Items.Add("HolidayCoro");
-                comboBoxTemplates.SelectedIndex = 0; 
-            }
         }
 
         public List<LipSyncBreakdownItem> BreakdownItems
@@ -104,12 +82,14 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
                     LipSyncBreakdownItem item = new LipSyncBreakdownItem();
                     item.Name = dr[0].ToString();
 
-                    for(int theCount = 1; theCount < dr.ItemArray.Count(); theCount++)
+                    for(int theCount = 1; theCount < dr.ItemArray.Count() - 1; theCount++)
                     {
                         item.PhonemeList.Add(
                             dr.Table.Columns[theCount].ColumnName,(Boolean)dr[theCount]
                          );
                     }
+
+                    item.DefaultColor = (Color)dr[dr.ItemArray.Count() - 1];
 
                     retVal.Add(item);
                 }
@@ -125,6 +105,7 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
                 {
                     currentDataTable.Columns.Add(columnName, typeof(Boolean));
                 }
+                currentDataTable.Columns.Add("Default Color", typeof(Color));
 
                 foreach (LipSyncBreakdownItem lsbItem in value)
                 {
@@ -134,6 +115,7 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
                     {
                         dr[key] = lsbItem.PhonemeList[key];                    
                     }
+                    dr["Default Color"] = lsbItem.DefaultColor;
                 }
               }
         }
@@ -143,7 +125,7 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
             get { return "Phoneme Mapping"; }
         }
 
-        private IEnumerable<IDataFlowComponentReference> _FindLeafOutputsOrDimmingCurveFilters(IDataFlowComponent component)
+        private IEnumerable<IDataFlowComponentReference> _FindLeafOutputsOrPhonemeFilters(IDataFlowComponent component)
         {
             if (component == null)
             {
@@ -159,7 +141,7 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
             {
                 IEnumerable<IDataFlowComponent> children = VixenSystem.DataFlow.GetDestinationsOfComponentOutput(component, i);
 
-                if (!children.Any())
+                if ((!children.Any()) || (component is LipSyncBreakdownModule))
                 {
                     yield return new DataFlowComponentReference(component, i);
                 }
@@ -167,7 +149,7 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
                 {
                     foreach (IDataFlowComponent child in children)
                     {
-                        foreach (IDataFlowComponentReference result in _FindLeafOutputsOrDimmingCurveFilters(child))
+                        foreach (IDataFlowComponentReference result in _FindLeafOutputsOrPhonemeFilters(child))
                         {
                             yield return result;
                         }
@@ -207,35 +189,86 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
 
         public bool Perform(IEnumerable<ElementNode> selectedNodes)
         {
-            DialogResult dr = ShowDialog();
-            if (dr != DialogResult.OK)
-                return false;
-
+            string leafRootName;
+            _rowNames.Clear();
+            
             IEnumerable<ElementNode> leafElements = selectedNodes.SelectMany(x => x.GetLeafEnumerator()).Distinct();
+            List<LipSyncBreakdownItem> preloadItems = new List<LipSyncBreakdownItem>();
+
+            foreach (ElementNode leafNode in leafElements)
+            {
+                IDataFlowComponent elementComponent = VixenSystem.DataFlow.GetComponent(leafNode.Element.Id);
+                IEnumerable<IDataFlowComponentReference> references = _FindLeafOutputsOrPhonemeFilters(elementComponent);
+                foreach (IDataFlowComponentReference reference in references)
+                {
+                    if (reference.Component is LipSyncBreakdownModule)
+                    {
+                        LipSyncBreakdownModule currentModule = (reference.Component as LipSyncBreakdownModule);
+                        preloadItems.AddRange(currentModule.BreakdownItems);
+                        continue;
+                    }
+                }
+
+                leafRootName = getFullTreeName(leafNode);
+                if (leafRootName != null)
+                {
+                    _rowNames.Add(leafRootName);
+               }
+            }
+
+            if (preloadItems.Count() == 0)
+            {
+                currentDataTable = SetupDataTable("Default", _rowNames.ToArray());
+            }
+            else
+            {
+                this.BreakdownItems = preloadItems;
+            }
+           
+            leafElements = selectedNodes.SelectMany(x => x.GetLeafEnumerator()).Distinct();
             int modulesCreated = 0;
             int modulesConfigured = 0;
             int modulesSkipped = 0;
 
+            DialogResult dr = ShowDialog();
+            if (dr != DialogResult.OK)
+                return false;
+
             foreach (ElementNode leafNode in leafElements)
             {
-
-                // get the leaf 'things' to deal with -- ie. either existing dimming curves on a filter branch, or data component outputs
-                // (if we're adding new ones, ignore any existing dimming curves: always go to the outputs and we'll add new ones)
                 IDataFlowComponent elementComponent = VixenSystem.DataFlow.GetComponent(leafNode.Element.Id);
-                IEnumerable<IDataFlowComponentReference> references = _FindLeafOutputsOrDimmingCurveFilters(elementComponent);
+                IEnumerable<IDataFlowComponentReference> references = _FindLeafOutputsOrPhonemeFilters(elementComponent);
+
+                LipSyncBreakdownItem currentItem = null;
+                foreach (LipSyncBreakdownItem item in this.BreakdownItems)
+                {
+                    if (item.Name == getFullTreeName(leafNode))
+                    {
+                        currentItem = item;
+                        break;
+                    }
+                }
 
                 foreach (IDataFlowComponentReference reference in references)
                 {
                     int outputIndex = reference.OutputIndex;
 
-                    outputIndex = 0;
+                    if ((reference.Component is LipSyncBreakdownModule) && (currentItem != null))
+                    {
+                        LipSyncBreakdownModule currentModule = (reference.Component as LipSyncBreakdownModule);
+                        currentModule.BreakdownItems = new List<LipSyncBreakdownItem>();
+                        currentModule .BreakdownItems.Add(currentItem);
+                        currentModule.CreateOutputs();
+                        modulesConfigured++;
+                        continue;
+                    }
 
-                    // assuming we're making a new one and going from there
                     LipSyncBreakdownModule breakdownModule = ApplicationServices.Get<IOutputFilterModuleInstance>(LipSyncBreakdownDescriptor.ModuleId) as LipSyncBreakdownModule;
                     VixenSystem.DataFlow.SetComponentSource(breakdownModule, reference.Component, outputIndex);
                     VixenSystem.Filters.AddFilter(breakdownModule);
 
-                    breakdownModule.BreakdownItems = this.BreakdownItems;
+                    breakdownModule.BreakdownItems = new List<LipSyncBreakdownItem>();
+                    breakdownModule.BreakdownItems.Add(currentItem);
                     breakdownModule.CreateOutputs();
 
                     modulesCreated++;
@@ -247,6 +280,21 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
             return true;
         }
         
+        private string getFullTreeName(ElementNode leafNode)
+        {
+            string retVal = null;
+
+            if (leafNode.Parents.First().Name != "Root")
+            {
+                retVal = getFullTreeName(leafNode.Parents.First()) + "-" + leafNode.Name;
+            }
+            else
+            {
+                retVal = leafNode.Name;
+            }
+            return retVal;
+        }
+
         private void updatedataGridView1()
         {
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.EnableResizing;
@@ -287,59 +335,47 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
                 e.Graphics.ResetTransform();
                 e.Handled = true;
             }
-        }
 
-        private void addNewString(string stringName)
-        {
-            DataRow dr = currentDataTable.Rows.Add(stringName);
-
-            int cellCount = currentDataTable.Columns.Count;
-
-            for (int j = 1; j < cellCount; j++)
+            if ((e.RowIndex > -1) && (e.ColumnIndex == currentDataTable.Columns.Count - 1))
             {
-                dr[j] = false;
+                using (SolidBrush paintBrush = new SolidBrush((Color)e.Value))
+                {
+                    e.Graphics.FillRectangle(paintBrush,e.CellBounds);
+                    e.CellStyle.ForeColor = (Color)e.Value;
+                    e.CellStyle.SelectionForeColor = (Color)e.Value;
+                }
+                
+                e.PaintContent(e.CellBounds);
+                e.Handled = true;
             }
-        }
-
-        private void buttonAddString_Click(object sender, EventArgs e)
-        {
-            addNewString("New String");
         }
 
         private void control_DeleteRequested(object sender, EventArgs e)
         {
 
         }
-
-        private void applyButton_Click(object sender, EventArgs e)
-        {
-            string template = comboBoxTemplates.SelectedItem.ToString();
-            switch (template)
-            {
-                case "Default":
-                    {
-                        currentDataTable = defaultDataTable.Copy();
-                        updatedataGridView1();
-                        break;
-                    }
-                case "HolidayCoro":
-                    {
-                        currentDataTable = holidayCoroDataTable.Copy();
-                        updatedataGridView1();
-                        break;
-                    }
-
-                default:
-                    Logging.Error("Lipsync Breakdown Setup: got an unknown template to apply: " + template);
-                    MessageBox.Show("Error applying template: Unknown template.");
-                    break;
-            }
-
-        }
-
         private void buttonOK_Click(object sender, EventArgs e)
         {
 
         }
+
+        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if ((e.RowIndex > -1) && (e.ColumnIndex == currentDataTable.Columns.Count - 1))
+            {
+                // Show the color dialog.
+                DialogResult result = colorDialog1.ShowDialog();
+                
+                // See if user pressed ok.
+                if (result == DialogResult.OK)
+                {
+                    DataGridViewCell cell = (DataGridViewCell) dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                    // Set form background to the selected color.
+                    cell.Value = colorDialog1.Color;
+                }
+            }
+
+        }
+
     }
 }

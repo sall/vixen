@@ -159,7 +159,6 @@
     <Compile Include="Shapes\PreviewLipSyncControl.Designer.cs">
       <DependentUpon>PreviewLipSyncControl.cs</DependentUpon>
     </Compile>
-    <Compile Include="Shapes\PreviewPixelFacade.cs" />
     <Compile Include="Shapes\PreviewPixelGrid.cs" />
     <Compile Include="Shapes\PreviewPixelGridSetupControl.cs">
       <SubType>UserControl</SubType>
