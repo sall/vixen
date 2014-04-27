@@ -22,6 +22,11 @@ namespace VixenModules.EffectEditor.LipSyncEditor
         private static List<string> helperStrings = new List<string>();
         private static Dictionary<string, Bitmap> _phonemeBitmaps = null;
         private ResourceManager lipSyncRM = null;
+
+        //Note:  These two must match like named variables in LipSyncBreakdownSetup
+        private static readonly int NUM_COLORSETS = 4;
+        private const string COLORSET_NAME = "Color Set ";
+
         public LipSyncEditorControl()
         {
             InitializeComponent();
@@ -76,13 +81,14 @@ namespace VixenModules.EffectEditor.LipSyncEditor
                 return new object[] 
                 {
                     StaticPhoneme,
-                    PGOFilename
+                    PGOFilename,
+                    ColorGroup,
                 }; 
             }
 
             set
             {
-                if (value.Length != 2)
+                if (value.Length != 3)
                 {
                     Logging.Warn("LipSync effect parameters set with " + value.Length + " parameters");
                     return;
@@ -91,6 +97,7 @@ namespace VixenModules.EffectEditor.LipSyncEditor
                 imageList1.Images.Clear();
                 imageListView.Items.Clear();
                 staticPhoneMeCombo.Items.Clear();
+                colorGroupComboBox.Items.Clear();
 
                 // Initialize the ImageList objects with bitmaps.
                 foreach (string key in _phonemeBitmaps.Keys)
@@ -102,8 +109,36 @@ namespace VixenModules.EffectEditor.LipSyncEditor
                         staticPhoneMeCombo.Items.Add(key);
                     }
                 }
+
+                for (int j = 0; j < NUM_COLORSETS; j++ )
+                {
+                    colorGroupComboBox.Items.Add(COLORSET_NAME + j);
+                }
+
                 StaticPhoneme = (string)value[0];
                 PGOFilename = (string)value[1];
+                ColorGroup = (string)value[2];
+            }
+        }
+
+        public string ColorGroup
+        {
+            get
+            {
+                return colorGroupComboBox.Text;
+            }
+
+            set
+            {
+                if ((value == null) || (value.Length == 0))
+                {
+                    colorGroupComboBox.SelectedIndex = 0;
+                }
+                else
+                {
+                    colorGroupComboBox.Text = value;
+                }
+                
             }
         }
 

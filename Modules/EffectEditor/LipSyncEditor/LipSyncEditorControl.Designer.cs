@@ -36,6 +36,8 @@
             this.staticPhoneMeCombo = new System.Windows.Forms.ComboBox();
             this.imageListView = new System.Windows.Forms.ListView();
             this.imageList1 = new System.Windows.Forms.ImageList(this.components);
+            this.colorGroupComboBox = new System.Windows.Forms.ComboBox();
+            this.label1 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // pgoFileNameLabel
@@ -108,10 +110,30 @@
             this.imageList1.ImageSize = new System.Drawing.Size(16, 16);
             this.imageList1.TransparentColor = System.Drawing.Color.Transparent;
             // 
+            // colorGroupComboBox
+            // 
+            this.colorGroupComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.colorGroupComboBox.FormattingEnabled = true;
+            this.colorGroupComboBox.Location = new System.Drawing.Point(72, 274);
+            this.colorGroupComboBox.Name = "colorGroupComboBox";
+            this.colorGroupComboBox.Size = new System.Drawing.Size(95, 21);
+            this.colorGroupComboBox.TabIndex = 8;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(3, 277);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(63, 13);
+            this.label1.TabIndex = 9;
+            this.label1.Text = "Color Group";
+            // 
             // LipSyncEditorControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.label1);
+            this.Controls.Add(this.colorGroupComboBox);
             this.Controls.Add(this.imageListView);
             this.Controls.Add(this.staticPhoneMeCombo);
             this.Controls.Add(this.linkedRadioButton);
@@ -119,7 +141,7 @@
             this.Controls.Add(this.PGOFileButton);
             this.Controls.Add(this.pgoFileNameLabel);
             this.Name = "LipSyncEditorControl";
-            this.Size = new System.Drawing.Size(513, 278);
+            this.Size = new System.Drawing.Size(513, 318);
             this.Load += new System.EventHandler(this.LipSyncEditorControl_Load);
             this.Leave += new System.EventHandler(this.LipSyncEditorControl_Leave);
             this.ResumeLayout(false);
@@ -136,5 +158,7 @@
         private System.Windows.Forms.ComboBox staticPhoneMeCombo;
         private System.Windows.Forms.ListView imageListView;
         private System.Windows.Forms.ImageList imageList1;
+        private System.Windows.Forms.ComboBox colorGroupComboBox;
+        private System.Windows.Forms.Label label1;
     }
 }

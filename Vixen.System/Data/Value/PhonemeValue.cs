@@ -15,6 +15,7 @@ namespace Vixen.Data.Value
 		{
             Phoneme = phoneme;
             hsv = HSV.FromRGB(Color.Black);
+            ColorOverride = false;
 		}
 
         public PhonemeValue(string phoneme, Color color) 
@@ -35,7 +36,9 @@ namespace Vixen.Data.Value
 			hsv = new HSV(h, s, i);
 		}
 
-		// TODO: make a new color class and use that, instead of these color models.
+        public bool ColorOverride;
+
+        // TODO: make a new color class and use that, instead of these color models.
 		public HSV hsv;
 
 		/// <summary>

@@ -187,6 +187,10 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
             if ((success == true) && (state == true))
             {
                 newValue = value;
+                if (value.ColorOverride == false)
+                {
+                    newValue.FullColor = _breakdownItem.ActiveColor;
+                }
             }
             else
             {
@@ -245,16 +249,28 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
         {
             Name = "Unnamed";
             PhonemeList = new Dictionary<string,Boolean>();
+            ActiveColorIndex = 0;
         }
 
         [DataMember]
         public string Name { get; set; }
 
         [DataMember]
+        public int ActiveColorIndex { get; set; }
+
+        [DataMember]
         public Dictionary<string,Boolean> PhonemeList { get; set; }
 
         [DataMember]
-        public Color DefaultColor { get; set; }
+        public List<Color> ColorList { get; set; }
+
+        public Color ActiveColor
+        {
+            get
+            {
+                return ColorList[ActiveColorIndex];
+            }
+        }
     }
 /*
      [DataContract]

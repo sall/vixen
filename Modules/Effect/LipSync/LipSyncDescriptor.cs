@@ -62,7 +62,8 @@ namespace VixenModules.Effect.LipSync
             {
                 return new ParameterSignature(
                     new ParameterSpecification("StaticPhoneme", typeof(string),false),
-                    new ParameterSpecification("PGOFilename", typeof(string),false)
+                    new ParameterSpecification("PGOFilename", typeof(string),false),
+                    new ParameterSpecification("ColorGroup", typeof(string),false)
                     );
             }
         }

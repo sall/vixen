@@ -94,6 +94,17 @@ namespace VixenModules.Effect.LipSync
 			}
 		}
 
+        [Value]
+        public String ColorGroup
+        {
+            get { return _data.ColorGroup; }
+            set
+            {
+                _data.ColorGroup = value;
+                IsDirty = true;
+            }
+        }
+
 
         private void LoadResourceBitmaps()
         {

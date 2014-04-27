@@ -52,9 +52,8 @@ namespace VixenModules.Preview.VixenPreview
 			Star,
 			Cane,
 			PixelGrid,
-            StarBurst,
-            LipSync
-		}
+            StarBurst
+        }
 
 		private Point dragStart;
 		private Point dragCurrent;
@@ -502,11 +501,6 @@ namespace VixenModules.Preview.VixenPreview
 							newDisplayItem = new DisplayItem();
                             newDisplayItem.Shape = new PreviewPixelGrid(translatedPoint, elementsForm.SelectedNode, ZoomLevel);
 						}
-                        else if (_currentTool == Tools.LipSync)
-                        {
-                            newDisplayItem = new DisplayItem();
-                            newDisplayItem.Shape = new PreviewLipSync(translatedPoint, elementsForm.SelectedNode, ZoomLevel);
-                        }
 
 						// Now add the newely created display item to the screen.
 						if (newDisplayItem != null) {

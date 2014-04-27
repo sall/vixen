@@ -188,8 +188,6 @@ namespace VixenModules.Preview.VixenPreview {
                 previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.MegaTree;
             else if (button == buttonPixelGrid)
                 previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.PixelGrid;
-            else if (button == buttonLipSync)
-                previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.LipSync;
 			//button.Enabled = false;
 			button.BackColor = Color.Gainsboro;
 			button.FlatAppearance.BorderColor = Color.Gainsboro;

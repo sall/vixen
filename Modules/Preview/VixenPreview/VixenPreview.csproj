@@ -132,7 +132,6 @@
     <Compile Include="ResizePreviewForm.Designer.cs">
       <DependentUpon>ResizePreviewForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Shapes\PreviewBitmapShape.cs" />
     <Compile Include="Shapes\PreviewCustom.cs" />
     <Compile Include="Shapes\PreviewCustomCreateForm.cs">
       <SubType>Form</SubType>
@@ -151,13 +150,6 @@
     </Compile>
     <Compile Include="Shapes\PreviewCustomSetupControl.Designer.cs">
       <DependentUpon>PreviewCustomSetupControl.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Shapes\PreviewLipSync.cs" />
-    <Compile Include="Shapes\PreviewLipSyncControl.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Shapes\PreviewLipSyncControl.Designer.cs">
-      <DependentUpon>PreviewLipSyncControl.cs</DependentUpon>
     </Compile>
     <Compile Include="Shapes\PreviewPixelGrid.cs" />
     <Compile Include="Shapes\PreviewPixelGridSetupControl.cs">
@@ -344,9 +336,6 @@
     <EmbeddedResource Include="Shapes\PreviewCustomSetupControl.resx">
       <DependentUpon>PreviewCustomSetupControl.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Shapes\PreviewLipSyncControl.resx">
-      <DependentUpon>PreviewLipSyncControl.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Shapes\PreviewPixelGridSetupControl.resx">
       <DependentUpon>PreviewPixelGridSetupControl.cs</DependentUpon>
     </EmbeddedResource>
@@ -446,39 +435,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Lips.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\AI.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\E.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\etc.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\FV.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\L.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\MBP.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\O.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Preview.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Rest.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\U.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\WQ.jpg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
