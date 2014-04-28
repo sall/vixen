@@ -187,10 +187,8 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
             if ((success == true) && (state == true))
             {
                 newValue = value;
-                if (value.ColorOverride == false)
-                {
-                    newValue.FullColor = _breakdownItem.ActiveColor;
-                }
+                _breakdownItem.ActiveColorIndex = value.ColorGroup;
+                newValue.FullColor = _breakdownItem.ActiveColor; 
             }
             else
             {

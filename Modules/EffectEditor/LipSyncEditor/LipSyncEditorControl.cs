@@ -82,7 +82,7 @@ namespace VixenModules.EffectEditor.LipSyncEditor
                 {
                     StaticPhoneme,
                     PGOFilename,
-                    ColorGroup,
+                    ColorGroupIndex,
                 }; 
             }
 
@@ -117,26 +117,26 @@ namespace VixenModules.EffectEditor.LipSyncEditor
 
                 StaticPhoneme = (string)value[0];
                 PGOFilename = (string)value[1];
-                ColorGroup = (string)value[2];
+                ColorGroupIndex = (int)value[2];
             }
         }
 
-        public string ColorGroup
+        public int ColorGroupIndex
         {
             get
             {
-                return colorGroupComboBox.Text;
+                return colorGroupComboBox.SelectedIndex;
             }
 
             set
             {
-                if ((value == null) || (value.Length == 0))
+                if ((value < 0) || (value >= NUM_COLORSETS))
                 {
                     colorGroupComboBox.SelectedIndex = 0;
                 }
                 else
                 {
-                    colorGroupComboBox.Text = value;
+                    colorGroupComboBox.SelectedIndex = value;
                 }
                 
             }

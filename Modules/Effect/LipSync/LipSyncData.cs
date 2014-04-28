@@ -17,13 +17,13 @@ namespace VixenModules.Effect.LipSync
         public String PGOFilename { get; set; }
 
         [DataMember]
-        public String ColorGroup { get; set; }
+        public int ColorGroup { get; set; }
 
         public LipSyncData()
         {
             StaticPhoneme = "";
             PGOFilename = "";
-            ColorGroup = "";
+            ColorGroup = 0;
         }
 
         public override IModuleDataModel Clone()

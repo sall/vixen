@@ -55,7 +55,7 @@ namespace VixenModules.Effect.LipSync
         {
             foreach (ElementNode elementNode in node.GetLeafEnumerator())
             {
-                PhonemeValue phonemeValue = new PhonemeValue(StaticPhoneme, Color.White);
+                PhonemeValue phonemeValue = new PhonemeValue(StaticPhoneme,_data.ColorGroup);
                 IIntent intent = new PhonemeIntent(phonemeValue,TimeSpan);
                 _elementData.AddIntentForElement(elementNode.Element.Id, intent, TimeSpan.Zero);
             }
@@ -95,7 +95,7 @@ namespace VixenModules.Effect.LipSync
 		}
 
         [Value]
-        public String ColorGroup
+        public int ColorGroup
         {
             get { return _data.ColorGroup; }
             set
@@ -127,12 +127,21 @@ namespace VixenModules.Effect.LipSync
             }
         }
 
+        public override string EffectName
+        {
+            get { return ((IEffectModuleDescriptor)Descriptor).EffectName + " - " + StaticPhoneme; }
+        }
+
         public override bool ForceGenerateVisualRepresentation { get { return true; } }
 
         public override void GenerateVisualRepresentation(System.Drawing.Graphics g, System.Drawing.Rectangle clipRectangle)
         {
             try
             {
+                if (StaticPhoneme == "")
+                {
+                    StaticPhoneme = "REST";
+                }
 
                 string DisplayValue = StaticPhoneme;
                 Bitmap displayImage = null;

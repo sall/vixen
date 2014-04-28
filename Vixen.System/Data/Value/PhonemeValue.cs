@@ -10,16 +10,17 @@ namespace Vixen.Data.Value
     public struct PhonemeValue : IIntentDataType
 	{
         public string Phoneme;
+        public int ColorGroup;
 
-        public PhonemeValue(string phoneme)
+        public PhonemeValue(string phoneme, int colorGroup)
 		{
             Phoneme = phoneme;
             hsv = HSV.FromRGB(Color.Black);
-            ColorOverride = false;
+            ColorGroup = colorGroup;
 		}
 
         public PhonemeValue(string phoneme, Color color) 
-            : this(phoneme)
+            : this(phoneme,-1)
 		{
 			hsv = HSV.FromRGB(color);
 		}
@@ -31,12 +32,11 @@ namespace Vixen.Data.Value
 		}
 
 		public PhonemeValue(string phoneme, double h, double s, double i)
-            : this(phoneme)
+            : this(phoneme, -1)
 		{
 			hsv = new HSV(h, s, i);
+            ColorGroup = -1;
 		}
-
-        public bool ColorOverride;
 
         // TODO: make a new color class and use that, instead of these color models.
 		public HSV hsv;
