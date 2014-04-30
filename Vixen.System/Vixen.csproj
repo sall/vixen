@@ -169,6 +169,7 @@
     <Compile Include="Intent\StaticIntent.cs" />
     <Compile Include="Intent\StaticIntentState.cs" />
     <Compile Include="Intent\StaticArrayIntent.cs" />
+    <Compile Include="Interpolator\LightingValueInterpolator.cs" />
     <Compile Include="Interpolator\PositionValueInterpolator.cs" />
     <Compile Include="Interpolator\StaticValueInterpolator.cs" />
     <Compile Include="IO\Factory\ContentMigratorFactory.cs" />
@@ -343,7 +344,6 @@
     <Compile Include="Sys\IntentChangeCollection.cs" />
     <Compile Include="Data\Value\LightingValue.cs" />
     <Compile Include="Interpolator\RGBValueInterpolator.cs" />
-    <Compile Include="Interpolator\LightingValueInterpolator.cs" />
     <Compile Include="IO\Policy\ElementNodeTemplateFilePolicy.cs" />
     <Compile Include="IO\Policy\OutputFilterTemplatePolicy.cs" />
     <Compile Include="IO\Xml\ChannelNodeTemplate\XmlElementNodeTemplateFilePolicy.cs" />

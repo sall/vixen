@@ -184,7 +184,7 @@ namespace VixenModules.OutputFilter.LipSyncBreakdown
             PhonemeValue newValue;
             
             bool success = _breakdownItem.PhonemeList.TryGetValue(value.Phoneme, out state);
-            if ((success == true) && (state == true))
+            if ((success == true) && (state == true) && (value.ColorGroup >= 0))
             {
                 newValue = value;
                 _breakdownItem.ActiveColorIndex = value.ColorGroup;

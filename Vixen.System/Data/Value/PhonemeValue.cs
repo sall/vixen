@@ -15,7 +15,7 @@ namespace Vixen.Data.Value
         public PhonemeValue(string phoneme, int colorGroup)
 		{
             Phoneme = phoneme;
-            hsv = HSV.FromRGB(Color.Black);
+            hsv = HSV.FromRGB(Color.White);
             ColorGroup = colorGroup;
 		}
 

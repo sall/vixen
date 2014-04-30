@@ -50,7 +50,8 @@ namespace VixenModules.Preview.VixenPreview
 
 				Element[] elementArray = elements.Where(
 						e => e.State.Any(i => ((i as IIntentState<LightingValue>) != null) ? ((i as IIntentState<LightingValue>).GetValue().Intensity > 0) :
-							((i as IIntentState<RGBValue>) != null) && ((i as IIntentState<RGBValue>).GetValue().Intensity > 0))
+							(((i as IIntentState<RGBValue>) != null) && ((i as IIntentState<RGBValue>).GetValue().Intensity > 0)) || 
+                            (((i as IIntentState<PhonemeValue>) != null) && ((i as IIntentState<PhonemeValue>).GetValue().Intensity > 0)))
 					).ToArray();
 
 				if (elementArray.Length == 0)

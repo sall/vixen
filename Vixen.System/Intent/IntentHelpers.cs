@@ -55,7 +55,16 @@ namespace Vixen.Intent
 					R = Math.Max(R, rv.R);
 					G = Math.Max(G, rv.G);
 					B = Math.Max(B, rv.B);
-				}
+				} else if (value is PhonemeValue) {
+                    PhonemeValue pv = (PhonemeValue)value;
+                    if (pv.Intensity > 0)
+                    {
+                        Color intentColor = pv.FullColor;
+                        R = Math.Max(R, intentColor.R);
+                        G = Math.Max(G, intentColor.G);
+                        B = Math.Max(B, intentColor.B);
+                    }
+                }
 			}
 
 			return Color.FromArgb(R, G, B);
@@ -77,6 +86,9 @@ namespace Vixen.Intent
 						if (x is IntentState<RGBValue>) {
 							return (x as IntentState<RGBValue>).GetValue().Color;
 						}
+                        if (x is IntentState<PhonemeValue>) {
+                            return (x as IntentState<PhonemeValue>).GetValue().HueSaturationOnlyColor;
+                        }
 						return Color.Empty;
 					}
 				));
@@ -91,6 +103,9 @@ namespace Vixen.Intent
 						if (x is IntentState<RGBValue>) {
 							return (x as IntentState<RGBValue>).GetValue().Intensity;
 						}
+                        if (x is IntentState<PhonemeValue>) {
+                            return (x as IntentState<PhonemeValue>).GetValue().Intensity;
+                        }
 						return 0;
 					});
 

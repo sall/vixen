@@ -158,7 +158,6 @@
     <Compile Include="Shapes\PreviewPixelGridSetupControl.Designer.cs">
       <DependentUpon>PreviewPixelGridSetupControl.cs</DependentUpon>
     </Compile>
-    <Compile Include="Shapes\PreviewSetImageDir.cs" />
     <Compile Include="Shapes\PreviewStarBurstSetupControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
