@@ -1,0 +1,192 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Reflection;
+using System.Resources;
+using System.Text;
+using System.Windows.Forms;
+using Vixen.Services;
+using Vixen.Sys;
+using Vixen.Module.App;
+
+namespace VixenModules.App.LipSyncMap
+{
+    public partial class LipSyncMapSelector : Form
+    {
+        private Bitmap _iconBitmap;
+        public LipSyncMapSelector()
+		{
+			InitializeComponent();
+			Icon = Common.Resources.Properties.Resources.Icon_Vixen3;
+		}
+
+		private void LipSyncMapSelector_Load(object sender, EventArgs e)
+		{
+            Assembly assembly = Assembly.Load("LipSync, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
+            if (assembly != null)
+            {
+                ResourceManager lipSyncRM = new ResourceManager("VixenModules.Effect.LipSync.LipSyncResources", assembly);
+                _iconBitmap = new Bitmap((Image)lipSyncRM.GetObject("AI"), new Size(64, 64));
+            }
+
+			PopulateListWithMappings();
+			LipSyncMapStaticData data;
+			data =
+				(ApplicationServices.Get<IAppModuleInstance>(LipSyncMapDescriptor.ModuleID) as LipSyncMapLibrary).StaticModuleData as
+				LipSyncMapStaticData;
+			if (Screen.GetWorkingArea(this).Contains(data.SelectorWindowBounds) &&
+			    data.SelectorWindowBounds.Width >= MinimumSize.Width) {
+				Bounds = data.SelectorWindowBounds;
+			}
+            listViewMappings.Activation = ItemActivation.Standard;
+        }
+
+		private void LipSyncMapSelector_FormClosing(object sender, FormClosingEventArgs e)
+		{
+			LipSyncMapStaticData data;
+			data =
+				(ApplicationServices.Get<IAppModuleInstance>(LipSyncMapDescriptor.ModuleID) as LipSyncMapLibrary).StaticModuleData as
+				LipSyncMapStaticData;
+			data.SelectorWindowBounds = Bounds;
+		}
+
+		private void PopulateListWithMappings()
+		{
+			listViewMappings.BeginUpdate();
+			listViewMappings.Items.Clear();
+
+			listViewMappings.LargeImageList = new ImageList();
+
+			foreach (KeyValuePair<string, LipSyncMapData> kvp in Library) {
+                LipSyncMapData c = kvp.Value;
+				string name = kvp.Key;
+
+				listViewMappings.LargeImageList.ImageSize = new Size(64, 64);
+				listViewMappings.LargeImageList.Images.Add(name, _iconBitmap);
+
+				ListViewItem item = new ListViewItem();
+				item.Text = name;
+				item.Name = name;
+				item.ImageKey = name;
+				item.Tag = c;
+				listViewMappings.Items.Add(item);
+
+			}
+
+			listViewMappings.EndUpdate();
+
+			buttonEditMap.Enabled = false;
+			buttonDeleteMap.Enabled = false;
+
+		}
+
+		private void listViewMappings_SelectedIndexChanged(object sender, EventArgs e)
+		{
+            buttonNewMap.Enabled = (listViewMappings.SelectedIndices.Count == 0);
+            buttonEditMap.Enabled = (listViewMappings.SelectedIndices.Count == 1);
+            buttonDeleteMap.Enabled = ((listViewMappings.SelectedIndices.Count >= 1) && (listViewMappings.SelectedIndices.Contains(0) == false));
+		}
+
+		public Tuple<string, LipSyncMapItem> SelectedItem
+		{
+			get
+			{
+				if (listViewMappings.SelectedItems.Count == 0)
+					return null;
+
+                return new Tuple<string, LipSyncMapItem>(listViewMappings.SelectedItems[0].Name, listViewMappings.SelectedItems[0].Tag as LipSyncMapItem);
+			}
+		}
+
+        private void EditMap()
+        {
+            if (listViewMappings.SelectedItems.Count != 1)
+                return;
+
+            Library.EditLibraryMapping(listViewMappings.SelectedItems[0].Name);
+
+            PopulateListWithMappings();
+        }
+		
+        private void buttonEditMap_Click(object sender, EventArgs e)
+		{
+            EditMap();			
+		}
+
+		private void buttonDeleteMapping_Click(object sender, EventArgs e)
+		{
+			if (listViewMappings.SelectedItems.Count == 0)
+				return;
+
+			DialogResult result =
+				MessageBox.Show("If you delete this mapping, ALL places it is used will be unlinked and will" +
+				                " become revert to the default Mapping. Are you sure you want to continue?", "Delete the mapping?",
+				                MessageBoxButtons.YesNo);
+
+			if (result == System.Windows.Forms.DialogResult.Yes) 
+            {
+                foreach (int j in listViewMappings.SelectedIndices)
+                {
+                    Library.RemoveMapping(listViewMappings.Items[j].Name);
+                }
+				
+				PopulateListWithMappings();
+			}
+		}
+
+		private void listViewMappings_MouseDoubleClick(object sender, MouseEventArgs e)
+		{
+			if (listViewMappings.SelectedItems.Count == 1)
+				DialogResult = System.Windows.Forms.DialogResult.OK;
+		}
+
+		private LipSyncMapLibrary _library;
+
+		private LipSyncMapLibrary Library
+		{
+			get
+			{
+				if (_library == null)
+					_library = ApplicationServices.Get<IAppModuleInstance>(LipSyncMapDescriptor.ModuleID) as LipSyncMapLibrary;
+
+				return _library;
+			}
+		}
+
+		private void LipSyncBreakdownSelector_KeyDown(object sender, KeyEventArgs e)
+		{
+			if (e.KeyCode == Keys.Enter)
+				DialogResult = DialogResult.OK;
+			if (e.KeyCode == Keys.Escape)
+				DialogResult = DialogResult.Cancel;
+		}
+
+		/// <summary>
+		/// Clean up any resources being used.
+		/// </summary>
+		/// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+		protected override void Dispose(bool disposing)
+		{
+			if (disposing && (components != null)) {
+				listViewMappings.Dispose();
+				components.Dispose();
+			}
+
+			base.Dispose(disposing);
+		}
+
+        private void listViewMappings_ItemActivate(object sender, EventArgs e)
+        {
+            EditMap();
+        }
+
+        private void buttonNewMap_Click(object sender, EventArgs e)
+        {
+            _library.AddMapping(null, new LipSyncMapData());
+            this.PopulateListWithMappings();
+        }
+    }
+}

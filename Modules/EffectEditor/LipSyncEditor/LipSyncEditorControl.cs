@@ -8,11 +8,11 @@ using System.Text;
 using System.Reflection;
 using System.Resources;
 using System.Windows.Forms;
-using Vixen.Module.EffectEditor;
-using Vixen.Module.Effect;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-
+using Vixen.Module.EffectEditor;
+using Vixen.Module.Effect;
+using VixenModules.App.LipSyncMap;
 
 namespace VixenModules.EffectEditor.LipSyncEditor
 {
@@ -268,5 +268,6 @@ namespace VixenModules.EffectEditor.LipSyncEditor
                 staticPhoneMeCombo.Text = imageListView.SelectedItems[0].Text;
             }        
         }
+
     }
 }

@@ -4,14 +4,31 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{7BB805C0-CE84-4FEC-9419-91579CCF4838}</ProjectGuid>
+    <ProjectGuid>{E3689E21-2204-48B9-8370-D45EE4A23451}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>VixenModules.EffectEditor.LipSyncEditor</RootNamespace>
-    <AssemblyName>LipSyncEditor</AssemblyName>
+    <RootNamespace>VixenModules.App.LipSyncMap</RootNamespace>
+    <AssemblyName>LipSyncMap</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
@@ -23,9 +40,9 @@
     <CodeAnalysisRuleSet>ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <OutputPath>..\..\..\Release\Modules\EffectEditor\</OutputPath>
+    <OutputPath>..\..\..\Release\Modules\App\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
+    <Optimize>false</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x86</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
@@ -41,7 +58,7 @@
     <CodeAnalysisRuleSet>ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>..\..\..\Release64\Modules\EffectEditor\</OutputPath>
+    <OutputPath>bin\x64\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
@@ -56,6 +73,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -64,29 +82,41 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LipSyncEditorControl.cs">
-      <SubType>UserControl</SubType>
+    <Compile Include="LipSyncMapData.cs" />
+    <Compile Include="LipSyncMapDescriptor.cs" />
+    <Compile Include="LipSyncMapLibrary.cs" />
+    <Compile Include="LipSyncMapItem.cs" />
+    <Compile Include="LipSyncMapEditor.cs">
+      <SubType>Form</SubType>
     </Compile>
-    <Compile Include="LipSyncEditorControl.Designer.cs">
-      <DependentUpon>LipSyncEditorControl.cs</DependentUpon>
+    <Compile Include="LipSyncMapEditor.Designer.cs">
+      <DependentUpon>LipSyncMapEditor.cs</DependentUpon>
     </Compile>
-    <Compile Include="LipSyncEditorDescriptor.cs" />
-    <Compile Include="LipSyncEditorModule.cs" />
+    <Compile Include="LipSyncMapSelector.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="LipSyncMapSelector.Designer.cs">
+      <DependentUpon>LipSyncMapSelector.cs</DependentUpon>
+    </Compile>
+    <Compile Include="LipSyncMapStaticData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Common\Resources\Resources.csproj">
+      <Project>{f7a80169-6310-4585-9d58-a6f6f5c5b380}</Project>
+      <Name>Resources</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Vixen.System\Vixen.csproj">
       <Project>{50b78623-fcf4-48af-93ff-fa87c937028f}</Project>
       <Name>Vixen</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\App\LipSync\LipSyncMap.csproj">
-      <Project>{e3689e21-2204-48b9-8370-d45ee4a23451}</Project>
-      <Name>LipSyncMap</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="LipSyncEditorControl.resx">
-      <DependentUpon>LipSyncEditorControl.cs</DependentUpon>
+    <EmbeddedResource Include="LipSyncMapEditor.resx">
+      <DependentUpon>LipSyncMapEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="LipSyncMapSelector.resx">
+      <DependentUpon>LipSyncMapSelector.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

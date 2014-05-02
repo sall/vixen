@@ -12,6 +12,7 @@ using Vixen.Execution;
 using Vixen.Execution.Context;
 using Vixen.Module;
 using VixenModules.App.Curves;
+using VixenModules.App.LipSyncMap;
 using VixenModules.Media.Audio;
 using Vixen.Module.Editor;
 using Vixen.Module.Effect;
@@ -3127,6 +3128,12 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			var selector = new CurveLibrarySelector();
 			selector.ShowDialog();
 		}
+
+        private void phonemeMappingsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            LipSyncMapSelector mapSelector = new LipSyncMapSelector();
+            DialogResult dr = mapSelector.ShowDialog();
+        }
 
 	}
 

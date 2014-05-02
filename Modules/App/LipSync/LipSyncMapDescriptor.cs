@@ -1,0 +1,53 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Vixen.Module.App;
+
+namespace VixenModules.App.LipSyncMap
+{
+    public class LipSyncMapDescriptor : AppModuleDescriptorBase
+    {
+        private static readonly Guid _typeId = new Guid("E0F12C94-3E07-4512-85FA-E51896D8901C");
+
+        public override string TypeName
+        {
+            get { return "LipSync Mapping"; }
+        }
+
+        public override Guid TypeId
+        {
+            get { return _typeId; }
+        }
+
+        public static Guid ModuleID
+        {
+            get { return _typeId; }
+        }
+
+        public override Type ModuleClass
+        {
+            get { return typeof(LipSyncMapLibrary); }
+        }
+
+        public override Type ModuleStaticDataClass
+        {
+            get { return typeof(LipSyncMapStaticData); }
+        }
+
+        public override string Author
+        {
+            get { return "Ed Brady"; }
+        }
+
+        public override string Description
+        {
+            get { return "Breaks down Phoneme mappings into discrete animation components."; }
+        }
+
+        public override string Version
+        {
+            get { return "1.0"; }
+        }
+    }
+}
