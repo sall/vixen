@@ -14,6 +14,7 @@ using Vixen.Module;
 using Vixen.Module.Effect;
 using Vixen.Sys;
 using Vixen.Sys.Attribute;
+using VixenModules.App.LipSyncMap;
 
 
 namespace VixenModules.Effect.LipSync
@@ -60,9 +61,9 @@ namespace VixenModules.Effect.LipSync
         {
             foreach (ElementNode elementNode in node.GetLeafEnumerator())
             {
-                PhonemeValue phonemeValue = new PhonemeValue(StaticPhoneme,_data.ColorGroup);
-                IIntent intent = new PhonemeIntent(phonemeValue, TimeSpan);
-                _elementData.AddIntentForElement(elementNode.Element.Id, intent, TimeSpan.Zero);
+                //PhonemeValue phonemeValue = new PhonemeValue(StaticPhoneme,0);
+                //IIntent intent = new PhonemeIntent(phonemeValue, TimeSpan);
+                //_elementData.AddIntentForElement(elementNode.Element.Id, intent, TimeSpan.Zero);
             }
         }
 
@@ -100,16 +101,15 @@ namespace VixenModules.Effect.LipSync
 		}
 
         [Value]
-        public int ColorGroup
+        public String PhonemeMapping
         {
-            get { return _data.ColorGroup; }
+            get { return _data.PhonemeMapping;  }
             set
             {
-                _data.ColorGroup = value;
+                _data.PhonemeMapping = value;
                 IsDirty = true;
             }
         }
-
 
         private void LoadResourceBitmaps()
         {

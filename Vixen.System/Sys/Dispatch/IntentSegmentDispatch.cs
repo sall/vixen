@@ -20,9 +20,5 @@ namespace Vixen.Sys.Dispatch
 		{
 		}
 
-        public virtual void Handle(IIntentSegment<PhonemeValue> obj)
-        {
-
-        }
 	}
 }

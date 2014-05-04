@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Vixen.Module;
 using Vixen.Module.App;
 
 namespace VixenModules.App.LipSyncMap
 {
     public class LipSyncMapDescriptor : AppModuleDescriptorBase
     {
-        private static readonly Guid _typeId = new Guid("E0F12C94-3E07-4512-85FA-E51896D8901C");
+        private static readonly Guid _typeId = new Guid("A475C535-73FA-4D31-A1BC-ED2B50AD21CF");
 
         public override string TypeName
         {

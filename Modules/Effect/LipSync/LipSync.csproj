@@ -104,6 +104,10 @@
       <Project>{50b78623-fcf4-48af-93ff-fa87c937028f}</Project>
       <Name>Vixen</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\App\LipSync\LipSyncMap.csproj">
+      <Project>{e3689e21-2204-48b9-8370-d45ee4a23451}</Project>
+      <Name>LipSyncMap</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Images\Effect48.png" />

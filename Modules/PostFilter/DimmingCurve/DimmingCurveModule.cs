@@ -182,13 +182,6 @@ namespace VixenModules.OutputFilter.DimmingCurve
 			hsv.V = newIntensity;
 			_intentValue = new StaticIntentState<RGBValue>(obj, new RGBValue(hsv.ToRGB().ToArgb()));
 		}
-
-        public override void Handle(IIntentState<PhonemeValue> obj)
-        {
-            PhonemeValue phonemeValue = obj.GetValue();
-            double newIntensity = _curve.GetValue(phonemeValue.Intensity * 100.0) / 100.0;
-            _intentValue = new StaticIntentState<PhonemeValue>(obj, new PhonemeValue(phonemeValue.Phoneme, phonemeValue.hsv.H, phonemeValue.hsv.S, newIntensity));
-        }
 	}
 
 

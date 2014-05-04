@@ -33,8 +33,6 @@
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.colorDialog1 = new System.Windows.Forms.ColorDialog();
             this.stringsUpDown = new System.Windows.Forms.DomainUpDown();
-            this.pixelCheckBox = new System.Windows.Forms.CheckBox();
-            this.pixelUpDown = new System.Windows.Forms.DomainUpDown();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.nameTextBox = new System.Windows.Forms.TextBox();
@@ -72,6 +70,8 @@
             this.dataGridView1.Size = new System.Drawing.Size(660, 336);
             this.dataGridView1.TabIndex = 18;
             this.dataGridView1.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellClick);
+            this.dataGridView1.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellContentClick);
+            this.dataGridView1.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellDoubleClick);
             this.dataGridView1.CellPainting += new System.Windows.Forms.DataGridViewCellPaintingEventHandler(this.dataGridView1_CellPainting);
             this.dataGridView1.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellValueChanged);
             // 
@@ -84,26 +84,6 @@
             this.stringsUpDown.TabIndex = 19;
             this.stringsUpDown.Text = "domainUpDown1";
             this.stringsUpDown.SelectedItemChanged += new System.EventHandler(this.stringsUpDown_SelectedItemChanged);
-            // 
-            // pixelCheckBox
-            // 
-            this.pixelCheckBox.AutoSize = true;
-            this.pixelCheckBox.Location = new System.Drawing.Point(389, 36);
-            this.pixelCheckBox.Name = "pixelCheckBox";
-            this.pixelCheckBox.Size = new System.Drawing.Size(75, 17);
-            this.pixelCheckBox.TabIndex = 20;
-            this.pixelCheckBox.Text = "Use Pixels";
-            this.pixelCheckBox.UseVisualStyleBackColor = true;
-            this.pixelCheckBox.CheckedChanged += new System.EventHandler(this.pixelCheckBox_CheckedChanged);
-            // 
-            // pixelUpDown
-            // 
-            this.pixelUpDown.Location = new System.Drawing.Point(470, 35);
-            this.pixelUpDown.Name = "pixelUpDown";
-            this.pixelUpDown.Size = new System.Drawing.Size(46, 20);
-            this.pixelUpDown.TabIndex = 21;
-            this.pixelUpDown.Text = "domainUpDown2";
-            this.pixelUpDown.SelectedItemChanged += new System.EventHandler(this.pixelUpDown_SelectedItemChanged);
             // 
             // label1
             // 
@@ -138,8 +118,6 @@
             this.Controls.Add(this.nameTextBox);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
-            this.Controls.Add(this.pixelUpDown);
-            this.Controls.Add(this.pixelCheckBox);
             this.Controls.Add(this.stringsUpDown);
             this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.buttonOK);
@@ -166,8 +144,6 @@
         private System.Windows.Forms.DataGridView dataGridView1;
         private System.Windows.Forms.ColorDialog colorDialog1;
         private System.Windows.Forms.DomainUpDown stringsUpDown;
-        private System.Windows.Forms.CheckBox pixelCheckBox;
-        private System.Windows.Forms.DomainUpDown pixelUpDown;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox nameTextBox;

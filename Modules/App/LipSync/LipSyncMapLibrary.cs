@@ -11,7 +11,6 @@ namespace VixenModules.App.LipSyncMap
     public class LipSyncMapLibrary : AppModuleInstanceBase, IEnumerable<KeyValuePair<string, LipSyncMapData>>
     {
         private LipSyncMapStaticData _staticData;
-        private LipSyncMapData _data;
         static int uniqueKeyIndex = 0;
 
         public override void Loading()
@@ -31,6 +30,48 @@ namespace VixenModules.App.LipSyncMap
         {
             get { return _staticData; }
             set { _staticData = value as LipSyncMapStaticData; }
+        }
+
+        private LipSyncMapData _defaultMap;
+
+        public LipSyncMapData DefaultMapping
+        {
+            get
+            {
+                if (_defaultMap == null)
+                {
+                    _defaultMap = Library.FirstOrDefault().Value;
+                }
+                return _defaultMap;
+            }
+
+            set
+            {
+                _defaultMap = value;
+            }
+        }
+
+        public string DefaultMappingName
+        {
+            get
+            {
+                return DefaultMapping.LibraryReferenceName;
+            }
+
+            set
+            {
+                string newDefaultName = (string)value;
+
+                if (_staticData.Library.ContainsKey(newDefaultName))
+                {
+                    _defaultMap = _staticData.Library[newDefaultName];
+                }
+            }
+        }
+
+        public bool IsDefaultMapping(string compareName)
+        {
+            return DefaultMapping.LibraryReferenceName.Equals(compareName);
         }
 
         public Dictionary<string, LipSyncMapData> Library
@@ -61,20 +102,26 @@ namespace VixenModules.App.LipSyncMap
                 return null;
         }
 
-        public bool AddMapping(string name, LipSyncMapData mapping)
+        public bool AddMapping(bool insertNew, string name, LipSyncMapData mapping)
         {
 
             string mapName = name;
 
-            if (string.IsNullOrWhiteSpace(mapName) == true)
+            if (insertNew)
             {
-                mapName = "New Map";
+                if (string.IsNullOrWhiteSpace(mapName) == true)
+                {
+                    mapName = "New Map";
+                }
+                else
+                {
+                    mapName = name;
+                }
                 while (Library.Keys.Contains(mapName) == true)
                 {
-                    mapName = string.Format("New Map {0}", ++uniqueKeyIndex);
+                    mapName = string.Format(mapName + "({0})", ++uniqueKeyIndex);
                 }
             }
-
 
             bool inLibrary = Contains(mapName);
             if (inLibrary)
@@ -83,7 +130,7 @@ namespace VixenModules.App.LipSyncMap
             }
             mapping.IsCurrentLibraryMapping = true;
             mapping.LibraryReferenceName = mapName;
-            Library[mapName] = mapping;
+            Library[mapName] = (insertNew) ? (LipSyncMapData)mapping.Clone() : mapping;
             return inLibrary;
         }
 
@@ -93,6 +140,10 @@ namespace VixenModules.App.LipSyncMap
                 return false;
 
             Library[name].IsCurrentLibraryMapping = false;
+            if (IsDefaultMapping(name) == true)
+            {
+                _defaultMap = null;
+            }
             Library.Remove(name);
 
             return true;
@@ -100,23 +151,42 @@ namespace VixenModules.App.LipSyncMap
 
         public bool EditLibraryMapping(string name)
         {
+            bool doRemove = true;
+            bool retVal = false;
             LipSyncMapData mapping = GetMapping(name);
-            if (mapping == null)
+
+            if (mapping != null)
             {
-                return false;
+                LipSyncMapEditor editor = new LipSyncMapEditor(mapping);
+                editor.LibraryMappingName = name;
+
+                if (editor.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    if ((name.Equals(editor.LibraryMappingName) == false) &&
+                        (this.Contains(editor.LibraryMappingName) == true)) 
+                    {
+                        DialogResult dr =
+                            MessageBox.Show("Overwrite existing " + 
+                                editor.LibraryMappingName + " mapping?", 
+                                "Map exists", 
+                                MessageBoxButtons.YesNo);
+
+                        doRemove = (dr == DialogResult.Yes) ? true : false;
+                    }
+
+                    if (doRemove == true)
+                    {
+                        RemoveMapping(name);
+                    }
+                    
+                    AddMapping(!doRemove,editor.LibraryMappingName, editor.MapData);
+                    retVal = true;
+                }
             }
 
-            LipSyncMapEditor editor = new LipSyncMapEditor(mapping);
-            editor.LibraryMappingName = name;
 
-            if (editor.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            {
-                RemoveMapping(name);
-                AddMapping(editor.LibraryMappingName, editor.MapData);
-                return true;
-            }
 
-            return false;
+            return retVal;
         }
 
     }

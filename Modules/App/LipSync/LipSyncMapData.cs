@@ -13,6 +13,18 @@ namespace VixenModules.App.LipSyncMap
         public LipSyncMapData()
         {
             MapItems = new List<LipSyncMapItem>();
+            MapItems.Add(new LipSyncMapItem());
+        }
+
+        public LipSyncMapData(List<string> stringNames)
+        {
+            int stringNum = 0;
+            MapItems = new List<LipSyncMapItem>();
+            foreach(string stringName in stringNames)
+            {
+                MapItems.Add(new LipSyncMapItem(stringName,stringNum++));
+            }
+
         }
 
         public LipSyncMapData(LipSyncMapData data)
@@ -26,17 +38,13 @@ namespace VixenModules.App.LipSyncMap
         {
             LipSyncMapData newInstance = new LipSyncMapData();
             newInstance.MapItems = new List<LipSyncMapItem>(MapItems);
+            newInstance.StringCount = StringCount;
+            newInstance.LibraryReferenceName = LibraryReferenceName;
             return newInstance;
         }
 
         [DataMember]
         public int StringCount { get; set; }
-
-        [DataMember]
-        public int PixelCount { get; set; }
-
-        [DataMember]
-        public bool HasPixels { get; set; }
 
         [DataMember]
         public List<LipSyncMapItem> MapItems { get; set; }
@@ -58,5 +66,11 @@ namespace VixenModules.App.LipSyncMap
             }
             set { _libraryReferenceName = value; }
         }
+
+        public override string ToString()
+        {
+            return LibraryReferenceName;
+        }
+       
     }
 }

@@ -113,23 +113,6 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			}
 		}
 
-        public override void Handle(IIntent<PhonemeValue> obj)
-        {
-            if (obj is StaticArrayIntent<PhonemeValue>)
-            {
-                Func<TimeSpan, Color> scg = x => obj.GetStateAt(x).FullColorWithAplha;
-                Func<TimeSpan, Color> ecg = x => obj.GetStateAt(x - _oneTick).FullColorWithAplha;
-                DrawStaticArrayIntent(obj.TimeSpan, _rect, scg, ecg);
-            }
-            else
-            {
-                Color startColor = obj.GetStateAt(TimeSpan.Zero).FullColorWithAplha;
-                Color endColor = obj.GetStateAt(obj.TimeSpan - _oneTick).FullColorWithAplha;
-                DrawGradient(startColor, endColor, _rect);
-            }
-        }
-
-
 		~IntentRasterizer()
 		{
 			Dispose(false);

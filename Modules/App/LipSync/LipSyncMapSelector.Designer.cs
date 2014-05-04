@@ -59,6 +59,7 @@
             this.listViewMappings.UseCompatibleStateImageBehavior = false;
             this.listViewMappings.ItemActivate += new System.EventHandler(this.listViewMappings_ItemActivate);
             this.listViewMappings.SelectedIndexChanged += new System.EventHandler(this.listViewMappings_SelectedIndexChanged);
+            this.listViewMappings.KeyDown += new System.Windows.Forms.KeyEventHandler(this.listViewMappings_KeyDown);
             this.listViewMappings.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.listViewMappings_MouseDoubleClick);
             // 
             // buttonEditMap
@@ -114,7 +115,7 @@
             this.Text = "LipSync Map Library";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.LipSyncMapSelector_FormClosing);
             this.Load += new System.EventHandler(this.LipSyncMapSelector_Load);
-            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.LipSyncBreakdownSelector_KeyDown);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.LipSyncMapSelector_KeyDown);
             this.ResumeLayout(false);
 
         }

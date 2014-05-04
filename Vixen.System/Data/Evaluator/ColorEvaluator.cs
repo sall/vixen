@@ -17,11 +17,5 @@ namespace Vixen.Data.Evaluator
 			LightingValue lightingValue = obj.GetValue();
 			EvaluatorValue = new ColorCommand(lightingValue.FullColor);
 		}
-
-        public override void Handle(IIntentState<PhonemeValue> obj)
-        {
-            PhonemeValue phonemeValue = obj.GetValue();
-            EvaluatorValue = new ColorCommand(phonemeValue.FullColor);
-        }
     }
 }

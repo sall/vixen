@@ -10,8 +10,10 @@ using System.Resources;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Vixen.Module.App;
 using Vixen.Module.EffectEditor;
 using Vixen.Module.Effect;
+using Vixen.Services;
 using VixenModules.App.LipSyncMap;
 
 namespace VixenModules.EffectEditor.LipSyncEditor
@@ -22,11 +24,7 @@ namespace VixenModules.EffectEditor.LipSyncEditor
         private static List<string> helperStrings = new List<string>();
         private static Dictionary<string, Bitmap> _phonemeBitmaps = null;
         private ResourceManager lipSyncRM = null;
-
-        //Note:  These two must match like named variables in LipSyncBreakdownSetup
-        private static readonly int NUM_COLORSETS = 4;
-        private const string COLORSET_NAME = "Color Set ";
-
+        private LipSyncMapLibrary _library = null;
         public LipSyncEditorControl()
         {
             InitializeComponent();
@@ -42,6 +40,12 @@ namespace VixenModules.EffectEditor.LipSyncEditor
             imageListView.HideSelection = false;
 
             imageList1.ImageSize = new Size(48,48);
+
+            _library = ApplicationServices.Get<IAppModuleInstance>(LipSyncMapDescriptor.ModuleID) as LipSyncMapLibrary;
+            foreach (LipSyncMapData data in _library.Library.Values)
+            {
+                mappingComboBox.Items.Add(data.ToString());
+            }
 
             LoadResourceBitmaps();
 
@@ -82,7 +86,7 @@ namespace VixenModules.EffectEditor.LipSyncEditor
                 {
                     StaticPhoneme,
                     PGOFilename,
-                    ColorGroupIndex,
+                    PhonemeMapping
                 }; 
             }
 
@@ -97,7 +101,6 @@ namespace VixenModules.EffectEditor.LipSyncEditor
                 imageList1.Images.Clear();
                 imageListView.Items.Clear();
                 staticPhoneMeCombo.Items.Clear();
-                colorGroupComboBox.Items.Clear();
 
                 // Initialize the ImageList objects with bitmaps.
                 foreach (string key in _phonemeBitmaps.Keys)
@@ -110,38 +113,34 @@ namespace VixenModules.EffectEditor.LipSyncEditor
                     }
                 }
 
-                for (int j = 0; j < NUM_COLORSETS; j++ )
-                {
-                    colorGroupComboBox.Items.Add(COLORSET_NAME + j);
-                }
-
                 StaticPhoneme = (string)value[0];
                 PGOFilename = (string)value[1];
-                ColorGroupIndex = (int)value[2];
+                PhonemeMapping = (string)value[2];
             }
         }
 
-        public int ColorGroupIndex
+        public string PhonemeMapping
         {
             get
             {
-                return colorGroupComboBox.SelectedIndex;
+                return (string)mappingComboBox.SelectedItem;
             }
 
             set
             {
-                if ((value < 0) || (value >= NUM_COLORSETS))
+                string inString = (string)value;
+                int index = mappingComboBox.FindStringExact(inString);
+                if (index == -1)
                 {
-                    colorGroupComboBox.SelectedIndex = 0;
+                    index = mappingComboBox.FindStringExact(_library.DefaultMappingName);
+                    if (index == -1)
+                    {
+                        index = 0;
+                    }
                 }
-                else
-                {
-                    colorGroupComboBox.SelectedIndex = value;
-                }
-                
+                mappingComboBox.SelectedIndex = index;
             }
         }
-
         public string StaticPhoneme
         {
             get 

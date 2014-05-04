@@ -9,7 +9,7 @@ using Vixen.Module;
 namespace VixenModules.App.LipSyncMap 
 {
     [DataContract]
-    class LipSyncMapStaticData : ModuleDataModelBase
+    internal class LipSyncMapStaticData : ModuleDataModelBase
     {
         [DataMember]
         public Rectangle SelectorWindowBounds { get; set; }
@@ -25,6 +25,8 @@ namespace VixenModules.App.LipSyncMap
                 {
                     _library = new Dictionary<string, LipSyncMapData>();
                     LipSyncMapData mapData = new LipSyncMapData();
+                    mapData.LibraryReferenceName = "New Map";
+                    _library.Add("New Map", mapData);
                 }
                     
 

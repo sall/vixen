@@ -16,11 +16,14 @@ namespace VixenModules.App.LipSyncMap
     {
         public LipSyncMapItem()
         {
-            Name = "String";
             PhonemeList = new Dictionary<string, Boolean>();
-            ActiveColorIndex = 0;
-            StringNum = -1;
-            PixelNum = -1;
+        }
+
+        public LipSyncMapItem(string name, int stringNum)
+        {
+            PhonemeList = new Dictionary<string, bool>();
+            Name = name;
+            StringNum = stringNum;
         }
 
         public LipSyncMapItem Clone()
@@ -28,9 +31,7 @@ namespace VixenModules.App.LipSyncMap
             LipSyncMapItem retVal = new LipSyncMapItem();
             retVal.Name = Name;
             retVal.PhonemeList = new Dictionary<string, bool>(PhonemeList);
-            retVal.ActiveColorIndex = ActiveColorIndex;
             retVal.StringNum = StringNum;
-            retVal.PixelNum = PixelNum;
 
             return retVal;
         }
@@ -39,21 +40,30 @@ namespace VixenModules.App.LipSyncMap
         public int StringNum { get; set; }
 
         [DataMember]
-        public int PixelNum { get; set; }
-
-
-        [DataMember]
-        public string Name { get; set; }
-
-        [DataMember]
-        public int ActiveColorIndex { get; set; }
-
-        [DataMember]
         public Dictionary<string, Boolean> PhonemeList { get; set; }
 
         [DataMember]
         public Color ElementColor { get; set; }
 
+        [DataMember]
+        private string _stringName;
+
+        public string Name 
+        { 
+            get
+            {
+                if (_stringName == null)
+                {
+                    _stringName = "String " + StringNum;
+                }
+                return _stringName;
+            }
+        
+            set
+            {
+                _stringName = value;
+            }
+        }
 
     }
 

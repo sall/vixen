@@ -20,6 +20,7 @@ namespace VixenModules.App.LipSyncMap
         public LipSyncMapSelector()
 		{
 			InitializeComponent();
+            listViewMappings.Sorting = SortOrder.Ascending;
 			Icon = Common.Resources.Properties.Resources.Icon_Vixen3;
 		}
 
@@ -72,22 +73,26 @@ namespace VixenModules.App.LipSyncMap
 				item.Name = name;
 				item.ImageKey = name;
 				item.Tag = c;
+                if (_library.DefaultMappingName.Equals(name))
+                {
+                    item.Font = new Font(item.Font, FontStyle.Bold);
+                }
+                
 				listViewMappings.Items.Add(item);
 
 			}
-
 			listViewMappings.EndUpdate();
 
-			buttonEditMap.Enabled = false;
+            buttonNewMap.Enabled = true;
+            buttonEditMap.Enabled = false;
 			buttonDeleteMap.Enabled = false;
 
 		}
 
 		private void listViewMappings_SelectedIndexChanged(object sender, EventArgs e)
 		{
-            buttonNewMap.Enabled = (listViewMappings.SelectedIndices.Count == 0);
             buttonEditMap.Enabled = (listViewMappings.SelectedIndices.Count == 1);
-            buttonDeleteMap.Enabled = ((listViewMappings.SelectedIndices.Count >= 1) && (listViewMappings.SelectedIndices.Contains(0) == false));
+            buttonDeleteMap.Enabled = (listViewMappings.SelectedIndices.Count >= 1);
 		}
 
 		public Tuple<string, LipSyncMapItem> SelectedItem
@@ -116,25 +121,32 @@ namespace VixenModules.App.LipSyncMap
             EditMap();			
 		}
 
-		private void buttonDeleteMapping_Click(object sender, EventArgs e)
-		{
-			if (listViewMappings.SelectedItems.Count == 0)
-				return;
+        private void DeleteSelectedMapping()
+        {
+            if ((listViewMappings.SelectedItems.Count == 0) || (listViewMappings.Items.Count <= 1))
+            {
+                return;
+            }
+                
+            DialogResult result =
+                MessageBox.Show("If you delete this mapping, ALL places it is used will be unlinked and will" +
+                                " revert to the default Mapping. Are you sure you want to continue?", "Delete the mapping?",
+                                MessageBoxButtons.YesNo);
 
-			DialogResult result =
-				MessageBox.Show("If you delete this mapping, ALL places it is used will be unlinked and will" +
-				                " become revert to the default Mapping. Are you sure you want to continue?", "Delete the mapping?",
-				                MessageBoxButtons.YesNo);
-
-			if (result == System.Windows.Forms.DialogResult.Yes) 
+            if (result == System.Windows.Forms.DialogResult.Yes)
             {
                 foreach (int j in listViewMappings.SelectedIndices)
                 {
                     Library.RemoveMapping(listViewMappings.Items[j].Name);
                 }
-				
-				PopulateListWithMappings();
-			}
+
+                PopulateListWithMappings();
+            }
+        }
+
+		private void buttonDeleteMapping_Click(object sender, EventArgs e)
+		{
+            DeleteSelectedMapping();
 		}
 
 		private void listViewMappings_MouseDoubleClick(object sender, MouseEventArgs e)
@@ -156,7 +168,7 @@ namespace VixenModules.App.LipSyncMap
 			}
 		}
 
-		private void LipSyncBreakdownSelector_KeyDown(object sender, KeyEventArgs e)
+		private void LipSyncMapSelector_KeyDown(object sender, KeyEventArgs e)
 		{
 			if (e.KeyCode == Keys.Enter)
 				DialogResult = DialogResult.OK;
@@ -185,8 +197,17 @@ namespace VixenModules.App.LipSyncMap
 
         private void buttonNewMap_Click(object sender, EventArgs e)
         {
-            _library.AddMapping(null, new LipSyncMapData());
+            _library.AddMapping(true,null, new LipSyncMapData());
             this.PopulateListWithMappings();
+        }
+
+        private void listViewMappings_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Delete)
+            {
+                DeleteSelectedMapping();
+                e.Handled = true;
+            }
         }
     }
 }

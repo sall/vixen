@@ -32,7 +32,7 @@ namespace VixenModules.App.LipSyncMap
         {
             InitializeComponent();
             LoadResourceBitmaps();
-            this.MapData = mapData;            
+            this.MapData = mapData;
         }
 
         public string LibraryMappingName
@@ -62,18 +62,7 @@ namespace VixenModules.App.LipSyncMap
                 }
                 else
                 {
-                    if (x.PixelNum < y.PixelNum)
-                    {
-                        return -1;
-                    }
-                    else if (x.PixelNum > y.PixelNum)
-                    {
-                        return 1;
-                    }
-                    else
-                    {
-                        return 0;
-                    }
+                    return 0;
                 }
             });
 
@@ -86,7 +75,7 @@ namespace VixenModules.App.LipSyncMap
             }
 
             dt.Columns.Add(COLOR_COLUMN_NAME, typeof(Color));
-
+            
             if (data.MapItems.Count == 0)
             {
                 DataRow dr = dt.Rows.Add();
@@ -115,6 +104,7 @@ namespace VixenModules.App.LipSyncMap
                 }
             }
 
+            dt.Columns[" "].ReadOnly = true;
             dt.Columns[COLOR_COLUMN_NAME].ReadOnly = true;
 
             return dt;
@@ -122,48 +112,38 @@ namespace VixenModules.App.LipSyncMap
 
         private static bool MatchNamePredicate(LipSyncMapItem item)
         {
-            return item.Name.Equals((string)predicateArg); 
+            return item.Name.Equals((string)predicateArg);
         }
 
         private void BuilMapDataFromDialog()
         {
             int currentRow = 0;
-            int numPixels = (int)pixelUpDown.SelectedItem;
 
-            _mapping.HasPixels = pixelCheckBox.Checked;
             _mapping.StringCount = stringsUpDown.SelectedIndex;
-            _mapping.PixelCount = pixelUpDown.SelectedIndex;
             _mapping.MapItems.Clear();
 
-            numPixels = ((pixelCheckBox.Checked == false) || 
-                         (numPixels < 1)) ? 1 : numPixels;
-            
-            for (int stringNum = 0; stringNum < (int)stringsUpDown.SelectedItem; stringNum++ )
+            for (int stringNum = 0; stringNum < (int)stringsUpDown.SelectedItem; stringNum++)
             {
-                for (int pixelNum = 0; pixelNum < numPixels; pixelNum++)
-                {
-                    DataRow dr = currentDataTable.Rows[currentRow];
-                    LipSyncMapItem item = new LipSyncMapItem();
-                    item.Name = dr[0].ToString();
-                    item.StringNum = stringNum;
-                    item.PixelNum = pixelNum;
+                DataRow dr = currentDataTable.Rows[currentRow];
+                LipSyncMapItem item = new LipSyncMapItem();
+                //item.Name = dr[0].ToString();
+                item.StringNum = stringNum;
 
-                    for (int theCount = 1; theCount < dr.ItemArray.Count() - 1; theCount++)
-                    {
-                        bool checkVal = 
-                            (dr[theCount].GetType() == typeof(Boolean)) ? (Boolean)dr[theCount] : false; 
-                        item.PhonemeList.Add(
-                            dr.Table.Columns[theCount].ColumnName, checkVal
-                            );
-                    }
-                    item.ElementColor = (Color)dr[dr.ItemArray.Count() - 1];
-                   
-                    _mapping.MapItems.Add(item);
-                    currentRow++;
-                    if (currentRow >= currentDataTable.Rows.Count)
-                    {
-                        return;
-                    }
+                for (int theCount = 1; theCount < dr.ItemArray.Count() - 1; theCount++)
+                {
+                    bool checkVal =
+                        (dr[theCount].GetType() == typeof(Boolean)) ? (Boolean)dr[theCount] : false;
+                    item.PhonemeList.Add(
+                        dr.Table.Columns[theCount].ColumnName, checkVal
+                        );
+                }
+                item.ElementColor = (Color)dr[dr.ItemArray.Count() - 1];
+
+                _mapping.MapItems.Add(item);
+                currentRow++;
+                if (currentRow >= currentDataTable.Rows.Count)
+                {
+                    return;
                 }
             }
         }
@@ -183,7 +163,7 @@ namespace VixenModules.App.LipSyncMap
                 updatedataGridView1();
             }
         }
-       
+
         public string HelperName
         {
             get { return "Phoneme Mapping"; }
@@ -216,24 +196,221 @@ namespace VixenModules.App.LipSyncMap
         private void LipSyncMapSetup_Load(object sender, EventArgs e)
         {
             stringsUpDown.Items.Clear();
-            pixelUpDown.Items.Clear();
 
             _doMatrixUpdate = false;
-            for (int j = 1; j < 100; j++)
+            for (int j = 1; j < 1000; j++)
             {
                 stringsUpDown.Items.Add(j);
-                pixelUpDown.Items.Add(j);
             }
 
             _doMatrixUpdate = false;
             stringsUpDown.SelectedIndex = _mapping.StringCount;
-            pixelUpDown.SelectedIndex = _mapping.PixelCount;
-            pixelCheckBox.Checked = _mapping.HasPixels;
-            pixelUpDown.Enabled = _mapping.HasPixels;
             _doMatrixUpdate = true;
 
             updatedataGridView1();
         }
+
+        private void updatedataGridView1()
+        {
+            dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.EnableResizing;
+            dataGridView1.ColumnHeadersHeight = 100;
+            dataGridView1.MultiSelect = true;
+            dataGridView1.EditMode = DataGridViewEditMode.EditOnEnter;
+            dataGridView1.AllowUserToAddRows = false;
+            dataGridView1.RowHeadersVisible = true;
+            dataGridView1.AutoResizeRowHeadersWidth(DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders);
+            dataGridView1.DataSource = currentDataTable;
+            //dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
+            for (int j = 1; j < dataGridView1.Columns.Count; j++)
+            {
+                dataGridView1.Columns[j].Width = 53;
+            }
+            dataGridView1.Columns[COLOR_COLUMN_NAME].SortMode = DataGridViewColumnSortMode.NotSortable;
+
+        }
+
+        private void dataGridView1_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
+        {
+            string phonemeStr;
+            Bitmap phonemeBitmap;
+
+            if ((e.RowIndex == -1) && (e.ColumnIndex >= 0))
+            {
+                e.PaintBackground(e.CellBounds, true);
+                e.Graphics.TranslateTransform(e.CellBounds.Left, e.CellBounds.Bottom);
+                e.Graphics.RotateTransform(270);
+                phonemeStr = e.FormattedValue.ToString();
+                if (_phonemeBitmaps.TryGetValue(phonemeStr, out phonemeBitmap))
+                {
+                    e.Graphics.DrawImage(new Bitmap(_phonemeBitmaps[phonemeStr], 48, 48), 5, 5);
+                    e.Graphics.DrawString(phonemeStr, e.CellStyle.Font, Brushes.Black, 55, 5);
+                }
+                else
+                {
+                    e.Graphics.DrawString(phonemeStr, e.CellStyle.Font, Brushes.Black, 5, 5);
+                }
+
+                e.Graphics.ResetTransform();
+                e.Handled = true;
+
+            }
+
+            if (e.RowIndex > -1)
+            {
+                if (e.ColumnIndex >= currentDataTable.Columns.Count - 1)
+                {
+                    using (SolidBrush paintBrush = new SolidBrush((Color)e.Value))
+                    {
+                        e.Graphics.FillRectangle(paintBrush,
+                                                    e.CellBounds.X + 2,
+                                                    e.CellBounds.Y + 2,
+                                                    e.CellBounds.Width - 3,
+                                                    e.CellBounds.Height - 3);
+
+                        e.Graphics.DrawRectangle(new Pen(Color.Gray, 2), e.CellBounds);
+
+                        e.CellStyle.ForeColor = (Color)e.Value;
+                        e.CellStyle.SelectionForeColor = (Color)e.Value;
+                        e.CellStyle.SelectionBackColor = Color.Black;
+                        e.CellStyle.BackColor = (Color)e.Value;
+                    }
+                }
+                else
+                {
+                    e.CellStyle.BackColor =
+                        ((e.RowIndex % 2) == 0) ? Color.White : Color.LightGreen;
+                }
+            }
+
+        }
+
+        private void buttonOK_Click(object sender, EventArgs e)
+        {
+
+        }
+
+
+        private void LipSyncBreakdownSetup_Resize(object sender, EventArgs e)
+        {
+            dataGridView1.Size = new Size(this.Size.Width - 40, this.Size.Height - 150);
+        }
+
+        private static bool ShrinkMapPredicate(LipSyncMapItem item)
+        {
+            return (item.StringNum > ((int)predicateArg)) ? true : false;
+        }
+
+        private void reconfigureDataTable()
+        {
+            LipSyncMapItem mapItem;
+
+            if (_doMatrixUpdate == true)
+            {
+                //If Shrinking
+                //BuilMapDataFromTable();
+                predicateArg = (int)stringsUpDown.SelectedItem - 1;
+                _mapping.MapItems.RemoveAll(ShrinkMapPredicate);
+
+                for (int currentString = 0; currentString < (int)stringsUpDown.SelectedItem; currentString++)
+                {
+                    mapItem =
+                        _mapping.MapItems.Find(x => (x.StringNum == currentString));
+
+                    if (mapItem == null)
+                    {
+                        mapItem = new LipSyncMapItem();
+                        mapItem.ElementColor = Color.White;
+                        mapItem.StringNum = currentString;
+
+                        _mapping.MapItems.Add(mapItem);
+                    }
+                }
+                currentDataTable.Rows.Clear();
+                currentDataTable = BuildDialogFromMap(_mapping);
+                updatedataGridView1();
+            }
+        }
+
+        private void stringsUpDown_SelectedItemChanged(object sender, EventArgs e)
+        {
+            reconfigureDataTable();
+        }
+
+        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
+
+        private void dataGridView1_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            if ((e.RowIndex > -1) && (e.ColumnIndex > 0))
+            {
+                BuilMapDataFromDialog();
+            }
+        }
+
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            int lastColumn = dataGridView1.Columns.Count - 1;
+            if (e.RowIndex > -1)
+            {
+                if ((e.ColumnIndex > 0) && (e.ColumnIndex < lastColumn))
+                {
+                    int bias = 0;
+                    foreach (DataGridViewCell cell in dataGridView1.SelectedCells)
+                    {
+                        if ((cell.ColumnIndex > 0) && (cell.ColumnIndex < lastColumn))
+                        {
+                            bias = ((bool)cell.Value) ? bias + 1 : bias - 1;
+                        }
+
+                    }
+
+                    bool newValue = (bias > 0) ? false : true;
+
+                    foreach (DataGridViewCell cell in dataGridView1.SelectedCells)
+                    {
+                        if ((cell.ColumnIndex > 0) && (cell.ColumnIndex < lastColumn))
+                        {
+                            cell.Value = newValue;
+                        }
+                    }
+                }
+            }
+        }
+
+        private void dataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            int lastColumn = currentDataTable.Columns.Count - 1;
+            if (e.RowIndex > -1)
+            {
+                if (e.ColumnIndex == lastColumn)
+                {
+                    // Show the color dialog.
+                    DialogResult result = colorDialog1.ShowDialog();
+
+                    // See if user pressed ok.
+                    if (result == DialogResult.OK)
+                    {
+                        currentDataTable.Columns[COLOR_COLUMN_NAME].ReadOnly = false;
+                        foreach (DataGridViewCell selCell in dataGridView1.SelectedCells)
+                        {
+                            if (selCell.ColumnIndex == lastColumn)
+                            {
+                                selCell.Value = colorDialog1.Color;
+                            }
+                        }
+                        DataGridViewCell cell = (DataGridViewCell)dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                        cell.Value = colorDialog1.Color;
+                        currentDataTable.Columns[COLOR_COLUMN_NAME].ReadOnly = true;
+                    }
+                }
+            }
+        }
+        
+    }
+}
+
 
 /*
         public bool Perform(IEnumerable<ElementNode> selectedNodes)
@@ -342,180 +519,3 @@ namespace VixenModules.App.LipSyncMap
             return retVal;
         }
 */
-        private void updatedataGridView1()
-        {
-            dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.EnableResizing;
-            dataGridView1.ColumnHeadersHeight = 100;
-            dataGridView1.EditMode = DataGridViewEditMode.EditOnEnter;
-            dataGridView1.AllowUserToAddRows = false;
-            dataGridView1.RowHeadersVisible = true;
-            dataGridView1.AutoResizeRowHeadersWidth(DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders);
-            dataGridView1.DataSource = currentDataTable;
-            //dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
-            for (int j = 1; j < dataGridView1.Columns.Count; j++)
-            {
-                dataGridView1.Columns[j].Width = 53;
-            }
-
-        }
-
-        private void dataGridView1_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
-        {
-            string phonemeStr;
-            Bitmap phonemeBitmap;
-
-            if ((e.RowIndex == -1) && (e.ColumnIndex >= 0))
-            {
-                e.PaintBackground(e.CellBounds, true);
-                e.Graphics.TranslateTransform(e.CellBounds.Left, e.CellBounds.Bottom);
-                e.Graphics.RotateTransform(270);
-                phonemeStr = e.FormattedValue.ToString();
-                if (_phonemeBitmaps.TryGetValue(phonemeStr, out phonemeBitmap))
-                {
-                    e.Graphics.DrawImage(new Bitmap(_phonemeBitmaps[phonemeStr], 48, 48), 5, 5);
-                    e.Graphics.DrawString(phonemeStr, e.CellStyle.Font, Brushes.Black, 55, 5);
-                }
-                else
-                {
-                    e.Graphics.DrawString(phonemeStr, e.CellStyle.Font, Brushes.Black, 5, 5);
-                }
-   
-                e.Graphics.ResetTransform();
-                e.Handled = true;
-
-            }
-
-            if ((e.RowIndex > -1) && (e.ColumnIndex >= currentDataTable.Columns.Count - 1))
-            {
-                using (SolidBrush paintBrush = new SolidBrush((Color)e.Value))
-                {
-                    e.Graphics.FillRectangle(paintBrush,
-                                                e.CellBounds.X + 1, 
-                                                e.CellBounds.Y + 1,
-                                                e.CellBounds.Width - 2, 
-                                                e.CellBounds.Height - 2);
-
-                    e.Graphics.DrawRectangle(new Pen(Color.Gray,2), e.CellBounds);
-
-                    e.CellStyle.ForeColor = (Color)e.Value;
-                    e.CellStyle.SelectionForeColor = (Color)e.Value;
-                    e.CellStyle.SelectionBackColor = (Color)e.Value;
-                    e.CellStyle.BackColor = (Color)e.Value;
-                }                
-            }
-
-        }
-
-        private void buttonOK_Click(object sender, EventArgs e)
-        {
-
-        }
-
-
-        private void LipSyncBreakdownSetup_Resize(object sender, EventArgs e)
-        {
-            dataGridView1.Size = new Size(this.Size.Width - 40, this.Size.Height - 150); 
-        }
-
-        private static bool ShrinkMapPredicate(LipSyncMapItem item)
-        {
-            return ((item.StringNum > ((int[])predicateArg)[0])  ||
-                   (item.PixelNum > ((int[])predicateArg)[1])) ? true : false;            
-        }
-
-        private void reconfigureDataTable()
-        {
-            string rowName;
-            LipSyncMapItem mapItem;
-            LipSyncMapItem masterItem = null;
-
-            if (_doMatrixUpdate == true)
-            {
-                //If Shrinking
-                //BuilMapDataFromTable();
-                predicateArg = new int[] { (int)stringsUpDown.SelectedItem - 1, (int)pixelUpDown.SelectedItem - 1 };
-                _mapping.MapItems.RemoveAll(ShrinkMapPredicate);
-
-                for (int currentString = 0; currentString < (int)stringsUpDown.SelectedItem; currentString++)
-                {
-                    for (int currentPixel = 0; currentPixel < (int)pixelUpDown.SelectedItem; currentPixel++)
-                    {
-                        mapItem = 
-                            _mapping.MapItems.Find(x => ((x.StringNum == currentString) && 
-                                                            (x.PixelNum == currentPixel)));
-
-                        if (mapItem == null)
-                        {
-                            mapItem = new LipSyncMapItem();
-                            mapItem.ElementColor = Color.White;
-                            mapItem.StringNum = currentString;
-                            mapItem.PixelNum = currentPixel;
-
-                            _mapping.MapItems.Add(mapItem);
-                        }
-
-                        rowName = "String " + currentString;
-                        if (pixelCheckBox.Checked == true)
-                        {
-                            rowName += "_P" + currentPixel;
-                        }
-                        mapItem.Name = rowName;
-                    }
-                }
-                currentDataTable.Rows.Clear();
-                currentDataTable = BuildDialogFromMap(_mapping);
-                updatedataGridView1();
-            }
-        }
-
-        private void stringsUpDown_SelectedItemChanged(object sender, EventArgs e)
-        {
-            reconfigureDataTable();
-        }
-
-        private void pixelUpDown_SelectedItemChanged(object sender, EventArgs e)
-        {
-            reconfigureDataTable();
-        }
-
-        private void pixelCheckBox_CheckedChanged(object sender, EventArgs e)
-        {
-            if (_doMatrixUpdate == true)
-            {
-                pixelUpDown.Enabled = pixelCheckBox.Checked;
-                pixelUpDown.SelectedIndex = 0;
-                reconfigureDataTable();
-            }
-        }
-
-        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if ((e.RowIndex > -1)  && (e.ColumnIndex >= currentDataTable.Columns.Count - 1))
-            {
-                // Show the color dialog.
-                DialogResult result = colorDialog1.ShowDialog();
-
-                // See if user pressed ok.
-                if (result == DialogResult.OK)
-                {
-                    DataGridViewCell cell = (DataGridViewCell)dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
-                    currentDataTable.Columns[COLOR_COLUMN_NAME].ReadOnly = false;
-
-                    // Set form background to the selected color.
-                    cell.Value = colorDialog1.Color;
-
-                    currentDataTable.Columns[COLOR_COLUMN_NAME].ReadOnly = true;
-                }
-            }
-        }
-
-        private void dataGridView1_CellValueChanged(object sender, DataGridViewCellEventArgs e)
-        {
-            if ((e.RowIndex > -1) && (e.ColumnIndex > 0))
-            {
-                BuilMapDataFromDialog();
-            }
-        }
-
-    }
-}

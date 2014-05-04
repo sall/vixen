@@ -109,6 +109,10 @@ namespace VixenModules.Editor.TimedSequenceEditor
             this.toolStripMenuItem_MarkManager = new System.Windows.Forms.ToolStripMenuItem();
             this.modifySequenceLengthToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.curveEditorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.lipSyncMappingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.phonemeMappingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator13 = new System.Windows.Forms.ToolStripSeparator();
+            this.defaultMapToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.timerPlaying = new System.Windows.Forms.Timer(this.components);
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
@@ -133,8 +137,6 @@ namespace VixenModules.Editor.TimedSequenceEditor
             this.timerPostponePlay = new System.Windows.Forms.Timer(this.components);
             this.timerDelayCountdown = new System.Windows.Forms.Timer(this.components);
             this.timerLoop = new System.Windows.Forms.Timer(this.components);
-            this.lipSyncMappingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.phonemeMappingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripOperations.SuspendLayout();
             this.menuStrip.SuspendLayout();
             this.statusStrip.SuspendLayout();
@@ -819,6 +821,35 @@ namespace VixenModules.Editor.TimedSequenceEditor
             this.curveEditorToolStripMenuItem.Text = "Curve Editor";
             this.curveEditorToolStripMenuItem.Click += new System.EventHandler(this.curveEditorToolStripMenuItem_Click);
             // 
+            // lipSyncMappingsToolStripMenuItem
+            // 
+            this.lipSyncMappingsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.phonemeMappingsToolStripMenuItem,
+            this.toolStripSeparator13,
+            this.defaultMapToolStripMenuItem});
+            this.lipSyncMappingsToolStripMenuItem.Name = "lipSyncMappingsToolStripMenuItem";
+            this.lipSyncMappingsToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
+            this.lipSyncMappingsToolStripMenuItem.Text = "LipSync";
+            // 
+            // phonemeMappingsToolStripMenuItem
+            // 
+            this.phonemeMappingsToolStripMenuItem.Name = "phonemeMappingsToolStripMenuItem";
+            this.phonemeMappingsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.phonemeMappingsToolStripMenuItem.Text = "Edit Maps";
+            this.phonemeMappingsToolStripMenuItem.Click += new System.EventHandler(this.editMapsToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator13
+            // 
+            this.toolStripSeparator13.Name = "toolStripSeparator13";
+            this.toolStripSeparator13.Size = new System.Drawing.Size(149, 6);
+            // 
+            // defaultMapToolStripMenuItem
+            // 
+            this.defaultMapToolStripMenuItem.Name = "defaultMapToolStripMenuItem";
+            this.defaultMapToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.defaultMapToolStripMenuItem.Text = "Default Map";
+            this.defaultMapToolStripMenuItem.DropDownOpening += new System.EventHandler(this.defaultMapToolStripMenuItem_DropDownOpening);
+            // 
             // timerPlaying
             // 
             this.timerPlaying.Interval = 40;
@@ -1068,21 +1099,6 @@ namespace VixenModules.Editor.TimedSequenceEditor
             this.timerLoop.Interval = 500;
             this.timerLoop.Tick += new System.EventHandler(this.timerLoop_Tick);
             // 
-            // lipSyncMappingsToolStripMenuItem
-            // 
-            this.lipSyncMappingsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.phonemeMappingsToolStripMenuItem});
-            this.lipSyncMappingsToolStripMenuItem.Name = "lipSyncMappingsToolStripMenuItem";
-            this.lipSyncMappingsToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
-            this.lipSyncMappingsToolStripMenuItem.Text = "LipSync";
-            // 
-            // phonemeMappingsToolStripMenuItem
-            // 
-            this.phonemeMappingsToolStripMenuItem.Name = "phonemeMappingsToolStripMenuItem";
-            this.phonemeMappingsToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
-            this.phonemeMappingsToolStripMenuItem.Text = "Phoneme Mappings";
-            this.phonemeMappingsToolStripMenuItem.Click += new System.EventHandler(this.phonemeMappingsToolStripMenuItem_Click);
-            // 
             // TimedSequenceEditorForm
             // 
             this.AllowDrop = true;
@@ -1221,5 +1237,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		private System.Windows.Forms.ToolStripMenuItem curveEditorToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem lipSyncMappingsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem phonemeMappingsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem defaultMapToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator13;
 	}
 }

@@ -22,9 +22,5 @@ namespace Vixen.Data.Evaluator
 			EvaluatorValue = new _64BitCommand((ulong)(ulong.MaxValue * obj.GetValue().Position));
 		}
         
-        public override void Handle(IIntentState<PhonemeValue> obj)
-        {
-            EvaluatorValue = new _64BitCommand((byte)(byte.MaxValue * obj.GetValue().Intensity));
-        }
 	}
 }

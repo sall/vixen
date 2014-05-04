@@ -85,7 +85,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		private string settingsPath;
 
-		#endregion
+        private LipSyncMapLibrary _library;
+        #endregion
 
 		#region Constructor / Initialization
 
@@ -209,6 +210,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			updateButtonStates();
 			UpdatePasteMenuStates();
 			LoadVirtualEffects();
+
+            _library = ApplicationServices.Get<IAppModuleInstance>(LipSyncMapDescriptor.ModuleID) as LipSyncMapLibrary;
 
 #if DEBUG
 			ToolStripButton b = new ToolStripButton("[Debug Break]");
@@ -3129,10 +3132,30 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			selector.ShowDialog();
 		}
 
-        private void phonemeMappingsToolStripMenuItem_Click(object sender, EventArgs e)
+        private void editMapsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             LipSyncMapSelector mapSelector = new LipSyncMapSelector();
             DialogResult dr = mapSelector.ShowDialog();
+        }
+
+        private void setDefaultMap_Click(object sender,EventArgs e)
+        {
+            ToolStripMenuItem menu = (ToolStripMenuItem)sender;
+            _library.DefaultMappingName = menu.Text;
+        }
+
+        private void defaultMapToolStripMenuItem_DropDownOpening(object sender, EventArgs e)
+        {
+            string defaultText = _library.DefaultMappingName;
+            this.defaultMapToolStripMenuItem.DropDownItems.Clear();
+            
+            foreach (LipSyncMapData mapping in _library.Library.Values)
+            {
+                ToolStripMenuItem menuItem = new ToolStripMenuItem(mapping.LibraryReferenceName);
+                menuItem.Click += setDefaultMap_Click;
+                menuItem.Checked = _library.IsDefaultMapping(mapping.LibraryReferenceName);
+                this.defaultMapToolStripMenuItem.DropDownItems.Add(menuItem);
+            }            
         }
 
 	}
