@@ -110,9 +110,11 @@ namespace VixenModules.Editor.TimedSequenceEditor
             this.modifySequenceLengthToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.curveEditorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.lipSyncMappingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.defaultMapToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.phonemeMappingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator13 = new System.Windows.Forms.ToolStripSeparator();
-            this.defaultMapToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.papagayoImportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.textConverterToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.timerPlaying = new System.Windows.Forms.Timer(this.components);
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
@@ -824,31 +826,46 @@ namespace VixenModules.Editor.TimedSequenceEditor
             // lipSyncMappingsToolStripMenuItem
             // 
             this.lipSyncMappingsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.defaultMapToolStripMenuItem,
             this.phonemeMappingsToolStripMenuItem,
             this.toolStripSeparator13,
-            this.defaultMapToolStripMenuItem});
+            this.papagayoImportToolStripMenuItem,
+            this.textConverterToolStripMenuItem});
             this.lipSyncMappingsToolStripMenuItem.Name = "lipSyncMappingsToolStripMenuItem";
             this.lipSyncMappingsToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
             this.lipSyncMappingsToolStripMenuItem.Text = "LipSync";
             // 
+            // defaultMapToolStripMenuItem
+            // 
+            this.defaultMapToolStripMenuItem.Name = "defaultMapToolStripMenuItem";
+            this.defaultMapToolStripMenuItem.Size = new System.Drawing.Size(165, 22);
+            this.defaultMapToolStripMenuItem.Text = "Default Map";
+            this.defaultMapToolStripMenuItem.DropDownOpening += new System.EventHandler(this.defaultMapToolStripMenuItem_DropDownOpening);
+            // 
             // phonemeMappingsToolStripMenuItem
             // 
             this.phonemeMappingsToolStripMenuItem.Name = "phonemeMappingsToolStripMenuItem";
-            this.phonemeMappingsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.phonemeMappingsToolStripMenuItem.Size = new System.Drawing.Size(165, 22);
             this.phonemeMappingsToolStripMenuItem.Text = "Edit Maps";
             this.phonemeMappingsToolStripMenuItem.Click += new System.EventHandler(this.editMapsToolStripMenuItem_Click);
             // 
             // toolStripSeparator13
             // 
             this.toolStripSeparator13.Name = "toolStripSeparator13";
-            this.toolStripSeparator13.Size = new System.Drawing.Size(149, 6);
+            this.toolStripSeparator13.Size = new System.Drawing.Size(162, 6);
             // 
-            // defaultMapToolStripMenuItem
+            // papagayoImportToolStripMenuItem
             // 
-            this.defaultMapToolStripMenuItem.Name = "defaultMapToolStripMenuItem";
-            this.defaultMapToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.defaultMapToolStripMenuItem.Text = "Default Map";
-            this.defaultMapToolStripMenuItem.DropDownOpening += new System.EventHandler(this.defaultMapToolStripMenuItem_DropDownOpening);
+            this.papagayoImportToolStripMenuItem.Name = "papagayoImportToolStripMenuItem";
+            this.papagayoImportToolStripMenuItem.Size = new System.Drawing.Size(165, 22);
+            this.papagayoImportToolStripMenuItem.Text = "Papagayo Import";
+            this.papagayoImportToolStripMenuItem.Click += new System.EventHandler(this.papagayoImportToolStripMenuItem_Click);
+            // 
+            // textConverterToolStripMenuItem
+            // 
+            this.textConverterToolStripMenuItem.Name = "textConverterToolStripMenuItem";
+            this.textConverterToolStripMenuItem.Size = new System.Drawing.Size(165, 22);
+            this.textConverterToolStripMenuItem.Text = "Text Converter";
             // 
             // timerPlaying
             // 
@@ -1239,5 +1256,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
         private System.Windows.Forms.ToolStripMenuItem phonemeMappingsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem defaultMapToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator13;
+        private System.Windows.Forms.ToolStripMenuItem papagayoImportToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem textConverterToolStripMenuItem;
 	}
 }

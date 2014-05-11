@@ -86,12 +86,14 @@ namespace VixenModules.App.LipSyncMap
             buttonNewMap.Enabled = true;
             buttonEditMap.Enabled = false;
 			buttonDeleteMap.Enabled = false;
+            buttonCloneMap.Enabled = false;
 
 		}
 
 		private void listViewMappings_SelectedIndexChanged(object sender, EventArgs e)
 		{
             buttonEditMap.Enabled = (listViewMappings.SelectedIndices.Count == 1);
+            buttonCloneMap.Enabled = (listViewMappings.SelectedIndices.Count >= 1);
             buttonDeleteMap.Enabled = (listViewMappings.SelectedIndices.Count >= 1);
 		}
 
@@ -197,7 +199,8 @@ namespace VixenModules.App.LipSyncMap
 
         private void buttonNewMap_Click(object sender, EventArgs e)
         {
-            _library.AddMapping(true,null, new LipSyncMapData());
+            string mapName = _library.AddMapping(true,null, new LipSyncMapData());
+            Library.EditLibraryMapping(mapName);
             this.PopulateListWithMappings();
         }
 
@@ -208,6 +211,17 @@ namespace VixenModules.App.LipSyncMap
                 DeleteSelectedMapping();
                 e.Handled = true;
             }
+        }
+
+        private void buttonCloneMap_Click(object sender, EventArgs e)
+        {
+            foreach (ListViewItem lvItem in listViewMappings.SelectedItems)
+            {
+                LipSyncMapData tempItem = new LipSyncMapData(_library.GetMapping(lvItem.Name));
+                string mapName = _library.AddMapping(true, lvItem.Name, tempItem);
+                this.PopulateListWithMappings();
+            }
+
         }
     }
 }

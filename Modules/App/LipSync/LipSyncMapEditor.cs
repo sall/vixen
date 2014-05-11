@@ -12,6 +12,7 @@ namespace VixenModules.App.LipSyncMap
     public partial class LipSyncMapEditor : Form
     {
         private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
+        private LipSyncMapData _mapping;
         private DataTable currentDataTable;
         private ResourceManager lipSyncRM;
         private static Dictionary<string, Bitmap> _phonemeBitmaps = null;
@@ -19,6 +20,7 @@ namespace VixenModules.App.LipSyncMap
         private static string COLOR_COLUMN_NAME = "Color";
         private bool _doMatrixUpdate = false;
         private static object predicateArg = null;
+        private static string[] defaultNames = { "Outline", "Eyes Open", "Eyes Closed", "Mouth Top", "Mouth Bottom", "Mouth Middle", "Mouth Narrow", "Mouth O" };
 
         public LipSyncMapEditor()
         {
@@ -31,8 +33,11 @@ namespace VixenModules.App.LipSyncMap
         public LipSyncMapEditor(LipSyncMapData mapData)
         {
             InitializeComponent();
+            _doMatrixUpdate = false;
             LoadResourceBitmaps();
+            InitStringsUpDown();
             this.MapData = mapData;
+            _doMatrixUpdate = true;
         }
 
         public string LibraryMappingName
@@ -43,9 +48,6 @@ namespace VixenModules.App.LipSyncMap
                 nameTextBox.Text = value;
             }
         }
-
-        private LipSyncMapData _mapping;
-
 
         private DataTable BuildDialogFromMap(LipSyncMapData data)
         {
@@ -66,6 +68,9 @@ namespace VixenModules.App.LipSyncMap
                 }
             });
 
+            
+            
+
             DataTable dt = new DataTable(nameTextBox.Text);
             dt.Columns.Add(" ", typeof(string));
 
@@ -76,11 +81,17 @@ namespace VixenModules.App.LipSyncMap
 
             dt.Columns.Add(COLOR_COLUMN_NAME, typeof(Color));
             
-            if (data.MapItems.Count == 0)
+            if (data.MapItems.Count <= 1)
             {
-                DataRow dr = dt.Rows.Add();
-                dr[0] = "String 1";
-                dr[COLOR_COLUMN_NAME] = Color.White;
+                foreach (string stringName in defaultNames)
+                {
+                    DataRow dr = dt.Rows.Add();
+                    dr[0] = stringName;
+                    dr[COLOR_COLUMN_NAME] = Color.White;
+
+                }
+                stringsUpDown.SelectedIndex = defaultNames.Count() - 1;
+                _mapping.StringCount = defaultNames.Count();
             }
             else
             {
@@ -104,7 +115,7 @@ namespace VixenModules.App.LipSyncMap
                 }
             }
 
-            dt.Columns[" "].ReadOnly = true;
+            //dt.Columns[" "].ReadOnly = true;
             dt.Columns[COLOR_COLUMN_NAME].ReadOnly = true;
 
             return dt;
@@ -119,17 +130,17 @@ namespace VixenModules.App.LipSyncMap
         {
             int currentRow = 0;
 
-            _mapping.StringCount = stringsUpDown.SelectedIndex;
+            _mapping.StringCount = (int)stringsUpDown.SelectedItem;
             _mapping.MapItems.Clear();
 
             for (int stringNum = 0; stringNum < (int)stringsUpDown.SelectedItem; stringNum++)
             {
                 DataRow dr = currentDataTable.Rows[currentRow];
                 LipSyncMapItem item = new LipSyncMapItem();
-                //item.Name = dr[0].ToString();
+                item.Name = dr[0].ToString();
                 item.StringNum = stringNum;
 
-                for (int theCount = 1; theCount < dr.ItemArray.Count() - 1; theCount++)
+                for (int theCount = 1; theCount < dr.ItemArray.Count() - 1; theCount++) 
                 {
                     bool checkVal =
                         (dr[theCount].GetType() == typeof(Boolean)) ? (Boolean)dr[theCount] : false;
@@ -159,6 +170,7 @@ namespace VixenModules.App.LipSyncMap
             set
             {
                 _mapping = value;
+                stringsUpDown.SelectedIndex = _mapping.MapItems.Count() - 1;
                 currentDataTable = BuildDialogFromMap(value);
                 updatedataGridView1();
             }
@@ -193,18 +205,22 @@ namespace VixenModules.App.LipSyncMap
             }
         }
 
+        private void InitStringsUpDown()
+        {
+            for (int j = 1; j < 1000; j++)
+            {
+                stringsUpDown.Items.Add(j);
+            }
+        }
+
         private void LipSyncMapSetup_Load(object sender, EventArgs e)
         {
             stringsUpDown.Items.Clear();
 
             _doMatrixUpdate = false;
-            for (int j = 1; j < 1000; j++)
-            {
-                stringsUpDown.Items.Add(j);
-            }
-
+            InitStringsUpDown();
             _doMatrixUpdate = false;
-            stringsUpDown.SelectedIndex = _mapping.StringCount;
+            stringsUpDown.SelectedIndex = _mapping.StringCount - 1;
             _doMatrixUpdate = true;
 
             updatedataGridView1();
@@ -333,7 +349,11 @@ namespace VixenModules.App.LipSyncMap
 
         private void stringsUpDown_SelectedItemChanged(object sender, EventArgs e)
         {
-            reconfigureDataTable();
+            if (_doMatrixUpdate == true)
+            {
+                BuilMapDataFromDialog();
+                reconfigureDataTable();
+            }
         }
 
         private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -361,7 +381,8 @@ namespace VixenModules.App.LipSyncMap
                     {
                         if ((cell.ColumnIndex > 0) && (cell.ColumnIndex < lastColumn))
                         {
-                            bias = ((bool)cell.Value) ? bias + 1 : bias - 1;
+                            bias = ((cell.Value.GetType() == typeof(bool)) && 
+                                (bool)cell.Value == true) ? bias + 1 : bias - 1;
                         }
 
                     }

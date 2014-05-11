@@ -38,9 +38,22 @@ namespace VixenModules.App.LipSyncMap
         {
             get
             {
+                
                 if (_defaultMap == null)
                 {
-                    _defaultMap = Library.FirstOrDefault().Value;
+                    foreach (LipSyncMapData dataItem in Library.Values)
+                    {
+                        if (dataItem.IsDefaultMapping)
+                        {
+                            _defaultMap = dataItem;
+                            break;
+                        }
+                    }
+
+                    if (_defaultMap == null)
+                    {
+                        _defaultMap = Library.FirstOrDefault().Value;
+                    }
                 }
                 return _defaultMap;
             }
@@ -48,9 +61,15 @@ namespace VixenModules.App.LipSyncMap
             set
             {
                 _defaultMap = value;
+                foreach (LipSyncMapData dataItem in Library.Values)
+                {
+                    dataItem.IsDefaultMapping = false;
+                }
+                _defaultMap.IsDefaultMapping = true;
             }
         }
 
+        
         public string DefaultMappingName
         {
             get
@@ -64,7 +83,7 @@ namespace VixenModules.App.LipSyncMap
 
                 if (_staticData.Library.ContainsKey(newDefaultName))
                 {
-                    _defaultMap = _staticData.Library[newDefaultName];
+                    DefaultMapping = _staticData.Library[newDefaultName];
                 }
             }
         }
@@ -102,7 +121,7 @@ namespace VixenModules.App.LipSyncMap
                 return null;
         }
 
-        public bool AddMapping(bool insertNew, string name, LipSyncMapData mapping)
+        public string AddMapping(bool insertNew, string name, LipSyncMapData mapping)
         {
 
             string mapName = name;
@@ -131,7 +150,7 @@ namespace VixenModules.App.LipSyncMap
             mapping.IsCurrentLibraryMapping = true;
             mapping.LibraryReferenceName = mapName;
             Library[mapName] = (insertNew) ? (LipSyncMapData)mapping.Clone() : mapping;
-            return inLibrary;
+            return mapName;
         }
 
         public bool RemoveMapping(string name)
@@ -153,11 +172,13 @@ namespace VixenModules.App.LipSyncMap
         {
             bool doRemove = true;
             bool retVal = false;
-            LipSyncMapData mapping = GetMapping(name);
+            LipSyncMapData origMapping = GetMapping(name);
 
-            if (mapping != null)
+            if (origMapping != null)
             {
-                LipSyncMapEditor editor = new LipSyncMapEditor(mapping);
+                LipSyncMapData newMapping = new LipSyncMapData(origMapping);
+
+                LipSyncMapEditor editor = new LipSyncMapEditor(newMapping);
                 editor.LibraryMappingName = name;
 
                 if (editor.ShowDialog() == System.Windows.Forms.DialogResult.OK)

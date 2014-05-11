@@ -77,22 +77,22 @@
             // 
             // stringsUpDown
             // 
-            this.stringsUpDown.Location = new System.Drawing.Point(277, 35);
+            this.stringsUpDown.Location = new System.Drawing.Point(336, 33);
             this.stringsUpDown.Name = "stringsUpDown";
             this.stringsUpDown.ReadOnly = true;
             this.stringsUpDown.Size = new System.Drawing.Size(46, 20);
             this.stringsUpDown.TabIndex = 19;
-            this.stringsUpDown.Text = "domainUpDown1";
+            this.stringsUpDown.Text = "0";
             this.stringsUpDown.SelectedItemChanged += new System.EventHandler(this.stringsUpDown_SelectedItemChanged);
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(232, 37);
+            this.label1.Location = new System.Drawing.Point(253, 35);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(39, 13);
+            this.label1.Size = new System.Drawing.Size(77, 13);
             this.label1.TabIndex = 22;
-            this.label1.Text = "Strings";
+            this.label1.Text = "Strings / Pixels";
             // 
             // label2
             // 

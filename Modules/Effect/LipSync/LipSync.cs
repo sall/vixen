@@ -11,11 +11,13 @@ using Vixen.Commands;
 using Vixen.Data.Value;
 using Vixen.Intent;
 using Vixen.Module;
+using Vixen.Module.App;
 using Vixen.Module.Effect;
+using Vixen.Services;
 using Vixen.Sys;
 using Vixen.Sys.Attribute;
 using VixenModules.App.LipSyncMap;
-
+using VixenModules.Effect;
 
 namespace VixenModules.Effect.LipSync
 {
@@ -25,11 +27,14 @@ namespace VixenModules.Effect.LipSync
         private LipSyncData _data;
         private EffectIntents _elementData = null;
         static Dictionary<string, Bitmap> _phonemeBitmaps = null;
+        private LipSyncMapLibrary _library = null;
+
 
         public LipSync()
         {
             _data = new LipSyncData();
             LoadResourceBitmaps();
+            _library = ApplicationServices.Get<IAppModuleInstance>(LipSyncMapDescriptor.ModuleID) as LipSyncMapLibrary;
         }
 
         protected override void TargetNodesChanged()
@@ -40,7 +45,6 @@ namespace VixenModules.Effect.LipSync
         protected override void _PreRender(CancellationTokenSource cancellationToken = null)
         {
             _elementData = new EffectIntents();
-
             var targetNodes = TargetNodes.AsParallel();
 
             if (cancellationToken != null)
@@ -51,20 +55,32 @@ namespace VixenModules.Effect.LipSync
                 if (node != null)
                     RenderNode(node);
             });
-
-
         }
 
         // renders the given node to the internal ElementData dictionary. If the given node is
         // not a element, will recursively descend until we render its elements.
         private void RenderNode(ElementNode node)
         {
-            foreach (ElementNode elementNode in node.GetLeafEnumerator())
+            EffectIntents result;
+            LipSyncMapData mapData = null;
+            List<ElementNode> renderNodes = TargetNodes.SelectMany(x => x.GetLeafEnumerator()).ToList();
+
+            renderNodes.ForEach(delegate(ElementNode element)
             {
-                //PhonemeValue phonemeValue = new PhonemeValue(StaticPhoneme,0);
-                //IIntent intent = new PhonemeIntent(phonemeValue, TimeSpan);
-                //_elementData.AddIntentForElement(elementNode.Element.Id, intent, TimeSpan.Zero);
-            }
+
+                if ((_data.PhonemeMapping != null) &&
+                    (_library.Library.TryGetValue(_data.PhonemeMapping, out mapData)) &&
+                    (mapData.PhonemeState(element.Name,_data.StaticPhoneme)))
+                {
+                    var level = new SetLevel.SetLevel();
+                    level.Color = mapData.ConfiguredColor(element.Name, _data.StaticPhoneme);
+                    level.TargetNodes = new ElementNode[] { element };
+                    level.TimeSpan = TimeSpan;
+                    result = level.Render();
+                    _elementData.Add(result);
+                }
+
+            });
         }
 
         protected override EffectIntents _Render()

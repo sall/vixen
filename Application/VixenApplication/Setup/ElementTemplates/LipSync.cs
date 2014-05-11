@@ -18,16 +18,15 @@ namespace VixenApplication.Setup.ElementTemplates
     {
         private static Logger Logging = LogManager.GetCurrentClassLogger();
 //        private LipSyncMapLibrary _library = null;
+        private static string[] templateStrings = { "Outline", "Eyes Top", "Eyes Bottom", "Mouth Top", "Mouth Bottom", "Mouth Middle", "Mouth Narrow", "Mouth O" };
 
         private string treename;
-        private int stringcount;
 
         public LipSync()
         {
             InitializeComponent();
 //            _library = ApplicationServices.Get<IAppModuleInstance>(LipSyncMapDescriptor.ModuleID) as LipSyncMapLibrary;
             treename = "LipSync";
-            stringcount = 8;
         }
 
         public string TemplateName
@@ -51,13 +50,7 @@ namespace VixenApplication.Setup.ElementTemplates
 
             if (treename.Length == 0)
             {
-                Logging.Error("starburst is null");
-                return result;
-            }
-
-            if (stringcount < 0)
-            {
-                Logging.Error("negative count");
+                Logging.Error("LipSync name is null");
                 return result;
             }
 
@@ -66,12 +59,11 @@ namespace VixenApplication.Setup.ElementTemplates
 
             List<string> stringNames = new List<string>();
 
-            for (int i = 0; i < stringcount; i++)
+            foreach(string stringName in templateStrings)
             {
-                string stringname = head.Name + " S" + (i + 1);
-                ElementNode stringnode = ElementNodeService.Instance.CreateSingle(head, stringname);
+                ElementNode stringnode = ElementNodeService.Instance.CreateSingle(head, stringName);
                 result.Add(stringnode);
-                stringNames.Add(stringname);
+                stringNames.Add(stringName);
             }
 
             if (generateMapCheckBox.Checked)
@@ -85,13 +77,11 @@ namespace VixenApplication.Setup.ElementTemplates
         private void LipSync_Load(object sender, EventArgs e)
         {
             textBoxTreeName.Text = treename;
-            numericUpDownStrings.Value = stringcount;
         }
 
         private void LipSync_FormClosed(object sender, FormClosedEventArgs e)
         {
             treename = textBoxTreeName.Text;
-            stringcount = Decimal.ToInt32(numericUpDownStrings.Value);
         }
     }
 }

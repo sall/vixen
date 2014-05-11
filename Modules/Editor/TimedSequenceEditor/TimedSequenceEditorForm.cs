@@ -14,6 +14,7 @@ using Vixen.Module;
 using VixenModules.App.Curves;
 using VixenModules.App.LipSyncMap;
 using VixenModules.Media.Audio;
+using VixenModules.Effect.LipSync;
 using Vixen.Module.Editor;
 using Vixen.Module.Effect;
 using Vixen.Module.Media;
@@ -3158,6 +3159,65 @@ namespace VixenModules.Editor.TimedSequenceEditor
             }            
         }
 
+        private void papagayoImportToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string fileName;
+            PapagayoDoc papagayoFile = new PapagayoDoc();
+            FileDialog openDialog = new OpenFileDialog();
+
+            openDialog.Filter = "Papagayo files (*.pgo)|*.pgo|All files (*.*)|*.*";
+            openDialog.FilterIndex = 1;
+            if (openDialog.ShowDialog() != DialogResult.OK)
+            {
+                return;
+            }
+            fileName = openDialog.FileName;
+            papagayoFile.Load(fileName);
+            List<PapagayoPhoneme> phonemes = papagayoFile.PhonemeList(null);
+
+            if (phonemes.Count > 0)
+            {
+                TimelineElementsClipboardData result = new TimelineElementsClipboardData()
+                {
+                    FirstVisibleRow = -1,
+                    EarliestStartTime = TimeSpan.MaxValue,
+                };
+
+                result.FirstVisibleRow = 0;
+
+                foreach(PapagayoPhoneme phoneme in phonemes)
+                {
+                    if (phoneme.DurationMS == 0.0)
+                    {
+                        continue;
+                    }
+
+                    IEffectModuleInstance effect =
+                        ApplicationServices.Get<IEffectModuleInstance>(new LipSyncDescriptor().TypeId);
+
+                    ((LipSync)effect).StaticPhoneme = phoneme.TypeName.ToUpper();
+                   
+                    TimeSpan startTime = TimeSpan.FromMilliseconds(phoneme.StartMS);
+                    TimelineElementsClipboardData.EffectModelCandidate modelCandidate =
+                          new TimelineElementsClipboardData.EffectModelCandidate(effect)
+                          {
+                              Duration = TimeSpan.FromMilliseconds(phoneme.DurationMS - 1),
+                              StartTime = startTime,
+                          };
+
+                    result.EffectModelCandidates.Add(modelCandidate, 0);
+                    if (startTime < result.EarliestStartTime)
+                        result.EarliestStartTime = startTime;
+
+                }
+                IDataObject dataObject = new DataObject(_clipboardFormatName);
+                dataObject.SetData(result);
+                Clipboard.SetDataObject(dataObject, true);
+                _TimeLineSequenceClipboardContentsChanged(EventArgs.Empty);
+
+            }
+        }          
+
 	}
 
 	[Serializable]
@@ -3241,4 +3301,6 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			get { return _negativeFormats; }
 		}
 	}
+
+
 }
