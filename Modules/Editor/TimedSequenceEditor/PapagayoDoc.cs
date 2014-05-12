@@ -296,7 +296,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
             List<PapagayoPhoneme> newList = new List<PapagayoPhoneme>();
             PapagayoPhoneme coalescedPhoneme = null;
             PapagayoPhoneme newPhoneme = null;
-            for (int eventIndex = 0; eventIndex < EndFrame; eventIndex++)
+            for (int eventIndex = 0; eventIndex < SoundFrames; eventIndex++)
             {
                 eventList.Add(this.GetEventPhoneme(eventIndex));
             }
@@ -320,6 +320,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
                 }
 
             }
+            newList.Add(new PapagayoPhoneme(coalescedPhoneme));
+
             m_phonemes = newList;
         }
         

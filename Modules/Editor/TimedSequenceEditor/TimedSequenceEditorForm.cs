@@ -3173,49 +3173,68 @@ namespace VixenModules.Editor.TimedSequenceEditor
             }
             fileName = openDialog.FileName;
             papagayoFile.Load(fileName);
-            List<PapagayoPhoneme> phonemes = papagayoFile.PhonemeList(null);
 
-            if (phonemes.Count > 0)
+            TimelineElementsClipboardData result = new TimelineElementsClipboardData()
             {
-                TimelineElementsClipboardData result = new TimelineElementsClipboardData()
-                {
-                    FirstVisibleRow = -1,
-                    EarliestStartTime = TimeSpan.MaxValue,
-                };
+                FirstVisibleRow = -1,
+                EarliestStartTime = TimeSpan.MaxValue,
+            };
 
-                result.FirstVisibleRow = 0;
+            result.FirstVisibleRow = 0;
 
-                foreach(PapagayoPhoneme phoneme in phonemes)
+            int rownum = 0;
+            foreach (string voice in papagayoFile.VoiceList)
+            {
+                List<PapagayoPhoneme> phonemes = papagayoFile.PhonemeList(voice);
+
+                if (phonemes.Count > 0)
                 {
-                    if (phoneme.DurationMS == 0.0)
+
+                    foreach (PapagayoPhoneme phoneme in phonemes)
                     {
-                        continue;
+                        if (phoneme.DurationMS == 0.0)
+                        {
+                            continue;
+                        }
+
+                        IEffectModuleInstance effect =
+                            ApplicationServices.Get<IEffectModuleInstance>(new LipSyncDescriptor().TypeId);
+
+                        ((LipSync)effect).StaticPhoneme = phoneme.TypeName.ToUpper();
+
+                        TimeSpan startTime = TimeSpan.FromMilliseconds(phoneme.StartMS);
+                        TimelineElementsClipboardData.EffectModelCandidate modelCandidate =
+                              new TimelineElementsClipboardData.EffectModelCandidate(effect)
+                              {
+                                  Duration = TimeSpan.FromMilliseconds(phoneme.DurationMS - 1),
+                                  StartTime = startTime,
+                              };
+
+                        result.EffectModelCandidates.Add(modelCandidate, rownum);
+                        if (startTime < result.EarliestStartTime)
+                            result.EarliestStartTime = startTime;
+
                     }
-
-                    IEffectModuleInstance effect =
-                        ApplicationServices.Get<IEffectModuleInstance>(new LipSyncDescriptor().TypeId);
-
-                    ((LipSync)effect).StaticPhoneme = phoneme.TypeName.ToUpper();
-                   
-                    TimeSpan startTime = TimeSpan.FromMilliseconds(phoneme.StartMS);
-                    TimelineElementsClipboardData.EffectModelCandidate modelCandidate =
-                          new TimelineElementsClipboardData.EffectModelCandidate(effect)
-                          {
-                              Duration = TimeSpan.FromMilliseconds(phoneme.DurationMS - 1),
-                              StartTime = startTime,
-                          };
-
-                    result.EffectModelCandidates.Add(modelCandidate, 0);
-                    if (startTime < result.EarliestStartTime)
-                        result.EarliestStartTime = startTime;
+                    
+                    IDataObject dataObject = new DataObject(_clipboardFormatName);
+                    dataObject.SetData(result);
+                    Clipboard.SetDataObject(dataObject, true);
+                    _TimeLineSequenceClipboardContentsChanged(EventArgs.Empty);
 
                 }
-                IDataObject dataObject = new DataObject(_clipboardFormatName);
-                dataObject.SetData(result);
-                Clipboard.SetDataObject(dataObject, true);
-                _TimeLineSequenceClipboardContentsChanged(EventArgs.Empty);
-
+                rownum++;
             }
+            
+            string displayStr = rownum + " Voices imported to clipboard as seperate rows\n\n";
+            
+            int j = 1;
+            foreach (string voiceStr in papagayoFile.VoiceList)
+            {
+                displayStr += "Row #" + j +" - " + voiceStr + "\n";
+                j++;
+            }
+            
+            MessageBox.Show(displayStr, "Papagayo Import", MessageBoxButtons.OK);
         }          
 
 	}

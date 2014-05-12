@@ -863,6 +863,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
             // 
             // textConverterToolStripMenuItem
             // 
+            this.textConverterToolStripMenuItem.Enabled = false;
             this.textConverterToolStripMenuItem.Name = "textConverterToolStripMenuItem";
             this.textConverterToolStripMenuItem.Size = new System.Drawing.Size(165, 22);
             this.textConverterToolStripMenuItem.Text = "Text Converter";
