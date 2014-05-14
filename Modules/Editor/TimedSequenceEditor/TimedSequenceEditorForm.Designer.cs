@@ -502,7 +502,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
             // 
             this.playToolStripMenuItem.Name = "playToolStripMenuItem";
             this.playToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F5;
-            this.playToolStripMenuItem.Size = new System.Drawing.Size(141, 22);
+            this.playToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.playToolStripMenuItem.Text = "Play";
             this.playToolStripMenuItem.Click += new System.EventHandler(this.playToolStripMenuItem_Click);
             // 
@@ -510,7 +510,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
             // 
             this.pauseToolStripMenuItem.Name = "pauseToolStripMenuItem";
             this.pauseToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F6;
-            this.pauseToolStripMenuItem.Size = new System.Drawing.Size(141, 22);
+            this.pauseToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.pauseToolStripMenuItem.Text = "Pause";
             this.pauseToolStripMenuItem.Click += new System.EventHandler(this.pauseToolStripMenuItem_Click);
             // 
@@ -518,7 +518,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
             // 
             this.stopToolStripMenuItem.Name = "stopToolStripMenuItem";
             this.stopToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F8;
-            this.stopToolStripMenuItem.Size = new System.Drawing.Size(141, 22);
+            this.stopToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.stopToolStripMenuItem.Text = "Stop";
             this.stopToolStripMenuItem.Click += new System.EventHandler(this.stopToolStripMenuItem_Click);
             // 
@@ -528,7 +528,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
             this.toolStripMenuItem_Loop.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.toolStripMenuItem_Loop.Name = "toolStripMenuItem_Loop";
             this.toolStripMenuItem_Loop.ShortcutKeys = System.Windows.Forms.Keys.F9;
-            this.toolStripMenuItem_Loop.Size = new System.Drawing.Size(141, 22);
+            this.toolStripMenuItem_Loop.Size = new System.Drawing.Size(152, 22);
             this.toolStripMenuItem_Loop.Text = "Loop";
             this.toolStripMenuItem_Loop.CheckedChanged += new System.EventHandler(this.toolStripMenuItem_Loop_CheckedChanged);
             // 
@@ -542,7 +542,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
             this.delay30SecondsToolStripMenuItem,
             this.delay60SecondsToolStripMenuItem});
             this.playOptionsToolStripMenuItem.Name = "playOptionsToolStripMenuItem";
-            this.playOptionsToolStripMenuItem.Size = new System.Drawing.Size(141, 22);
+            this.playOptionsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.playOptionsToolStripMenuItem.Text = "Play Options";
             // 
             // delayOffToolStripMenuItem

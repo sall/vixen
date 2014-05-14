@@ -65,22 +65,31 @@ namespace VixenModules.Effect.LipSync
             LipSyncMapData mapData = null;
             List<ElementNode> renderNodes = TargetNodes.SelectMany(x => x.GetLeafEnumerator()).ToList();
 
-            renderNodes.ForEach(delegate(ElementNode element)
-            {
 
-                if ((_data.PhonemeMapping != null) &&
-                    (_library.Library.TryGetValue(_data.PhonemeMapping, out mapData)) &&
-                    (mapData.PhonemeState(element.Name,_data.StaticPhoneme)))
+
+                if (_data.PhonemeMapping != null) 
                 {
-                    var level = new SetLevel.SetLevel();
-                    level.Color = mapData.ConfiguredColor(element.Name, _data.StaticPhoneme);
-                    level.TargetNodes = new ElementNode[] { element };
-                    level.TimeSpan = TimeSpan;
-                    result = level.Render();
-                    _elementData.Add(result);
+                    if (_data.PhonemeMapping.Equals(""))
+                    {
+                        _data.PhonemeMapping = _library.DefaultMappingName;
+                    }
+
+                    renderNodes.ForEach(delegate(ElementNode element)
+                    {
+                        if (_library.Library.TryGetValue(_data.PhonemeMapping, out mapData) &&
+                        (mapData.PhonemeState(element.Name, _data.StaticPhoneme)))
+                        {
+                            var level = new SetLevel.SetLevel();
+                            level.Color = mapData.ConfiguredColor(element.Name, _data.StaticPhoneme);
+                            level.TargetNodes = new ElementNode[] { element };
+                            level.TimeSpan = TimeSpan;
+                            result = level.Render();
+                            _elementData.Add(result);
+                        }
+                    });
+                    
                 }
 
-            });
         }
 
         protected override EffectIntents _Render()

@@ -3137,12 +3137,37 @@ namespace VixenModules.Editor.TimedSequenceEditor
         {
             LipSyncMapSelector mapSelector = new LipSyncMapSelector();
             DialogResult dr = mapSelector.ShowDialog();
+            sequenceModified();
+            resetLipSyncNodes();
         }
 
         private void setDefaultMap_Click(object sender,EventArgs e)
         {
             ToolStripMenuItem menu = (ToolStripMenuItem)sender;
-            _library.DefaultMappingName = menu.Text;
+            if (_library.DefaultMappingName.Equals(menu.Text))
+            {
+                _library.DefaultMappingName = menu.Text; 
+                sequenceModified();
+                resetLipSyncNodes();
+            }
+            
+        }
+
+        private void resetLipSyncNodes()
+        {
+            foreach (Row row in TimelineControl.VisibleRows)
+            {
+                for (int j = 0; j < row.ElementCount; j++)
+                {
+                    Element elem = row.ElementAt(j);
+                    IEffectModuleInstance effect = elem._effectNode.Effect;
+                    if (effect.GetType() == typeof(LipSync))
+                    {
+                        effect.PreRender();
+                    }
+
+                }
+            }
         }
 
         private void defaultMapToolStripMenuItem_DropDownOpening(object sender, EventArgs e)
@@ -3214,12 +3239,15 @@ namespace VixenModules.Editor.TimedSequenceEditor
                         if (startTime < result.EarliestStartTime)
                             result.EarliestStartTime = startTime;
 
+                        effect.Render();
+
                     }
                     
                     IDataObject dataObject = new DataObject(_clipboardFormatName);
                     dataObject.SetData(result);
                     Clipboard.SetDataObject(dataObject, true);
                     _TimeLineSequenceClipboardContentsChanged(EventArgs.Empty);
+                    sequenceModified();
 
                 }
                 rownum++;
