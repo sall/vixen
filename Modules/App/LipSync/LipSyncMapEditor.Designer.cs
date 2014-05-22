@@ -32,10 +32,10 @@
             this.buttonCancel = new System.Windows.Forms.Button();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.colorDialog1 = new System.Windows.Forms.ColorDialog();
-            this.stringsUpDown = new System.Windows.Forms.DomainUpDown();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.nameTextBox = new System.Windows.Forms.TextBox();
+            this.assignButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -75,16 +75,6 @@
             this.dataGridView1.CellPainting += new System.Windows.Forms.DataGridViewCellPaintingEventHandler(this.dataGridView1_CellPainting);
             this.dataGridView1.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellValueChanged);
             // 
-            // stringsUpDown
-            // 
-            this.stringsUpDown.Location = new System.Drawing.Point(336, 33);
-            this.stringsUpDown.Name = "stringsUpDown";
-            this.stringsUpDown.ReadOnly = true;
-            this.stringsUpDown.Size = new System.Drawing.Size(46, 20);
-            this.stringsUpDown.TabIndex = 19;
-            this.stringsUpDown.Text = "0";
-            this.stringsUpDown.SelectedItemChanged += new System.EventHandler(this.stringsUpDown_SelectedItemChanged);
-            // 
             // label1
             // 
             this.label1.AutoSize = true;
@@ -110,15 +100,25 @@
             this.nameTextBox.Size = new System.Drawing.Size(130, 20);
             this.nameTextBox.TabIndex = 24;
             // 
+            // assignButton
+            // 
+            this.assignButton.Location = new System.Drawing.Point(402, 29);
+            this.assignButton.Name = "assignButton";
+            this.assignButton.Size = new System.Drawing.Size(80, 25);
+            this.assignButton.TabIndex = 25;
+            this.assignButton.Text = "Assign";
+            this.assignButton.UseVisualStyleBackColor = true;
+            this.assignButton.Click += new System.EventHandler(this.Assign_Click);
+            // 
             // LipSyncMapEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(684, 461);
+            this.Controls.Add(this.assignButton);
             this.Controls.Add(this.nameTextBox);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
-            this.Controls.Add(this.stringsUpDown);
             this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.buttonOK);
             this.Controls.Add(this.buttonCancel);
@@ -143,10 +143,10 @@
         private System.Windows.Forms.Button buttonCancel;
         private System.Windows.Forms.DataGridView dataGridView1;
         private System.Windows.Forms.ColorDialog colorDialog1;
-        private System.Windows.Forms.DomainUpDown stringsUpDown;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox nameTextBox;
+        private System.Windows.Forms.Button assignButton;
 
     }
 }

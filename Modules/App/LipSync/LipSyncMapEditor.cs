@@ -19,8 +19,6 @@ namespace VixenModules.App.LipSyncMap
         private List<string> _rowNames = null;
         private static string COLOR_COLUMN_NAME = "Color";
         private bool _doMatrixUpdate = false;
-        private static object predicateArg = null;
-        private static string[] defaultNames = { "Outline", "Eyes Open", "Eyes Closed", "Mouth Top", "Mouth Bottom", "Mouth Middle", "Mouth Narrow", "Mouth O" };
 
         public LipSyncMapEditor()
         {
@@ -35,7 +33,6 @@ namespace VixenModules.App.LipSyncMap
             InitializeComponent();
             _doMatrixUpdate = false;
             LoadResourceBitmaps();
-            InitStringsUpDown();
             this.MapData = mapData;
             _doMatrixUpdate = true;
         }
@@ -52,24 +49,6 @@ namespace VixenModules.App.LipSyncMap
         private DataTable BuildDialogFromMap(LipSyncMapData data)
         {
             nameTextBox.Text = data.LibraryReferenceName;
-            data.MapItems.Sort(delegate(LipSyncMapItem x, LipSyncMapItem y)
-            {
-                if (x.StringNum < y.StringNum)
-                {
-                    return -1;
-                }
-                else if (x.StringNum > y.StringNum)
-                {
-                    return 1;
-                }
-                else
-                {
-                    return 0;
-                }
-            });
-
-            
-            
 
             DataTable dt = new DataTable(nameTextBox.Text);
             dt.Columns.Add(" ", typeof(string));
@@ -81,59 +60,39 @@ namespace VixenModules.App.LipSyncMap
 
             dt.Columns.Add(COLOR_COLUMN_NAME, typeof(Color));
             
-            if (data.MapItems.Count <= 1)
+            bool result = false;
+            foreach (LipSyncMapItem lsbItem in data.MapItems)
             {
-                foreach (string stringName in defaultNames)
+                DataRow dr = dt.Rows.Add();
+                dr[0] = lsbItem.Name;
+                foreach (string key in _phonemeBitmaps.Keys)
                 {
-                    DataRow dr = dt.Rows.Add();
-                    dr[0] = stringName;
-                    dr[COLOR_COLUMN_NAME] = Color.White;
-
-                }
-                stringsUpDown.SelectedIndex = defaultNames.Count() - 1;
-                _mapping.StringCount = defaultNames.Count();
-            }
-            else
-            {
-                bool result = false;
-                foreach (LipSyncMapItem lsbItem in data.MapItems)
-                {
-                    DataRow dr = dt.Rows.Add();
-                    dr[0] = lsbItem.Name;
-                    foreach (string key in _phonemeBitmaps.Keys)
+                    if (lsbItem.PhonemeList.TryGetValue(key, out result) == true)
                     {
-                        if (lsbItem.PhonemeList.TryGetValue(key, out result) == true)
-                        {
-                            dr[key] = result;
-                        }
-                        else
-                        {
-                            dr[key] = false;
-                        }
+                        dr[key] = result;
                     }
-                    dr[COLOR_COLUMN_NAME] = lsbItem.ElementColor;
+                    else
+                    {
+                        dr[key] = false;
+                    }
                 }
+                dr[COLOR_COLUMN_NAME] = lsbItem.ElementColor;
             }
 
-            //dt.Columns[" "].ReadOnly = true;
+            dt.Columns[" "].ReadOnly = true;
             dt.Columns[COLOR_COLUMN_NAME].ReadOnly = true;
 
             return dt;
-        }
-
-        private static bool MatchNamePredicate(LipSyncMapItem item)
-        {
-            return item.Name.Equals((string)predicateArg);
         }
 
         private void BuilMapDataFromDialog()
         {
             int currentRow = 0;
 
-            _mapping.StringCount = (int)stringsUpDown.SelectedItem;
+            _mapping.StringCount = _rowNames.Count();
             _mapping.MapItems.Clear();
 
-            for (int stringNum = 0; stringNum < (int)stringsUpDown.SelectedItem; stringNum++)
+            for (int stringNum = 0; stringNum < _rowNames.Count; stringNum++)
             {
                 DataRow dr = currentDataTable.Rows[currentRow];
                 LipSyncMapItem item = new LipSyncMapItem();
@@ -170,7 +129,8 @@ namespace VixenModules.App.LipSyncMap
             set
             {
                 _mapping = value;
-                stringsUpDown.SelectedIndex = _mapping.MapItems.Count() - 1;
+                _rowNames = new List<string>();
+                _mapping.MapItems.ForEach(x => _rowNames.Add(x.Name));
                 currentDataTable = BuildDialogFromMap(value);
                 updatedataGridView1();
             }
@@ -205,24 +165,8 @@ namespace VixenModules.App.LipSyncMap
             }
         }
 
-        private void InitStringsUpDown()
-        {
-            for (int j = 1; j < 1000; j++)
-            {
-                stringsUpDown.Items.Add(j);
-            }
-        }
-
         private void LipSyncMapSetup_Load(object sender, EventArgs e)
         {
-            stringsUpDown.Items.Clear();
-
-            _doMatrixUpdate = false;
-            InitStringsUpDown();
-            _doMatrixUpdate = false;
-            stringsUpDown.SelectedIndex = _mapping.StringCount - 1;
-            _doMatrixUpdate = true;
-
             updatedataGridView1();
         }
 
@@ -311,48 +255,13 @@ namespace VixenModules.App.LipSyncMap
             dataGridView1.Size = new Size(this.Size.Width - 40, this.Size.Height - 150);
         }
 
-        private static bool ShrinkMapPredicate(LipSyncMapItem item)
-        {
-            return (item.StringNum > ((int)predicateArg)) ? true : false;
-        }
-
         private void reconfigureDataTable()
         {
-            LipSyncMapItem mapItem;
-
             if (_doMatrixUpdate == true)
             {
-                //If Shrinking
-                //BuilMapDataFromTable();
-                predicateArg = (int)stringsUpDown.SelectedItem - 1;
-                _mapping.MapItems.RemoveAll(ShrinkMapPredicate);
-
-                for (int currentString = 0; currentString < (int)stringsUpDown.SelectedItem; currentString++)
-                {
-                    mapItem =
-                        _mapping.MapItems.Find(x => (x.StringNum == currentString));
-
-                    if (mapItem == null)
-                    {
-                        mapItem = new LipSyncMapItem();
-                        mapItem.ElementColor = Color.White;
-                        mapItem.StringNum = currentString;
-
-                        _mapping.MapItems.Add(mapItem);
-                    }
-                }
                 currentDataTable.Rows.Clear();
                 currentDataTable = BuildDialogFromMap(_mapping);
                 updatedataGridView1();
-            }
-        }
-
-        private void stringsUpDown_SelectedItemChanged(object sender, EventArgs e)
-        {
-            if (_doMatrixUpdate == true)
-            {
-                BuilMapDataFromDialog();
-                reconfigureDataTable();
             }
         }
 
@@ -428,115 +337,23 @@ namespace VixenModules.App.LipSyncMap
                 }
             }
         }
-        
+
+        private void Assign_Click(object sender, EventArgs e)
+        {
+            int stringNum = 0;
+            LipSyncNodeSelect nodeSelectDlg = new LipSyncNodeSelect();
+            nodeSelectDlg.NodeNames = _rowNames;
+
+            DialogResult dr = nodeSelectDlg.ShowDialog();
+            if (dr == DialogResult.OK)
+            {
+                _rowNames.Clear();
+                _rowNames.AddRange(nodeSelectDlg.NodeNames);
+                _mapping.MapItems.Clear();
+                _rowNames.ForEach(x => _mapping.MapItems.Add(new LipSyncMapItem(x, stringNum++)));
+            }
+
+            reconfigureDataTable();
+        } 
     }
 }
-
-
-/*
-        public bool Perform(IEnumerable<ElementNode> selectedNodes)
-        {
-            return false;
-
-            string leafRootName;
-            _rowNames.Clear();
-            
-            IEnumerable<ElementNode> leafElements = selectedNodes.SelectMany(x => x.GetLeafEnumerator()).Distinct();
-            List<LipSyncBreakdownItem> preloadItems = new List<LipSyncBreakdownItem>();
-
-            foreach (ElementNode leafNode in leafElements)
-            {
-                IDataFlowComponent elementComponent = VixenSystem.DataFlow.GetComponent(leafNode.Element.Id);
-                IEnumerable<IDataFlowComponentReference> references = _FindLeafOutputsOrPhonemeFilters(elementComponent);
-                foreach (IDataFlowComponentReference reference in references)
-                {
-                    if (reference.Component is LipSyncBreakdownLibrary)
-                    {
-                        LipSyncBreakdownLibrary currentLibrary = (reference.Component as LipSyncBreakdownLibrary);
-                        preloadItems.AddRange(currentLibrary.BreakdownItems);
-                        continue;
-                    }
-                }
-
-                leafRootName = getFullTreeName(leafNode);
-                if (leafRootName != null)
-                {
-                    _rowNames.Add(leafRootName);
-               }
-            }
-
-            if (preloadItems.Count() == 0)
-            {
-                currentDataTable = SetupDataTable("Default", _rowNames.ToArray());
-            }
-            else
-            {
-                this.BreakdownItems = preloadItems;
-            }
-           
-            leafElements = selectedNodes.SelectMany(x => x.GetLeafEnumerator()).Distinct();
-            int modulesCreated = 0;
-            int modulesConfigured = 0;
-            int modulesSkipped = 0;
-
-            DialogResult dr = ShowDialog();
-            if (dr != DialogResult.OK)
-                return false;
-
-            foreach (ElementNode leafNode in leafElements)
-            {
-                IDataFlowComponent elementComponent = VixenSystem.DataFlow.GetComponent(leafNode.Element.Id);
-                IEnumerable<IDataFlowComponentReference> references = _FindLeafOutputsOrPhonemeFilters(elementComponent);
-
-                LipSyncBreakdownItem currentItem = null;
-                foreach (LipSyncBreakdownItem item in this.BreakdownItems)
-                {
-                    if (item.Name == getFullTreeName(leafNode))
-                    {
-                        currentItem = item;
-                    }
-                }
-
-                foreach (IDataFlowComponentReference reference in references)
-                {
-                    int outputIndex = reference.OutputIndex;
-
-                    if ((reference.Component is LipSyncBreakdownLibrary) && (currentItem != null))
-                    {
-                        LipSyncBreakdownLibrary currentModule = (reference.Component as LipSyncBreakdownLibrary);
-                        currentModule.BreakdownItems = new List<LipSyncBreakdownItem>();
-                        currentModule.BreakdownItems.Add(currentItem);
-                        modulesConfigured++;
-                        continue;
-                    }
-
-                    LipSyncBreakdownLibrary breakdownLibrary = ApplicationServices.Get<IOutputFilterModuleInstance>(LipSyncBreakdownDescriptor.ModuleID) as LipSyncBreakdownLibrary;
-
-                    breakdownLibrary.BreakdownItems = new List<LipSyncBreakdownItem>();
-                    breakdownLibrary.BreakdownItems.Add(currentItem);
-
-                    modulesCreated++;
-                    modulesConfigured++;
-                }
-            }
-
-            MessageBox.Show(modulesCreated + " Phoneme Curves created, " + modulesConfigured + " configured, and " + modulesSkipped + " skipped.");
-            return true;
-  
-  }
-       
-        private string getFullTreeName(ElementNode leafNode)
-        {
-            string retVal = null;
-
-            if (leafNode.Parents.First().Name != "Root")
-            {
-                retVal = getFullTreeName(leafNode.Parents.First()) + "\\" + leafNode.Name;
-            }
-            else
-            {
-                retVal = leafNode.Name;
-            }
-            return retVal;
-        }
-*/

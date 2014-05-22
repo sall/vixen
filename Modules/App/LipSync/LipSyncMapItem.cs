@@ -24,6 +24,7 @@ namespace VixenModules.App.LipSyncMap
             PhonemeList = new Dictionary<string, bool>();
             Name = name;
             StringNum = stringNum;
+            ElementColor = Color.White;
         }
 
         public LipSyncMapItem Clone()
@@ -32,6 +33,7 @@ namespace VixenModules.App.LipSyncMap
             retVal.Name = Name;
             retVal.PhonemeList = new Dictionary<string, bool>(PhonemeList);
             retVal.StringNum = StringNum;
+            retVal.ElementColor = ElementColor;
 
             return retVal;
         }
