@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using System.Resources;
 using System.Reflection;
+using Vixen.Sys;
 
 namespace VixenModules.App.LipSyncMap
 {
@@ -65,6 +66,12 @@ namespace VixenModules.App.LipSyncMap
             {
                 DataRow dr = dt.Rows.Add();
                 dr[0] = lsbItem.Name;
+                ElementNode tempNode = VixenSystem.Nodes.GetElementNode(lsbItem.ElementGuid);
+                if (tempNode != null)
+                {
+                    dr[0] = tempNode.Element.Name;
+                }
+
                 foreach (string key in _phonemeBitmaps.Keys)
                 {
                     if (lsbItem.PhonemeList.TryGetValue(key, out result) == true)
@@ -85,6 +92,18 @@ namespace VixenModules.App.LipSyncMap
             return dt;
         }
 
+        private ElementNode FindElementNode(string elementName)
+        {
+            ElementNode theNode = VixenSystem.Nodes.GetLeafNodes().ToList().Find(
+                delegate(ElementNode node)
+                {
+                    return node.Element.Name.Equals(elementName);
+                }
+            );
+
+            return theNode;
+        }
+
         private void BuilMapDataFromDialog()
         {
             int currentRow = 0;
@@ -95,8 +114,12 @@ namespace VixenModules.App.LipSyncMap
             for (int stringNum = 0; stringNum < _rowNames.Count; stringNum++)
             {
                 DataRow dr = currentDataTable.Rows[currentRow];
+                string elementName = dr[0].ToString();
                 LipSyncMapItem item = new LipSyncMapItem();
-                item.Name = dr[0].ToString();
+                ElementNode theNode = FindElementNode(elementName);
+                    
+                //item.Name = dr[0].ToString();
+                item.ElementGuid = theNode.Id;
                 item.StringNum = stringNum;
 
                 for (int theCount = 1; theCount < dr.ItemArray.Count() - 1; theCount++) 
@@ -130,7 +153,12 @@ namespace VixenModules.App.LipSyncMap
             {
                 _mapping = value;
                 _rowNames = new List<string>();
-                _mapping.MapItems.ForEach(x => _rowNames.Add(x.Name));
+                try
+                {
+                    _mapping.MapItems.ForEach(x => _rowNames.Add(VixenSystem.Nodes.GetElementNode(x.ElementGuid).Element.Name));
+                }
+                catch (Exception e) { };
+                
                 currentDataTable = BuildDialogFromMap(value);
                 updatedataGridView1();
             }
@@ -311,11 +339,32 @@ namespace VixenModules.App.LipSyncMap
 
         private void dataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
+            List<ElementNode> chosenNodes = new List<ElementNode>();
+
+
             int lastColumn = currentDataTable.Columns.Count - 1;
             if (e.RowIndex > -1)
             {
                 if (e.ColumnIndex == lastColumn)
                 {
+
+                    LipSyncMapColorSelect colorDialog1 = new LipSyncMapColorSelect();
+
+                    foreach (DataGridViewCell selCell in dataGridView1.SelectedCells)
+                    {
+                        if (selCell.ColumnIndex == lastColumn)
+                        {
+                            ElementNode theNode = FindElementNode((string)selCell.OwningRow.Cells[0].Value);
+                            if (theNode != null)
+                            {
+                                chosenNodes.Add(theNode);
+                            }
+                        }
+                    }
+
+                    colorDialog1.ChosenNodes = chosenNodes;
+                    colorDialog1.ColorValue = (Color)dataGridView1.SelectedCells[0].Value;
+
                     // Show the color dialog.
                     DialogResult result = colorDialog1.ShowDialog();
 
@@ -327,11 +376,11 @@ namespace VixenModules.App.LipSyncMap
                         {
                             if (selCell.ColumnIndex == lastColumn)
                             {
-                                selCell.Value = colorDialog1.Color;
+                                selCell.Value = colorDialog1.ColorValue;
                             }
                         }
                         DataGridViewCell cell = (DataGridViewCell)dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
-                        cell.Value = colorDialog1.Color;
+                        cell.Value = colorDialog1.ColorValue;
                         currentDataTable.Columns[COLOR_COLUMN_NAME].ReadOnly = true;
                     }
                 }

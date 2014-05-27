@@ -126,5 +126,10 @@ namespace VixenModules.App.LipSyncMap
                 chosenTargets.Items.RemoveAt(chosenTargets.SelectedIndices[i]);
             }
         }
+
+        private void chosenTargets_DoubleClick(object sender, EventArgs e)
+        {
+
+        }
     }
 }

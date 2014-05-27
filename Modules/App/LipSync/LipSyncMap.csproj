@@ -90,6 +90,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LipSyncMapColorSelect.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="LipSyncMapColorSelect.Designer.cs">
+      <DependentUpon>LipSyncMapColorSelect.cs</DependentUpon>
+    </Compile>
     <Compile Include="LipSyncMapData.cs" />
     <Compile Include="LipSyncMapDescriptor.cs" />
     <Compile Include="LipSyncMapLibrary.cs" />
@@ -126,8 +132,16 @@
       <Name>Vixen</Name>
       <Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\..\Property\Color\Color.csproj">
+      <Project>{73068a83-b3b7-4a2c-923d-71c7886cd5e3}</Project>
+      <Name>Color</Name>
+      <Private>False</Private>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="LipSyncMapColorSelect.resx">
+      <DependentUpon>LipSyncMapColorSelect.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="LipSyncMapEditor.resx">
       <DependentUpon>LipSyncMapEditor.cs</DependentUpon>
     </EmbeddedResource>

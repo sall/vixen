@@ -67,6 +67,7 @@
             this.chosenTargets.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.chosenTargets.Size = new System.Drawing.Size(187, 251);
             this.chosenTargets.TabIndex = 3;
+            this.chosenTargets.DoubleClick += new System.EventHandler(this.chosenTargets_DoubleClick);
             // 
             // addButton
             // 

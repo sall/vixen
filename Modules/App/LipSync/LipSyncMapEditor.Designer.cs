@@ -43,7 +43,7 @@
             // 
             this.buttonOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonOK.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.buttonOK.Location = new System.Drawing.Point(506, 424);
+            this.buttonOK.Location = new System.Drawing.Point(577, 424);
             this.buttonOK.Name = "buttonOK";
             this.buttonOK.Size = new System.Drawing.Size(80, 25);
             this.buttonOK.TabIndex = 16;
@@ -55,7 +55,7 @@
             // 
             this.buttonCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.buttonCancel.Location = new System.Drawing.Point(592, 424);
+            this.buttonCancel.Location = new System.Drawing.Point(663, 424);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(80, 25);
             this.buttonCancel.TabIndex = 15;
@@ -67,7 +67,7 @@
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.Location = new System.Drawing.Point(12, 59);
             this.dataGridView1.Name = "dataGridView1";
-            this.dataGridView1.Size = new System.Drawing.Size(660, 336);
+            this.dataGridView1.Size = new System.Drawing.Size(731, 336);
             this.dataGridView1.TabIndex = 18;
             this.dataGridView1.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellClick);
             this.dataGridView1.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellContentClick);
@@ -80,9 +80,9 @@
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(253, 35);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(77, 13);
+            this.label1.Size = new System.Drawing.Size(50, 13);
             this.label1.TabIndex = 22;
-            this.label1.Text = "Strings / Pixels";
+            this.label1.Text = "Elements";
             // 
             // label2
             // 
@@ -102,7 +102,7 @@
             // 
             // assignButton
             // 
-            this.assignButton.Location = new System.Drawing.Point(402, 29);
+            this.assignButton.Location = new System.Drawing.Point(318, 27);
             this.assignButton.Name = "assignButton";
             this.assignButton.Size = new System.Drawing.Size(80, 25);
             this.assignButton.TabIndex = 25;
@@ -114,7 +114,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(684, 461);
+            this.ClientSize = new System.Drawing.Size(755, 461);
             this.Controls.Add(this.assignButton);
             this.Controls.Add(this.nameTextBox);
             this.Controls.Add(this.label2);
