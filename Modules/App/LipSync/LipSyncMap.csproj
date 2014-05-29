@@ -119,6 +119,13 @@
     <Compile Include="LipSyncNodeSelect.Designer.cs">
       <DependentUpon>LipSyncNodeSelect.cs</DependentUpon>
     </Compile>
+    <Compile Include="LipSyncTextConvertForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="LipSyncTextConvertForm.Designer.cs">
+      <DependentUpon>LipSyncTextConvertForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="LipSyncPhonemeUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -137,6 +144,11 @@
       <Name>Color</Name>
       <Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\..\Sequence\Timed\Timed.csproj">
+      <Project>{45e1228a-f714-41d5-bb9b-a776f2b23143}</Project>
+      <Name>Timed</Name>
+      <Private>False</Private>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="LipSyncMapColorSelect.resx">
@@ -150,6 +162,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="LipSyncNodeSelect.resx">
       <DependentUpon>LipSyncNodeSelect.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="LipSyncTextConvertForm.resx">
+      <DependentUpon>LipSyncTextConvertForm.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

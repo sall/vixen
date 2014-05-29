@@ -3263,6 +3263,63 @@ namespace VixenModules.Editor.TimedSequenceEditor
             }
             
             MessageBox.Show(displayStr, "Papagayo Import", MessageBoxButtons.OK);
+        }
+
+        private void textConverterHandler(object sender, NewTranslationEventArgs args)
+        {
+            TimelineElementsClipboardData result = new TimelineElementsClipboardData()
+            {
+                FirstVisibleRow = -1,
+                EarliestStartTime = TimeSpan.MaxValue,
+            };
+
+            if (args.PhonemeData.Count > 0)
+            {
+
+                foreach (LipSyncConvertData data in args.PhonemeData)
+                {
+                    if (data.Duration.Ticks == 0)
+                    {
+                        continue;
+                    }
+
+                    IEffectModuleInstance effect =
+                        ApplicationServices.Get<IEffectModuleInstance>(new LipSyncDescriptor().TypeId);
+
+                    ((LipSync)effect).StaticPhoneme = data.Phoneme.ToString().ToUpper();
+
+                    TimelineElementsClipboardData.EffectModelCandidate modelCandidate =
+                          new TimelineElementsClipboardData.EffectModelCandidate(effect)
+                          {
+                              Duration = data.Duration,
+                              StartTime = data.StartOffset
+                          };
+
+                    result.EffectModelCandidates.Add(modelCandidate, 0);
+                    if (data.StartOffset < result.EarliestStartTime)
+                        result.EarliestStartTime = data.StartOffset;
+
+                    effect.Render();
+
+                }
+
+                IDataObject dataObject = new DataObject(_clipboardFormatName);
+                dataObject.SetData(result);
+                Clipboard.SetDataObject(dataObject, true);
+                _TimeLineSequenceClipboardContentsChanged(EventArgs.Empty);
+                sequenceModified();
+
+                MessageBox.Show("Conversion Complete and copied to Clipboard \n Paste at first Mark offset", "Convert Text",MessageBoxButtons.OK);
+
+
+            }
+        }
+        private void textConverterToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            LipSyncTextConvertForm textConverter = new LipSyncTextConvertForm();
+            textConverter.NewTranslation += new EventHandler<NewTranslationEventArgs>(textConverterHandler);
+            textConverter.MarkCollections = _sequence.MarkCollections;
+            textConverter.Show(this);
         }          
 
 	}
