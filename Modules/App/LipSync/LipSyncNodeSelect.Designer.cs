@@ -1,4 +1,4 @@
-﻿namespace VixenModules.App.LipSyncMap
+﻿namespace VixenModules.App.LipSyncApp
 {
     partial class LipSyncNodeSelect
     {

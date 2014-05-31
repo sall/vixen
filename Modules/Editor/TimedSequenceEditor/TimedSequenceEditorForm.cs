@@ -12,7 +12,7 @@ using Vixen.Execution;
 using Vixen.Execution.Context;
 using Vixen.Module;
 using VixenModules.App.Curves;
-using VixenModules.App.LipSyncMap;
+using VixenModules.App.LipSyncApp;
 using VixenModules.Media.Audio;
 using VixenModules.Effect.LipSync;
 using Vixen.Module.Editor;
@@ -3314,10 +3314,24 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
             }
         }
+
+        private void translateFailureHandler(object sender, TranslateFailureEventArgs args)
+        {
+            LipSyncTextConvertFailForm failForm = new LipSyncTextConvertFailForm();
+            failForm.errorLabel.Text = "Unable to find mapping for "  + args.FailedWord + Environment.NewLine +
+                "Please map using buttons below";
+            DialogResult dr = failForm.ShowDialog();
+            if (dr == DialogResult.OK)
+            {
+                LipSyncTextConvert.AddUserMaping(args.FailedWord + " " + failForm.TranslatedString);
+            }
+        }
+
         private void textConverterToolStripMenuItem_Click(object sender, EventArgs e)
         {
             LipSyncTextConvertForm textConverter = new LipSyncTextConvertForm();
             textConverter.NewTranslation += new EventHandler<NewTranslationEventArgs>(textConverterHandler);
+            textConverter.TranslateFailure += new EventHandler<TranslateFailureEventArgs>(translateFailureHandler);
             textConverter.MarkCollections = _sequence.MarkCollections;
             textConverter.Show(this);
         }          

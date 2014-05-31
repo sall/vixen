@@ -7,7 +7,7 @@ using System.Text;
 using Vixen.Module;
 using Vixen.Module.App;
 
-namespace VixenModules.App.LipSyncMap
+namespace VixenModules.App.LipSyncApp
 {
     public class LipSyncMapData : ModuleDataModelBase
     {

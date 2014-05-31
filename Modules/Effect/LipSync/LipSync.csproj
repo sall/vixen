@@ -85,11 +85,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LipSyncResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>LipSyncResources.resx</DependentUpon>
-    </Compile>
     <Compile Include="LipSync.cs" />
     <Compile Include="LipSyncData.cs" />
     <Compile Include="LipSyncDescriptor.cs" />
@@ -101,9 +96,9 @@
       <Name>Vixen</Name>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\App\LipSync\LipSyncMap.csproj">
+    <ProjectReference Include="..\..\App\LipSync\LipSyncApp.csproj">
       <Project>{e3689e21-2204-48b9-8370-d45ee4a23451}</Project>
-      <Name>LipSyncMap</Name>
+      <Name>LipSyncApp</Name>
       <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\SetLevel\SetLevel.csproj">
@@ -114,46 +109,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Images\Effect48.png" />
-    <EmbeddedResource Include="LipSyncResources.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>LipSyncResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\AI.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\E.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\etc.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\FV.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\L.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\MBP.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\O.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\rest.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\U.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\WQ.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Preview.jpg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

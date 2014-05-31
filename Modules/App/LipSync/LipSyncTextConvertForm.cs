@@ -8,11 +8,12 @@ using System.Text;
 using System.Windows.Forms;
 using VixenModules.Sequence.Timed;
 
-namespace VixenModules.App.LipSyncMap
+namespace VixenModules.App.LipSyncApp
 {
     public partial class LipSyncTextConvertForm : Form
     {
         public event EventHandler<NewTranslationEventArgs> NewTranslation = null;
+        public event EventHandler<TranslateFailureEventArgs> TranslateFailure = null;
         private int unMarkedPhonemes;
 
         public LipSyncTextConvertForm()
@@ -92,6 +93,14 @@ namespace VixenModules.App.LipSyncMap
             Tuple<TimeSpan, TimeSpan> timing = Tuple.Create(new TimeSpan(), new TimeSpan());
             List<LipSyncConvertData> convertData = new List<LipSyncConvertData>();
 
+            if (LipSyncTextConvert.StandardDictExists() == false)
+            {
+                MessageBox.Show("Unable to find Standard Phoneme Dictionary", "Error", MessageBoxButtons.OK);
+                return;
+            }
+
+            LipSyncTextConvert.InitDictionary();
+
             if (NewTranslation != null)
             {
                 List<string> subStrings = CreateSubstringList();
@@ -102,6 +111,17 @@ namespace VixenModules.App.LipSyncMap
                 {
                     int phonemeIndex = 0;
                     List<PhonemeType> phonemeList = LipSyncTextConvert.TryConvert(strElem);
+                    if (phonemeList.Count == 0)
+                    {
+                        EventHandler<TranslateFailureEventArgs> failHandler = TranslateFailure;
+                        TranslateFailureEventArgs failArgs = new TranslateFailureEventArgs();
+                        failArgs.FailedWord = strElem;
+                        failHandler(this, failArgs);
+
+                        //At this point, we should have it corrected, if not, then ignore
+                        phonemeList = LipSyncTextConvert.TryConvert(strElem);
+                    }
+
                     if (doPhonemeAlign == false)
                     {
                         timing = CalcPhonemeTimespans(selMC, mcIndex++, phonemeList.Count);
@@ -130,7 +150,6 @@ namespace VixenModules.App.LipSyncMap
 
         private void LipSyncTextConvert_Load(object sender, EventArgs e)
         {
-            LipSyncTextConvert.InitDictionary();
             alignCombo.SelectedIndex = 1;
             markCollectionCombo.Items.Clear();
             markCollectionCombo.Items.Add("");
@@ -176,5 +195,10 @@ namespace VixenModules.App.LipSyncMap
     public class NewTranslationEventArgs : EventArgs
     {
         public List<LipSyncConvertData> PhonemeData { get; set; }
+    }
+
+    public class TranslateFailureEventArgs : EventArgs
+    {
+        public string FailedWord;
     }
 }

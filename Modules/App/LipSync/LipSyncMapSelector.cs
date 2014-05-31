@@ -12,7 +12,7 @@ using Vixen.Services;
 using Vixen.Sys;
 using Vixen.Module.App;
 
-namespace VixenModules.App.LipSyncMap
+namespace VixenModules.App.LipSyncApp
 {
     public partial class LipSyncMapSelector : Form
     {
@@ -26,10 +26,10 @@ namespace VixenModules.App.LipSyncMap
 
 		private void LipSyncMapSelector_Load(object sender, EventArgs e)
 		{
-            Assembly assembly = Assembly.Load("LipSync, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
+            Assembly assembly = Assembly.Load("LipSyncApp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
             if (assembly != null)
             {
-                ResourceManager lipSyncRM = new ResourceManager("VixenModules.Effect.LipSync.LipSyncResources", assembly);
+                ResourceManager lipSyncRM = new ResourceManager("VixenModules.App.LipSyncApp.LipSyncResources", assembly);
                 _iconBitmap = new Bitmap((Image)lipSyncRM.GetObject("AI"), new Size(64, 64));
             }
 

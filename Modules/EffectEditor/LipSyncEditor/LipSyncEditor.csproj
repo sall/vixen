@@ -81,9 +81,9 @@
       <Name>Vixen</Name>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\App\LipSync\LipSyncMap.csproj">
+    <ProjectReference Include="..\..\App\LipSync\LipSyncApp.csproj">
       <Project>{e3689e21-2204-48b9-8370-d45ee4a23451}</Project>
-      <Name>LipSyncMap</Name>
+      <Name>LipSyncApp</Name>
       <Private>False</Private>
     </ProjectReference>
   </ItemGroup>

@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace VixenModules.Effect.LipSync {
+namespace VixenModules.App.LipSyncApp {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace VixenModules.Effect.LipSync {
         public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("VixenModules.Effect.LipSync.LipSyncResources", typeof(LipSyncResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("VixenModules.App.LipSyncApp.LipSyncResources", typeof(LipSyncResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

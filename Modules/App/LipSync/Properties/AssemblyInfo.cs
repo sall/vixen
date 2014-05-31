@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("LipSyncMap")]
+[assembly: AssemblyTitle("LipSyncApp")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("LipSyncMap")]
+[assembly: AssemblyProduct("LipSyncApp")]
 [assembly: AssemblyCopyright("Copyright ©  2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("8E19F30C-4E52-4FE8-A5D9-6D7551579F48")]
+[assembly: Guid("2FFCD99E-ABE2-42EC-AE80-C76F506515C9")]
 
 // Version information for an assembly consists of the following four values:
 //

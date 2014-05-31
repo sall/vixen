@@ -9,7 +9,7 @@ using Common.Controls.ColorManagement.ColorModels;
 using Vixen.Module;
 using Vixen.Module.App;
 
-namespace VixenModules.App.LipSyncMap
+namespace VixenModules.App.LipSyncApp
 {
     [DataContract]
     public class LipSyncMapItem

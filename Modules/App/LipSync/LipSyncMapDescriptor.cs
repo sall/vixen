@@ -5,7 +5,7 @@ using System.Text;
 using Vixen.Module;
 using Vixen.Module.App;
 
-namespace VixenModules.App.LipSyncMap
+namespace VixenModules.App.LipSyncApp
 {
     public class LipSyncMapDescriptor : AppModuleDescriptorBase
     {
@@ -13,7 +13,7 @@ namespace VixenModules.App.LipSyncMap
 
         public override string TypeName
         {
-            get { return "LipSync Mapping"; }
+            get { return "LipSync App"; }
         }
 
         public override Guid TypeId

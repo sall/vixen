@@ -14,15 +14,11 @@ namespace VixenModules.Effect.LipSync
         public String StaticPhoneme { get; set; }
 
         [DataMember]
-        public String PGOFilename { get; set; }
-
-        [DataMember]
         public String PhonemeMapping { get; set; }
 
         public LipSyncData()
         {
             StaticPhoneme = "";
-            PGOFilename = "";
             PhonemeMapping = "";
         }
 

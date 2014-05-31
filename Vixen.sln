@@ -346,7 +346,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LipSyncEditor", "Modules\Ef
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LipSync", "Modules\Effect\LipSync\LipSync.csproj", "{6DE9A846-AC25-40B6-B8B2-B306EC9F2569}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LipSyncMap", "Modules\App\LipSync\LipSyncMap.csproj", "{E3689E21-2204-48B9-8370-D45EE4A23451}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LipSyncApp", "Modules\App\LipSync\LipSyncApp.csproj", "{E3689E21-2204-48B9-8370-D45EE4A23451}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

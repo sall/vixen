@@ -13,7 +13,7 @@ using Vixen.Module.Effect;
 using VixenModules.Property.Color;
 using Vixen.Sys;
 
-namespace VixenModules.App.LipSyncMap
+namespace VixenModules.App.LipSyncApp
 {
     public partial class LipSyncMapColorSelect : Form
     {

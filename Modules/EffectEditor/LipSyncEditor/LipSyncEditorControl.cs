@@ -14,7 +14,7 @@ using Vixen.Module.App;
 using Vixen.Module.EffectEditor;
 using Vixen.Module.Effect;
 using Vixen.Services;
-using VixenModules.App.LipSyncMap;
+using VixenModules.App.LipSyncApp;
 
 namespace VixenModules.EffectEditor.LipSyncEditor
 {
@@ -28,7 +28,6 @@ namespace VixenModules.EffectEditor.LipSyncEditor
         public LipSyncEditorControl()
         {
             InitializeComponent();
-            pgoFileNameLabel.Text = "None";
             imageListView.View = View.LargeIcon;
             imageListView.LabelEdit = false;
             imageListView.AllowColumnReorder = false;
@@ -56,10 +55,10 @@ namespace VixenModules.EffectEditor.LipSyncEditor
         {
             if (_phonemeBitmaps == null)
             {
-                Assembly assembly = Assembly.Load("LipSync, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
+                Assembly assembly = Assembly.Load("LipSyncApp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
                 if (assembly != null)
                 {
-                    lipSyncRM = new ResourceManager("VixenModules.Effect.LipSync.LipSyncResources", assembly);
+                    lipSyncRM = new ResourceManager("VixenModules.App.LipSyncApp.LipSyncResources", assembly);
                     _phonemeBitmaps = new Dictionary<string, Bitmap>();
                     _phonemeBitmaps.Add("AI", (Bitmap)lipSyncRM.GetObject("AI"));
                     _phonemeBitmaps.Add("E", (Bitmap)lipSyncRM.GetObject("E"));
@@ -85,14 +84,13 @@ namespace VixenModules.EffectEditor.LipSyncEditor
                 return new object[] 
                 {
                     StaticPhoneme,
-                    PGOFilename,
                     PhonemeMapping
                 }; 
             }
 
             set
             {
-                if (value.Length != 3)
+                if (value.Length != 2)
                 {
                     Logging.Warn("LipSync effect parameters set with " + value.Length + " parameters");
                     return;
@@ -114,8 +112,7 @@ namespace VixenModules.EffectEditor.LipSyncEditor
                 }
 
                 StaticPhoneme = (string)value[0];
-                PGOFilename = (string)value[1];
-                PhonemeMapping = (string)value[2];
+                PhonemeMapping = (string)value[1];
             }
         }
 
@@ -167,63 +164,9 @@ namespace VixenModules.EffectEditor.LipSyncEditor
             }
         }
 
-        public String PGOFilename
-        {
-            get { return pgoFileNameLabel.Text; }
-            set { pgoFileNameLabel.Text = value; }
-        }
-
-        private string setSrcFile()
-        {
-            string retVal = PGOFilename;
-            FileDialog openDialog = new OpenFileDialog();
-
-            openDialog.Filter = "Papagayo files (*.pgo)|*.pgo|All files (*.*)|*.*";
-            openDialog.FilterIndex = 1;
-            if (openDialog.ShowDialog() == DialogResult.OK)
-            {
-                retVal = openDialog.FileName;
-            }
-            return retVal;
-        }
-
-        private void PGOFileButton_Click(object sender, EventArgs e)
-        {
-            PGOFilename = setSrcFile();
-
-        }
-
-        private void setControlStates()
-        {
-            staticPhoneMeCombo.Enabled = staticRadioButton.Checked;
-            PGOFileButton.Enabled = linkedRadioButton.Checked;
-            pgoFileNameLabel.Enabled = linkedRadioButton.Checked;
-        }
-
-        private void linkedRadioButton_CheckedChanged(object sender, EventArgs e)
-        {
-            setControlStates();
-        }
-
-        private void staticRadioButton_CheckedChanged(object sender, EventArgs e)
-        {
-            setControlStates();
-        }
-
         private void LipSyncEditorControl_Leave(object sender, EventArgs e)
         {
-            string tempVal;
-            if (staticRadioButton.Checked)
-            {
-                tempVal = staticPhoneMeCombo.Text.Trim();
-                StaticPhoneme = tempVal;
-                PGOFilename = "";
-            }
-            else if(linkedRadioButton.Checked)
-            {
-                StaticPhoneme = "";
-                PGOFilename = pgoFileNameLabel.Text.Trim();
-            }
+            StaticPhoneme = staticPhoneMeCombo.Text.Trim();
         }
 
         private void LipSyncEditorControl_Load(object sender, EventArgs e)
@@ -232,26 +175,8 @@ namespace VixenModules.EffectEditor.LipSyncEditor
             if (StaticPhoneme.Equals("") == false)
             {
                 staticPhoneMeCombo.Text = StaticPhoneme;
-                staticRadioButton.Checked = true;
-                PGOFilename = "";
-                setControlStates();
             }
-            else if (PGOFilename.Equals("") == false)
-            {
-                pgoFileNameLabel.Text = PGOFilename;
-                linkedRadioButton.Checked = true;
-                StaticPhoneme = "";
-                setControlStates();
-            }
-            else
-            {
-                staticRadioButton.Checked = true;
-                setControlStates();
-                if (staticPhoneMeCombo.Items.Count > 0)
-                {
-                    staticPhoneMeCombo.SelectedIndex = 0;
-                }
-            }
+
         }
 
         private void staticPhoneMeCombo_SelectedIndexChanged(object sender, EventArgs e)

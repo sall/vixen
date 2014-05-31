@@ -7,7 +7,7 @@ using System.Xml;
 using Vixen;
 using Vixen.Sys;
 
-namespace VixenModules.App.LipSyncMap
+namespace VixenModules.App.LipSyncApp
 {
     public enum PhonemeType { AI, E, O, U, FV, L, MBP, WQ, etc, Rest, Unknown };
 
@@ -635,7 +635,6 @@ namespace VixenModules.App.LipSyncMap
 	            { "IY2" , PhonemeType.E },
 	            { "JH" , PhonemeType.etc },
 	            { "K" , PhonemeType.etc }, 
-	            { "L" , PhonemeType.L }, 
 	            { "M" , PhonemeType.MBP }, 
 	            { "N" , PhonemeType.etc }, 
 	            { "NG" , PhonemeType.etc }, 
@@ -666,7 +665,17 @@ namespace VixenModules.App.LipSyncMap
 	            { "Y" , PhonemeType.etc }, 
 	            { "Z" , PhonemeType.etc },
 	            { "ZH" , PhonemeType.etc },
-	            { "E21" , PhonemeType.E } 
+	            { "E21" , PhonemeType.E },
+                { "AI" , PhonemeType.AI },
+                { "E" , PhonemeType.E },
+                { "ETC" , PhonemeType.etc },
+                { "FV" , PhonemeType.FV },
+                { "L" , PhonemeType.L },
+                { "MBP" , PhonemeType.MBP },
+                { "O" , PhonemeType.O },
+                { "REST" , PhonemeType.Rest },
+                { "U" , PhonemeType.U },
+                { "WQ" , PhonemeType.WQ }
             };
 
         private static void LoadDictLine(string line)
@@ -683,7 +692,6 @@ namespace VixenModules.App.LipSyncMap
                     {
                         phonemeList.Add(cmu2pbDict[items[j]]);
                     }
-
                 }
                 mouthDict[key] = phonemeList;
             }
@@ -701,7 +709,10 @@ namespace VixenModules.App.LipSyncMap
 
         public static void InitDictionary()
         {
-            if (initComplete == true) { return; }
+            if (initComplete == true) 
+            { 
+                return; 
+            }
 
             string line;
             StreamReader reader;
@@ -713,6 +724,7 @@ namespace VixenModules.App.LipSyncMap
                 {
                     LoadDictLine(line);
                 }
+                reader.Close();
                 initComplete = true;
             }
 
@@ -723,6 +735,7 @@ namespace VixenModules.App.LipSyncMap
                 {
                     LoadDictLine(line);
                 }
+                reader.Close();
             }
 
         }
@@ -748,7 +761,6 @@ namespace VixenModules.App.LipSyncMap
                             retVal.Add(pt);
                             lastPT = pt;
                         }
-
                     }
                 }
             }
@@ -756,6 +768,18 @@ namespace VixenModules.App.LipSyncMap
             return retVal;
         }
 
+        public static void AddUserMaping(string userMap)
+        {
+            string lineData = userMap.ToUpper();
+            LoadDictLine(lineData);
+            if (!UserDictExists())
+            {
+                File.WriteAllText(_user_dict, lineData);
+            }
+            else
+            {
+                File.AppendAllText(_user_dict, lineData);
+            }
+        }
     }
-
 }

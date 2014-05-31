@@ -6,6 +6,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Reflection;
 using System.Resources;
 using Vixen.Commands;
 using Vixen.Data.Value;
@@ -16,7 +17,7 @@ using Vixen.Module.Effect;
 using Vixen.Services;
 using Vixen.Sys;
 using Vixen.Sys.Attribute;
-using VixenModules.App.LipSyncMap;
+using VixenModules.App.LipSyncApp;
 using VixenModules.Effect;
 
 namespace VixenModules.Effect.LipSync
@@ -115,17 +116,6 @@ namespace VixenModules.Effect.LipSync
         }
 
         [Value]
-        public String PGOFilename 			
-        {
-            get { return _data.PGOFilename; }
-			set
-			{
-				_data.PGOFilename = value;
-				IsDirty = true;
-			}
-		}
-
-        [Value]
         public String PhonemeMapping
         {
             get { return _data.PhonemeMapping;  }
@@ -140,20 +130,23 @@ namespace VixenModules.Effect.LipSync
         {
             if (_phonemeBitmaps == null)
             {
-                ResourceManager rm = LipSyncResources.ResourceManager;
-                _phonemeBitmaps = new Dictionary<string, Bitmap>();
-                _phonemeBitmaps.Add("AI", (Bitmap)rm.GetObject("AI"));
-                _phonemeBitmaps.Add("E", (Bitmap)rm.GetObject("E"));
-                _phonemeBitmaps.Add("ETC", (Bitmap)rm.GetObject("etc"));
-                _phonemeBitmaps.Add("FV", (Bitmap)rm.GetObject("FV"));
-                _phonemeBitmaps.Add("L", (Bitmap)rm.GetObject("L"));
-                _phonemeBitmaps.Add("MBP", (Bitmap)rm.GetObject("MBP"));
-                _phonemeBitmaps.Add("O", (Bitmap)rm.GetObject("O"));
-                _phonemeBitmaps.Add("PREVIEW", (Bitmap)rm.GetObject("Preview"));
-                _phonemeBitmaps.Add("REST", (Bitmap)rm.GetObject("rest"));
-                _phonemeBitmaps.Add("U", (Bitmap)rm.GetObject("U"));
-                _phonemeBitmaps.Add("WQ", (Bitmap)rm.GetObject("WQ"));
-
+                Assembly assembly = Assembly.Load("LipSyncApp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
+                if (assembly != null)
+                {
+                    ResourceManager rm = new ResourceManager("VixenModules.App.LipSyncApp.LipSyncResources", assembly);
+                    _phonemeBitmaps = new Dictionary<string, Bitmap>();
+                    _phonemeBitmaps.Add("AI", (Bitmap)rm.GetObject("AI"));
+                    _phonemeBitmaps.Add("E", (Bitmap)rm.GetObject("E"));
+                    _phonemeBitmaps.Add("ETC", (Bitmap)rm.GetObject("etc"));
+                    _phonemeBitmaps.Add("FV", (Bitmap)rm.GetObject("FV"));
+                    _phonemeBitmaps.Add("L", (Bitmap)rm.GetObject("L"));
+                    _phonemeBitmaps.Add("MBP", (Bitmap)rm.GetObject("MBP"));
+                    _phonemeBitmaps.Add("O", (Bitmap)rm.GetObject("O"));
+                    _phonemeBitmaps.Add("PREVIEW", (Bitmap)rm.GetObject("Preview"));
+                    _phonemeBitmaps.Add("REST", (Bitmap)rm.GetObject("rest"));
+                    _phonemeBitmaps.Add("U", (Bitmap)rm.GetObject("U"));
+                    _phonemeBitmaps.Add("WQ", (Bitmap)rm.GetObject("WQ"));
+                }
             }
         }
 

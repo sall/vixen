@@ -8,7 +8,7 @@ using System.Resources;
 using System.Reflection;
 using Vixen.Sys;
 
-namespace VixenModules.App.LipSyncMap
+namespace VixenModules.App.LipSyncApp
 {
     public partial class LipSyncMapEditor : Form
     {
@@ -174,10 +174,10 @@ namespace VixenModules.App.LipSyncMap
         {
             if (_phonemeBitmaps == null)
             {
-                Assembly assembly = Assembly.Load("LipSync, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
+                Assembly assembly = Assembly.Load("LipSyncApp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
                 if (assembly != null)
                 {
-                    lipSyncRM = new ResourceManager("VixenModules.Effect.LipSync.LipSyncResources", assembly);
+                    ResourceManager lipSyncRM = new ResourceManager("VixenModules.App.LipSyncApp.LipSyncResources", assembly);
                     _phonemeBitmaps = new Dictionary<string, Bitmap>();
                     _phonemeBitmaps.Add("AI", (Bitmap)lipSyncRM.GetObject("AI"));
                     _phonemeBitmaps.Add("E", (Bitmap)lipSyncRM.GetObject("E"));

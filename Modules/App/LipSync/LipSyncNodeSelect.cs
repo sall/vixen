@@ -8,7 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using Vixen.Sys;
 
-namespace VixenModules.App.LipSyncMap
+namespace VixenModules.App.LipSyncApp
 {
     public partial class LipSyncNodeSelect : Form
     {

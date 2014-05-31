@@ -6,7 +6,7 @@ using System.Text;
 using System.Runtime.Serialization;
 using Vixen.Module;
 
-namespace VixenModules.App.LipSyncMap 
+namespace VixenModules.App.LipSyncApp 
 {
     [DataContract]
     internal class LipSyncMapStaticData : ModuleDataModelBase
