@@ -118,7 +118,7 @@ namespace VixenModules.App.LipSyncApp
                 LipSyncMapItem item = new LipSyncMapItem();
                 ElementNode theNode = FindElementNode(elementName);
                     
-                //item.Name = dr[0].ToString();
+                item.Name = dr[0].ToString();
                 item.ElementGuid = theNode.Id;
                 item.StringNum = stringNum;
 
