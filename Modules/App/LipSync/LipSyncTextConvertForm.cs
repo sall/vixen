@@ -46,10 +46,11 @@ namespace VixenModules.App.LipSyncApp
             TimeSpan duration;
             TimeSpan relStart;
             TimeSpan lastOffset;
-            
-
+   
             if (mc != null)
             {
+                //Sort the Marklist by time.
+                mc.Marks.Sort();
                 lastOffset = mc.Marks.Last();
             }
             else
@@ -120,6 +121,12 @@ namespace VixenModules.App.LipSyncApp
 
                         //At this point, we should have it corrected, if not, then ignore
                         phonemeList = LipSyncTextConvert.TryConvert(strElem);
+                    }
+
+                    if (phonemeList.Count == 0)
+                    {
+                        //User has bailed on one of the conversions
+                        return;
                     }
 
                     if (doPhonemeAlign == false)

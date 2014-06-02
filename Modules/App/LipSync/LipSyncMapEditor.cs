@@ -363,7 +363,7 @@ namespace VixenModules.App.LipSyncApp
                     }
 
                     colorDialog1.ChosenNodes = chosenNodes;
-                    colorDialog1.ColorValue = (Color)dataGridView1.SelectedCells[0].Value;
+                    colorDialog1.Color = (Color)dataGridView1.SelectedCells[0].Value;
 
                     // Show the color dialog.
                     DialogResult result = colorDialog1.ShowDialog();
@@ -376,11 +376,11 @@ namespace VixenModules.App.LipSyncApp
                         {
                             if (selCell.ColumnIndex == lastColumn)
                             {
-                                selCell.Value = colorDialog1.ColorValue;
+                                selCell.Value = colorDialog1.Color;
                             }
                         }
                         DataGridViewCell cell = (DataGridViewCell)dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
-                        cell.Value = colorDialog1.ColorValue;
+                        cell.Value = colorDialog1.Color;
                         currentDataTable.Columns[COLOR_COLUMN_NAME].ReadOnly = true;
                     }
                 }

@@ -572,6 +572,7 @@ namespace VixenModules.App.LipSyncApp
     {
 
         private static bool initComplete = false;
+        private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
         private static Dictionary<string, List<PhonemeType>> mouthDict = 
             new Dictionary<string, List<PhonemeType>>();
 
@@ -680,6 +681,7 @@ namespace VixenModules.App.LipSyncApp
 
         private static void LoadDictLine(string line)
         {
+            PhonemeType tempVal;
             string[] items = line.Split(' ');
             if ((items.Count() > 0) && 
                 (items[0].Equals(";;;") == false))
@@ -690,7 +692,14 @@ namespace VixenModules.App.LipSyncApp
                 {
                     if (!items[j].Equals(""))
                     {
-                        phonemeList.Add(cmu2pbDict[items[j]]);
+                        if (cmu2pbDict.TryGetValue(items[j], out tempVal) == true)
+                        {
+                            phonemeList.Add(tempVal);
+                        }
+                        else
+                        {
+                            Logging.Error("Phoneme Dictionary Corruption detected!, invalid Phoneme Type " + items[j] + Environment.NewLine);
+                        }
                     }
                 }
                 mouthDict[key] = phonemeList;
@@ -774,11 +783,11 @@ namespace VixenModules.App.LipSyncApp
             LoadDictLine(lineData);
             if (!UserDictExists())
             {
-                File.WriteAllText(_user_dict, lineData);
+                File.WriteAllText(_user_dict, Environment.NewLine + lineData);
             }
             else
             {
-                File.AppendAllText(_user_dict, lineData);
+                File.AppendAllText(_user_dict, Environment.NewLine + lineData);
             }
         }
     }

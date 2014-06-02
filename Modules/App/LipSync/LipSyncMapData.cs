@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using Vixen.Module;
 using Vixen.Module.App;
+using Common.Controls.ColorManagement.ColorModels;
 
 namespace VixenModules.App.LipSyncApp
 {
@@ -80,6 +81,22 @@ namespace VixenModules.App.LipSyncApp
             return MapItems.Find(x => x.Name.Equals(itemName));
         }
 
+        public double ConfiguredIntensity(string itemName, string phonemeName)
+        {
+            double retVal = 0;
+            LipSyncMapItem item = FindMapItem(itemName);
+
+            if (item != null)
+            {
+                if (item.PhonemeList[phonemeName] == true)
+                {
+                    HSV hsvVal = HSV.FromRGB(new RGB(item.ElementColor));
+                    retVal = hsvVal.V;
+                }
+            }
+            return retVal;           
+        }
+
         public Color ConfiguredColor(string itemName, string phonemeName)
         {
             Color retVal = Color.Black;
@@ -89,22 +106,9 @@ namespace VixenModules.App.LipSyncApp
             {
                 if (item.PhonemeList[phonemeName] == true)
                 {
-                    retVal = item.ElementColor;
-                }
-            }
-            return retVal;
-        }
-
-        public float ConfiguredIntensity(string itemName, string phonemeName)
-        {
-            float retVal = 0.0f;
-            LipSyncMapItem item = FindMapItem(itemName);
-
-            if (item != null)
-            {
-                if (item.PhonemeList[phonemeName] == true)
-                {
-                    retVal = 1.0f;
+                    HSV hsvVal = HSV.FromRGB(new RGB(item.ElementColor));
+                    hsvVal.V = 1;
+                    retVal = hsvVal.ToRGB().ToArgb();
                 }
             }
             return retVal;

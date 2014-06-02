@@ -47,31 +47,74 @@ namespace VixenModules.App.LipSyncApp
 			}
 		}
 
-		private HSV _color;
+        private Color _color;
+        private HSV _hsvColor;
+        private RGB _rgbColor;
 
-		public Color ColorValue
-		{
-			get { return _color.ToRGB().ToArgb(); }
-			set
-			{
-                RGB tempVal = new RGB(value);
-                _color = HSV.FromRGB(tempVal);
-                intensityTrackBar.Value = (int)(Intensity * 100);
-				panelColor.BackColor = value;
-			}
-		}
+        public RGB RGBColor
+        {
+            get
+            {
+                return _rgbColor;
+            }
+
+            set
+            {
+                _rgbColor = value;
+                _hsvColor = HSV.FromRGB(_rgbColor);
+                _color = _rgbColor.ToArgb();
+
+                intensityTrackBar.Value = (int)(_hsvColor.V * 100);
+                panelColor.BackColor = _color;
+            }
+        }
+
+        public HSV HSVColor
+        {
+            get
+            {
+                return _hsvColor;
+            }
+
+            set
+            {
+                _hsvColor = value;
+                _rgbColor = _hsvColor.ToRGB();
+                _color = _rgbColor.ToArgb();
+
+                intensityTrackBar.Value = (int)(_hsvColor.V * 100);
+                panelColor.BackColor = _color;
+            }
+        }
+
+        public Color Color
+        {
+            get { return _color; }
+            set
+            {
+                _color = value;
+                _rgbColor = new RGB(value);
+                _hsvColor = HSV.FromRGB(_rgbColor);
+
+                intensityTrackBar.Value = (int)(_hsvColor.V * 100);
+                panelColor.BackColor = _color;
+            }
+        }   
 
         public double Intensity
         {
             get
             {
-                return _color.V;
+                return _hsvColor.V;
             }
 
             set
             {
-                _color.V = value;
-                panelColor.BackColor = ColorValue;
+                _hsvColor.V = value;
+                _rgbColor = _hsvColor.ToRGB();
+                _color = _rgbColor.ToArgb();
+
+                panelColor.BackColor = _color;
                 intensityTrackBar.Value = (int)(Intensity * 100);
             }
         }
@@ -84,14 +127,14 @@ namespace VixenModules.App.LipSyncApp
                 {
 					dcp.ValidColors = _validDiscreteColors;
 					dcp.SingleColorOnly = true;
-					dcp.SelectedColors = new List<Color> {ColorValue};
+					dcp.SelectedColors = new List<Color> {Color};
 					DialogResult result = dcp.ShowDialog();
 					if (result == DialogResult.OK) {
 						if (dcp.SelectedColors.Count() == 0) {
-							ColorValue = Color.White;
+							Color = Color.White;
 						}
 						else {
-                            _color = HSV.FromRGB(dcp.SelectedColors.First());
+                             RGBColor = dcp.SelectedColors.First();
 						}
 					}
 				}
@@ -99,15 +142,14 @@ namespace VixenModules.App.LipSyncApp
 			else {
 				using (ColorPicker cp = new ColorPicker()) {
 					cp.LockValue_V = true;
-					cp.Color = XYZ.FromRGB(ColorValue);
+					cp.Color = XYZ.FromRGB(Color);
 					DialogResult result = cp.ShowDialog();
 					if (result == DialogResult.OK) 
                     {
-					    _color = HSV.FromRGB(cp.Color.ToRGB());
+                        RGBColor = cp.Color.ToRGB();
 					}
 				}
 			}
-            panelColor.BackColor = ColorValue;
 		}
 
         private void intensityTrackBar_ValueChanged(object sender, EventArgs e)
