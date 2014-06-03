@@ -90,7 +90,7 @@ namespace VixenModules.App.LipSyncApp
 
         private void convertButton_Click(object sender, EventArgs e)
         {
-            int mcIndex = 0;
+            int mcIndex = startOffsetCombo.SelectedIndex;
             Tuple<TimeSpan, TimeSpan> timing = Tuple.Create(new TimeSpan(), new TimeSpan());
             List<LipSyncConvertData> convertData = new List<LipSyncConvertData>();
 
@@ -169,7 +169,21 @@ namespace VixenModules.App.LipSyncApp
 
         private void markCollectionCombo_SelectedIndexChanged(object sender, EventArgs e)
         {
+            startOffsetCombo.Items.Clear();
+            if (!markCollectionCombo.SelectedItem.Equals(""))
+            {
+                MarkCollection mc =
+                    MarkCollections.Find(x => x.Name.Equals(markCollectionCombo.SelectedItem));
+                if (mc != null)
+                {
+                    foreach(TimeSpan ts in mc.Marks)
+                    {
+                        startOffsetCombo.Items.Add(ts);
+                    }
+                    startOffsetCombo.SelectedIndex = 0;
+                }
 
+            }
         }
     }
 
