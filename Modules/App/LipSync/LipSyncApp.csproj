@@ -189,37 +189,38 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\AI.jpg" />
+    <EmbeddedResource Include="Resources\AI.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\E.jpg" />
+    <EmbeddedResource Include="Resources\E.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\etc.jpg" />
+    <EmbeddedResource Include="Resources\etc.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\FV.jpg" />
+    <EmbeddedResource Include="Resources\FV.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\L.jpg" />
+    <EmbeddedResource Include="Resources\L.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\MBP.jpg" />
+    <EmbeddedResource Include="Resources\MBP.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\O.jpg" />
+    <EmbeddedResource Include="Resources\O.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Preview.jpg" />
+    <EmbeddedResource Include="Resources\Preview.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\rest.jpg" />
+    <EmbeddedResource Include="Resources\rest.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\U.jpg" />
+    <EmbeddedResource Include="Resources\standard_dictionary" />
+    <EmbeddedResource Include="Resources\U.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\WQ.jpg" />
+    <EmbeddedResource Include="Resources\WQ.jpg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

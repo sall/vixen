@@ -2,6 +2,8 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Resources;
 using System.Text;
 using System.Xml;
 using Vixen;
@@ -576,9 +578,9 @@ namespace VixenModules.App.LipSyncApp
         private static Dictionary<string, List<PhonemeType>> mouthDict = 
             new Dictionary<string, List<PhonemeType>>();
 
-        private static string dict_path = Path.Combine(Paths.ModuleDataFilesPath, "LipSync");
-        private static string _standard_dict = Path.Combine(dict_path, "standard_dictionary");
-        private static string _user_dict = Path.Combine(dict_path, "user_dictionary");
+        private static string _user_dict = Path.Combine(Paths.DataRootPath, "user_dictionary");
+
+        private static StreamReader standardDictReader = null;
 
         private static Dictionary<string, PhonemeType> cmu2pbDict =
             new Dictionary<string, PhonemeType>()
@@ -708,7 +710,18 @@ namespace VixenModules.App.LipSyncApp
 
         public static bool StandardDictExists()
         {
-            return File.Exists(_standard_dict);
+            if (standardDictReader == null)
+            {
+                ResourceManager lipSyncRM = LipSyncResources.ResourceManager;
+                object dict = lipSyncRM.GetObject("standard_dictionary");
+                if (dict != null)
+                {
+                    standardDictReader = new StreamReader(new MemoryStream((byte[])dict));
+                }
+                
+            }
+  
+            return (standardDictReader != null);
         }
 
         public static bool UserDictExists()
@@ -724,22 +737,19 @@ namespace VixenModules.App.LipSyncApp
             }
 
             string line;
-            StreamReader reader;
-            
+           
             if (StandardDictExists())
             {
-                reader = File.OpenText(_standard_dict);
-                while ((line = reader.ReadLine()) != null)
+                while ((line = standardDictReader.ReadLine()) != null)
                 {
                     LoadDictLine(line);
                 }
-                reader.Close();
                 initComplete = true;
             }
 
             if (UserDictExists())
             {
-                reader = File.OpenText(_user_dict);
+                StreamReader reader = File.OpenText(_user_dict);
                 while ((line = reader.ReadLine()) != null)
                 {
                     LoadDictLine(line);
