@@ -150,6 +150,11 @@ namespace VixenModules.App.LipSyncApp
                 EventHandler<NewTranslationEventArgs> handler = NewTranslation;
                 NewTranslationEventArgs args = new NewTranslationEventArgs();
                 args.PhonemeData = convertData;
+                if (startOffsetCombo.SelectedItem != null)
+                {
+                    args.FirstMark = (TimeSpan)startOffsetCombo.SelectedItem;
+                }
+                
                 handler(this, args);
             }
 
@@ -215,6 +220,7 @@ namespace VixenModules.App.LipSyncApp
 
     public class NewTranslationEventArgs : EventArgs
     {
+        public TimeSpan FirstMark { get; set; }
         public List<LipSyncConvertData> PhonemeData { get; set; }
     }
 

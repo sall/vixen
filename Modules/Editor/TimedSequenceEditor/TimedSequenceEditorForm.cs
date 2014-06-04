@@ -3307,10 +3307,14 @@ namespace VixenModules.Editor.TimedSequenceEditor
                 dataObject.SetData(result);
                 Clipboard.SetDataObject(dataObject, true);
                 _TimeLineSequenceClipboardContentsChanged(EventArgs.Empty);
+
+                int pasted = ClipboardPaste((TimeSpan)args.FirstMark);
+
+                if (pasted == 0)
+                {
+                    MessageBox.Show("Conversion Complete and copied to Clipboard \n Paste at first Mark offset", "Convert Text", MessageBoxButtons.OK);
+                }
                 sequenceModified();
-
-                MessageBox.Show("Conversion Complete and copied to Clipboard \n Paste at first Mark offset", "Convert Text",MessageBoxButtons.OK);
-
 
             }
         }
