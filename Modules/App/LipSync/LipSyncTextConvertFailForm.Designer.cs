@@ -43,6 +43,16 @@
             this.clearButton = new System.Windows.Forms.Button();
             this.okButton = new System.Windows.Forms.Button();
             this.cancelButton = new System.Windows.Forms.Button();
+            this.label1 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
+            this.label7 = new System.Windows.Forms.Label();
+            this.label8 = new System.Windows.Forms.Label();
+            this.label9 = new System.Windows.Forms.Label();
+            this.label10 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // errorLabel
@@ -84,7 +94,7 @@
             // 
             // oButton
             // 
-            this.oButton.Location = new System.Drawing.Point(69, 140);
+            this.oButton.Location = new System.Drawing.Point(69, 141);
             this.oButton.Name = "oButton";
             this.oButton.Size = new System.Drawing.Size(48, 43);
             this.oButton.TabIndex = 4;
@@ -93,7 +103,7 @@
             // 
             // uButton
             // 
-            this.uButton.Location = new System.Drawing.Point(177, 141);
+            this.uButton.Location = new System.Drawing.Point(177, 142);
             this.uButton.Name = "uButton";
             this.uButton.Size = new System.Drawing.Size(48, 43);
             this.uButton.TabIndex = 5;
@@ -111,7 +121,7 @@
             // 
             // mbpButton
             // 
-            this.mbpButton.Location = new System.Drawing.Point(15, 140);
+            this.mbpButton.Location = new System.Drawing.Point(15, 141);
             this.mbpButton.Name = "mbpButton";
             this.mbpButton.Size = new System.Drawing.Size(48, 43);
             this.mbpButton.TabIndex = 7;
@@ -121,7 +131,7 @@
             // 
             // wqButton
             // 
-            this.wqButton.Location = new System.Drawing.Point(231, 141);
+            this.wqButton.Location = new System.Drawing.Point(231, 142);
             this.wqButton.Name = "wqButton";
             this.wqButton.Size = new System.Drawing.Size(48, 43);
             this.wqButton.TabIndex = 8;
@@ -139,7 +149,7 @@
             // 
             // restButton
             // 
-            this.restButton.Location = new System.Drawing.Point(123, 141);
+            this.restButton.Location = new System.Drawing.Point(123, 142);
             this.restButton.Name = "restButton";
             this.restButton.Size = new System.Drawing.Size(48, 43);
             this.restButton.TabIndex = 10;
@@ -168,7 +178,7 @@
             // okButton
             // 
             this.okButton.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.okButton.Location = new System.Drawing.Point(204, 214);
+            this.okButton.Location = new System.Drawing.Point(204, 223);
             this.okButton.Name = "okButton";
             this.okButton.Size = new System.Drawing.Size(75, 23);
             this.okButton.TabIndex = 13;
@@ -179,12 +189,102 @@
             // cancelButton
             // 
             this.cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.cancelButton.Location = new System.Drawing.Point(291, 214);
+            this.cancelButton.Location = new System.Drawing.Point(291, 223);
             this.cancelButton.Name = "cancelButton";
             this.cancelButton.Size = new System.Drawing.Size(75, 23);
             this.cancelButton.TabIndex = 14;
             this.cancelButton.Text = "Cancel";
             this.cancelButton.UseVisualStyleBackColor = true;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(12, 125);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(17, 13);
+            this.label1.TabIndex = 15;
+            this.label1.Text = "AI";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(69, 125);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(14, 13);
+            this.label2.TabIndex = 16;
+            this.label2.Text = "E";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(123, 125);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(28, 13);
+            this.label3.TabIndex = 17;
+            this.label3.Text = "ETC";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(177, 125);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(20, 13);
+            this.label4.TabIndex = 18;
+            this.label4.Text = "FV";
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(228, 125);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(10, 13);
+            this.label5.TabIndex = 19;
+            this.label5.Text = "I";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(12, 187);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(30, 13);
+            this.label6.TabIndex = 20;
+            this.label6.Text = "MBP";
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(69, 187);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(15, 13);
+            this.label7.TabIndex = 21;
+            this.label7.Text = "O";
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(123, 188);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(36, 13);
+            this.label8.TabIndex = 22;
+            this.label8.Text = "REST";
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(177, 187);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(15, 13);
+            this.label9.TabIndex = 23;
+            this.label9.Text = "U";
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(228, 188);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(26, 13);
+            this.label10.TabIndex = 24;
+            this.label10.Text = "WQ";
             // 
             // LipSyncTextConvertFailForm
             // 
@@ -192,7 +292,17 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.cancelButton;
-            this.ClientSize = new System.Drawing.Size(378, 249);
+            this.ClientSize = new System.Drawing.Size(378, 265);
+            this.Controls.Add(this.label10);
+            this.Controls.Add(this.label9);
+            this.Controls.Add(this.label8);
+            this.Controls.Add(this.label7);
+            this.Controls.Add(this.label6);
+            this.Controls.Add(this.label5);
+            this.Controls.Add(this.label4);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.cancelButton);
             this.Controls.Add(this.okButton);
             this.Controls.Add(this.clearButton);
@@ -233,6 +343,16 @@
         private System.Windows.Forms.Button clearButton;
         private System.Windows.Forms.Button okButton;
         private System.Windows.Forms.Button cancelButton;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.Label label10;
 
     }
 }

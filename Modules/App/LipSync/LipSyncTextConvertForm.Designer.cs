@@ -124,6 +124,7 @@
             this.startOffsetCombo.Name = "startOffsetCombo";
             this.startOffsetCombo.Size = new System.Drawing.Size(135, 21);
             this.startOffsetCombo.TabIndex = 10;
+            this.startOffsetCombo.DropDown += new System.EventHandler(this.startOffsetCombo_DropDown);
             // 
             // LipSyncTextConvertForm
             // 

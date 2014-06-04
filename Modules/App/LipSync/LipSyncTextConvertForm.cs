@@ -27,7 +27,7 @@ namespace VixenModules.App.LipSyncApp
         private List<string> CreateSubstringList()
         {
             List<string> retVal = new List<string>();
-            foreach(string line in textBox.Lines)
+            foreach (string line in textBox.Lines)
             {
                 if (alignCombo.SelectedItem.Equals("Phrase"))
                 {
@@ -41,12 +41,12 @@ namespace VixenModules.App.LipSyncApp
             return retVal;
         }
 
-        private Tuple<TimeSpan,TimeSpan> CalcPhonemeTimespans(MarkCollection mc, int index, int subelements)
+        private Tuple<TimeSpan, TimeSpan> CalcPhonemeTimespans(MarkCollection mc, int index, int subelements)
         {
             TimeSpan duration;
             TimeSpan relStart;
             TimeSpan lastOffset;
-   
+
             if (mc != null)
             {
                 //Sort the Marklist by time.
@@ -66,7 +66,7 @@ namespace VixenModules.App.LipSyncApp
             else
             {
                 //Default Phoneme timing to 250ms
-                duration = new TimeSpan(0,0,0,0,250);
+                duration = new TimeSpan(0, 0, 0, 0, 250);
             }
 
             if (index == 0)
@@ -74,7 +74,7 @@ namespace VixenModules.App.LipSyncApp
                 unMarkedPhonemes = 0;
             }
 
-            if ((mc != null) &&(index < mc.MarkCount))
+            if ((mc != null) && (index < mc.MarkCount))
             {
                 relStart = mc.Marks[index] - mc.Marks[0];
                 unMarkedPhonemes = 0;
@@ -108,7 +108,7 @@ namespace VixenModules.App.LipSyncApp
                 MarkCollection selMC = MarkCollections.Find(x => x.Name.Equals(markCollectionCombo.SelectedItem));
                 bool doPhonemeAlign = alignCombo.SelectedItem.Equals("Phoneme");
 
-                foreach(string strElem in subStrings)
+                foreach (string strElem in subStrings)
                 {
                     int phonemeIndex = 0;
                     List<PhonemeType> phonemeList = LipSyncTextConvert.TryConvert(strElem);
@@ -134,7 +134,7 @@ namespace VixenModules.App.LipSyncApp
                         timing = CalcPhonemeTimespans(selMC, mcIndex++, phonemeList.Count);
                     }
 
-                    foreach(PhonemeType phoneme in phonemeList)
+                    foreach (PhonemeType phoneme in phonemeList)
                     {
                         if (doPhonemeAlign == true)
                         {
@@ -154,15 +154,14 @@ namespace VixenModules.App.LipSyncApp
                 {
                     args.FirstMark = (TimeSpan)startOffsetCombo.SelectedItem;
                 }
-                
+
                 handler(this, args);
             }
 
         }
 
-        private void LipSyncTextConvert_Load(object sender, EventArgs e)
+        private void populateMarkCombo()
         {
-            alignCombo.SelectedIndex = 1;
             markCollectionCombo.Items.Clear();
             markCollectionCombo.Items.Add("");
             markCollectionCombo.SelectedIndex = 0;
@@ -172,7 +171,13 @@ namespace VixenModules.App.LipSyncApp
             }
         }
 
-        private void markCollectionCombo_SelectedIndexChanged(object sender, EventArgs e)
+        private void LipSyncTextConvert_Load(object sender, EventArgs e)
+        {
+            alignCombo.SelectedIndex = 1;
+            populateMarkCombo();
+        }
+
+        void populateStartOffsetCombo()
         {
             startOffsetCombo.Items.Clear();
             if (!markCollectionCombo.SelectedItem.Equals(""))
@@ -181,14 +186,29 @@ namespace VixenModules.App.LipSyncApp
                     MarkCollections.Find(x => x.Name.Equals(markCollectionCombo.SelectedItem));
                 if (mc != null)
                 {
-                    foreach(TimeSpan ts in mc.Marks)
+                    foreach (TimeSpan ts in mc.Marks)
                     {
                         startOffsetCombo.Items.Add(ts);
                     }
-                    startOffsetCombo.SelectedIndex = 0;
                 }
 
             }
+        }
+
+
+        private void markCollectionCombo_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            populateStartOffsetCombo();
+            if (startOffsetCombo.Items.Count > 0)
+            {
+                startOffsetCombo.SelectedIndex = 0;
+            }
+            
+        }
+
+        private void startOffsetCombo_DropDown(object sender, EventArgs e)
+        {
+            populateStartOffsetCombo();
         }
     }
 
