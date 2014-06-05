@@ -17,15 +17,13 @@ namespace VixenApplication.Setup.ElementTemplates
     public partial class LipSync : Form, IElementTemplate
     {
         private static Logger Logging = LogManager.GetCurrentClassLogger();
-//        private LipSyncMapLibrary _library = null;
-        private static string[] templateStrings = { "Outline", "Eyes Top", "Eyes Bottom", "Mouth Top", "Mouth Bottom", "Mouth Middle", "Mouth Narrow", "Mouth O" };
+        private static string[] templateStrings = { "Outline", "Eyes Open", "Eyes Closed", "Mouth Top", "Mouth Middle", "Mouth Bottom", "Mouth Narrow", "Mouth O" };
 
         private string treename;
 
         public LipSync()
         {
             InitializeComponent();
-//            _library = ApplicationServices.Get<IAppModuleInstance>(LipSyncMapDescriptor.ModuleID) as LipSyncMapLibrary;
             treename = "LipSync";
         }
 
@@ -61,14 +59,9 @@ namespace VixenApplication.Setup.ElementTemplates
 
             foreach(string stringName in templateStrings)
             {
-                ElementNode stringnode = ElementNodeService.Instance.CreateSingle(head, stringName);
+                ElementNode stringnode = ElementNodeService.Instance.CreateSingle(head, treename + " " + stringName);
                 result.Add(stringnode);
                 stringNames.Add(stringName);
-            }
-
-            if (generateMapCheckBox.Checked)
-            {
-//                _library.AddMapping(true, treename, new LipSyncMapData(stringNames));
             }
 
             return result;

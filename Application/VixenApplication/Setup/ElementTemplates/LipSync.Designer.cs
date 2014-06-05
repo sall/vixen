@@ -32,7 +32,6 @@
             this.label6 = new System.Windows.Forms.Label();
             this.buttonCancel = new System.Windows.Forms.Button();
             this.buttonOk = new System.Windows.Forms.Button();
-            this.generateMapCheckBox = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // textBoxTreeName
@@ -58,7 +57,7 @@
             // 
             this.buttonCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.buttonCancel.Location = new System.Drawing.Point(193, 88);
+            this.buttonCancel.Location = new System.Drawing.Point(193, 72);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(90, 25);
             this.buttonCancel.TabIndex = 20;
@@ -69,30 +68,18 @@
             // 
             this.buttonOk.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonOk.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.buttonOk.Location = new System.Drawing.Point(97, 88);
+            this.buttonOk.Location = new System.Drawing.Point(97, 72);
             this.buttonOk.Name = "buttonOk";
             this.buttonOk.Size = new System.Drawing.Size(90, 25);
             this.buttonOk.TabIndex = 19;
             this.buttonOk.Text = "OK";
             this.buttonOk.UseVisualStyleBackColor = true;
             // 
-            // generateMapCheckBox
-            // 
-            this.generateMapCheckBox.AutoSize = true;
-            this.generateMapCheckBox.Enabled = false;
-            this.generateMapCheckBox.Location = new System.Drawing.Point(15, 60);
-            this.generateMapCheckBox.Name = "generateMapCheckBox";
-            this.generateMapCheckBox.Size = new System.Drawing.Size(94, 17);
-            this.generateMapCheckBox.TabIndex = 22;
-            this.generateMapCheckBox.Text = "Generate Map";
-            this.generateMapCheckBox.UseVisualStyleBackColor = true;
-            // 
             // LipSync
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(295, 125);
-            this.Controls.Add(this.generateMapCheckBox);
+            this.ClientSize = new System.Drawing.Size(295, 109);
             this.Controls.Add(this.buttonCancel);
             this.Controls.Add(this.buttonOk);
             this.Controls.Add(this.textBoxTreeName);
@@ -118,6 +105,5 @@
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Button buttonCancel;
         private System.Windows.Forms.Button buttonOk;
-        private System.Windows.Forms.CheckBox generateMapCheckBox;
     }
 }
