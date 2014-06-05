@@ -108,10 +108,21 @@ namespace VixenModules.App.LipSyncApp
                 MarkCollection selMC = MarkCollections.Find(x => x.Name.Equals(markCollectionCombo.SelectedItem));
                 bool doPhonemeAlign = alignCombo.SelectedItem.Equals("Phoneme");
 
+                if (mcIndex == -1)
+                {
+                    selMC = null;
+                    mcIndex = 0;
+                }
+
                 foreach (string strElem in subStrings)
                 {
+                    if (string.IsNullOrWhiteSpace(strElem))
+                    {
+                        continue;
+                    }
+
                     int phonemeIndex = 0;
-                    List<PhonemeType> phonemeList = LipSyncTextConvert.TryConvert(strElem);
+                    List<PhonemeType> phonemeList = LipSyncTextConvert.TryConvert(strElem.Trim());
                     if (phonemeList.Count == 0)
                     {
                         EventHandler<TranslateFailureEventArgs> failHandler = TranslateFailure;
