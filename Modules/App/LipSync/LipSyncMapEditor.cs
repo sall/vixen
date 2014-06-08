@@ -396,13 +396,13 @@ namespace VixenModules.App.LipSyncApp
             DialogResult dr = nodeSelectDlg.ShowDialog();
             if (dr == DialogResult.OK)
             {
+                _mapping.LibraryReferenceName = nameTextBox.Text;
                 _rowNames.Clear();
                 _rowNames.AddRange(nodeSelectDlg.NodeNames);
                 _mapping.MapItems.Clear();
                 _rowNames.ForEach(x => _mapping.MapItems.Add(new LipSyncMapItem(x, stringNum++)));
+                reconfigureDataTable();
             }
-
-            reconfigureDataTable();
         } 
     }
 }

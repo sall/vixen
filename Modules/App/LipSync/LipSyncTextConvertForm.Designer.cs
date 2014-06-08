@@ -65,6 +65,7 @@
             this.markCollectionCombo.Name = "markCollectionCombo";
             this.markCollectionCombo.Size = new System.Drawing.Size(135, 21);
             this.markCollectionCombo.TabIndex = 4;
+            this.markCollectionCombo.DropDown += new System.EventHandler(this.markCollectionCombo_DropDown);
             this.markCollectionCombo.SelectedIndexChanged += new System.EventHandler(this.markCollectionCombo_SelectedIndexChanged);
             // 
             // label1

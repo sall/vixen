@@ -221,6 +221,11 @@ namespace VixenModules.App.LipSyncApp
         {
             populateStartOffsetCombo();
         }
+
+        private void markCollectionCombo_DropDown(object sender, EventArgs e)
+        {
+            populateMarkCombo();
+        }
     }
 
     public class LipSyncConvertData
