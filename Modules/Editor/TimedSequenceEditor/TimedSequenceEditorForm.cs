@@ -3144,7 +3144,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
         private void setDefaultMap_Click(object sender,EventArgs e)
         {
             ToolStripMenuItem menu = (ToolStripMenuItem)sender;
-            if (_library.DefaultMappingName.Equals(menu.Text))
+            if (!_library.DefaultMappingName.Equals(menu.Text))
             {
                 _library.DefaultMappingName = menu.Text; 
                 sequenceModified();
