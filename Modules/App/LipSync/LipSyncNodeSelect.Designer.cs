@@ -36,6 +36,7 @@
             this.removeButton = new System.Windows.Forms.Button();
             this.resetButton = new System.Windows.Forms.Button();
             this.nodeTreeView = new Common.Controls.MultiSelectTreeview();
+            this.recurseCB = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // okButton
@@ -66,8 +67,8 @@
             this.chosenTargets.Name = "chosenTargets";
             this.chosenTargets.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.chosenTargets.Size = new System.Drawing.Size(187, 251);
+            this.chosenTargets.Sorted = true;
             this.chosenTargets.TabIndex = 3;
-            this.chosenTargets.DoubleClick += new System.EventHandler(this.chosenTargets_DoubleClick);
             // 
             // addButton
             // 
@@ -102,6 +103,7 @@
             // nodeTreeView
             // 
             this.nodeTreeView.AllowDrop = true;
+            this.nodeTreeView.Cursor = System.Windows.Forms.Cursors.Default;
             this.nodeTreeView.CustomDragCursor = null;
             this.nodeTreeView.DragDefaultMode = System.Windows.Forms.DragDropEffects.Move;
             this.nodeTreeView.DragDestinationNodeBackColor = System.Drawing.SystemColors.Highlight;
@@ -115,13 +117,26 @@
             this.nodeTreeView.TabIndex = 2;
             this.nodeTreeView.UsingCustomDragCursor = false;
             // 
+            // recurseCB
+            // 
+            this.recurseCB.AutoSize = true;
+            this.recurseCB.Checked = true;
+            this.recurseCB.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.recurseCB.Location = new System.Drawing.Point(218, 216);
+            this.recurseCB.Name = "recurseCB";
+            this.recurseCB.Size = new System.Drawing.Size(103, 17);
+            this.recurseCB.TabIndex = 7;
+            this.recurseCB.Text = "Add Recursively";
+            this.recurseCB.UseVisualStyleBackColor = true;
+            // 
             // LipSyncNodeSelect
             // 
             this.AcceptButton = this.okButton;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.cancelButton;
-            this.ClientSize = new System.Drawing.Size(514, 327);
+            this.ClientSize = new System.Drawing.Size(532, 327);
+            this.Controls.Add(this.recurseCB);
             this.Controls.Add(this.resetButton);
             this.Controls.Add(this.removeButton);
             this.Controls.Add(this.addButton);
@@ -133,6 +148,7 @@
             this.Text = "LipSyncNodeSelect";
             this.Load += new System.EventHandler(this.LipSyncNodeSelect_Load);
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -145,5 +161,6 @@
         private System.Windows.Forms.Button addButton;
         private System.Windows.Forms.Button removeButton;
         private System.Windows.Forms.Button resetButton;
+        private System.Windows.Forms.CheckBox recurseCB;
     }
 }

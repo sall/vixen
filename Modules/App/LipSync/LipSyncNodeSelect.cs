@@ -15,7 +15,10 @@ namespace VixenModules.App.LipSyncApp
         public LipSyncNodeSelect()
         {
             InitializeComponent();
+            Changed = false;
         }
+
+        public bool Changed { get; set; }
         
         private void BuildNode(TreeNode parentNode, ElementNode node)
         {
@@ -56,7 +59,7 @@ namespace VixenModules.App.LipSyncApp
                 List<string> names = value;
                 if (names != null)
                 {
-                    names.ForEach(x => findAndAddElements(x));
+                    names.ForEach(x => findAndAddElements(x, false));
                 }
             }
         }
@@ -69,44 +72,48 @@ namespace VixenModules.App.LipSyncApp
         private void resetButton_Click(object sender, EventArgs e)
         {
             chosenTargets.Items.Clear();
+            Changed = true;
         }
 
-        private void addElementNodes(ElementNode node)
+        private void addToChosenTargets(ElementNode node)
         {
             bool found = false;
-            if (node.IsLeaf)
+            foreach (ElementNode chosenNode in chosenTargets.Items)
             {
-                foreach (ElementNode chosenNode in chosenTargets.Items)
+                if (chosenNode.ToString().Equals(node.ToString()))
                 {
-                    if (chosenNode.ToString().Equals(node.ToString()))
-                    {
-                        found = true;
-                        break;
-                    }
+                    found = true;
+                    break;
                 }
-
-                if (found == false)
-                {
-                    chosenTargets.Items.Add(node);
-                }
-                
             }
-            else 
+
+            if (found == false)
+            {
+                chosenTargets.Items.Add(node);
+            }
+            Changed = true;
+        }
+
+        private void addElementNodes(ElementNode node, bool recurse)
+        {
+            addToChosenTargets(node);
+
+            if (recurse == true)
             {
                 foreach (ElementNode childNode in node.Children)
                 {
-                    addElementNodes(childNode);
+                    addElementNodes(childNode, recurse);
                 }
             }
         }
 
-        private void findAndAddElements(string name)
+        private void findAndAddElements(string name, bool recurse)
         {
             foreach (ElementNode node in VixenSystem.Nodes)
             {
                 if (node.Name.Equals(name))
                 {
-                    addElementNodes(node);
+                    addElementNodes(node,recurse);
                 }
             }
         }
@@ -115,7 +122,7 @@ namespace VixenModules.App.LipSyncApp
         {
             foreach (TreeNode treeNode in nodeTreeView.SelectedNodes)
             {
-                findAndAddElements(treeNode.Text);
+                findAndAddElements(treeNode.Text, recurseCB.Checked);
             }
         }
 
@@ -124,12 +131,8 @@ namespace VixenModules.App.LipSyncApp
             for (int i = chosenTargets.SelectedIndices.Count - 1; i >= 0; i--)
             {
                 chosenTargets.Items.RemoveAt(chosenTargets.SelectedIndices[i]);
+                Changed = true;
             }
-        }
-
-        private void chosenTargets_DoubleClick(object sender, EventArgs e)
-        {
-
         }
     }
 }

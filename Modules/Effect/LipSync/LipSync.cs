@@ -64,33 +64,31 @@ namespace VixenModules.Effect.LipSync
         {
             EffectIntents result;
             LipSyncMapData mapData = null;
-            List<ElementNode> renderNodes = TargetNodes.SelectMany(x => x.GetLeafEnumerator()).ToList();
+            List<ElementNode> renderNodes = TargetNodes.SelectMany(x => x.GetNodeEnumerator()).ToList();
 
-
-
-                if (_data.PhonemeMapping != null) 
+            if (_data.PhonemeMapping != null) 
+            {
+                if (_data.PhonemeMapping.Equals(""))
                 {
-                    if (_data.PhonemeMapping.Equals(""))
-                    {
-                        _data.PhonemeMapping = _library.DefaultMappingName;
-                    }
-
-                    renderNodes.ForEach(delegate(ElementNode element)
-                    {
-                        if (_library.Library.TryGetValue(_data.PhonemeMapping, out mapData) &&
-                        (mapData.PhonemeState(element.Name, _data.StaticPhoneme)))
-                        {
-                            var level = new SetLevel.SetLevel();
-                            level.TargetNodes = new ElementNode[] { element }; 
-                            level.Color = mapData.ConfiguredColor(element.Name, _data.StaticPhoneme);
-                            level.IntensityLevel = mapData.ConfiguredIntensity(element.Name, _data.StaticPhoneme);
-                            level.TimeSpan = TimeSpan;
-                            result = level.Render();
-                            _elementData.Add(result);
-                        }
-                    });
-                    
+                    _data.PhonemeMapping = _library.DefaultMappingName;
                 }
+
+                renderNodes.ForEach(delegate(ElementNode element)
+                {
+                    if (_library.Library.TryGetValue(_data.PhonemeMapping, out mapData) &&
+                    (mapData.PhonemeState(element.Name, _data.StaticPhoneme)))
+                    {
+                        var level = new SetLevel.SetLevel();
+                        level.TargetNodes = new ElementNode[] { element }; 
+                        level.Color = mapData.ConfiguredColor(element.Name, _data.StaticPhoneme);
+                        level.IntensityLevel = mapData.ConfiguredIntensity(element.Name, _data.StaticPhoneme);
+                        level.TimeSpan = TimeSpan;
+                        result = level.Render();
+                        _elementData.Add(result);
+                    }
+                });
+                    
+            }
 
         }
 

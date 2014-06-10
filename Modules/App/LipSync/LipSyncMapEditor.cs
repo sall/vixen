@@ -69,7 +69,7 @@ namespace VixenModules.App.LipSyncApp
                 ElementNode tempNode = VixenSystem.Nodes.GetElementNode(lsbItem.ElementGuid);
                 if (tempNode != null)
                 {
-                    dr[0] = tempNode.Element.Name;
+                    dr[0] = (tempNode.Element == null) ? tempNode.Name : tempNode.Element.Name;
                 }
 
                 foreach (string key in _phonemeBitmaps.Keys)
@@ -94,10 +94,18 @@ namespace VixenModules.App.LipSyncApp
 
         private ElementNode FindElementNode(string elementName)
         {
-            ElementNode theNode = VixenSystem.Nodes.GetLeafNodes().ToList().Find(
+            ElementNode theNode = VixenSystem.Nodes.ToList().Find(
                 delegate(ElementNode node)
                 {
-                    return node.Element.Name.Equals(elementName);
+                    if (node.IsLeaf)
+                    {
+                        return node.Element.Name.Equals(elementName);
+                    }
+                    else
+                    {
+                        return node.Name.Equals(elementName);
+                    }
+                    
                 }
             );
 
@@ -151,11 +159,28 @@ namespace VixenModules.App.LipSyncApp
 
             set
             {
+                ElementNode tempNode = null;
                 _mapping = value;
                 _rowNames = new List<string>();
                 try
                 {
-                    _mapping.MapItems.ForEach(x => _rowNames.Add(VixenSystem.Nodes.GetElementNode(x.ElementGuid).Element.Name));
+                    foreach(LipSyncMapItem mapItem in _mapping.MapItems)
+                    {
+                        tempNode = VixenSystem.Nodes.GetElementNode(mapItem.ElementGuid);
+                        if (tempNode == null)
+                        {
+                            continue;
+                        }
+                        
+                        if (tempNode.Element != null)
+                        {
+                            _rowNames.Add(tempNode.Element.Name);
+                        }
+                        else
+                        {
+                            _rowNames.Add(tempNode.Name);
+                        }
+                    }
                 }
                 catch (Exception e) { };
                 
@@ -394,13 +419,42 @@ namespace VixenModules.App.LipSyncApp
             nodeSelectDlg.NodeNames = _rowNames;
 
             DialogResult dr = nodeSelectDlg.ShowDialog();
-            if (dr == DialogResult.OK)
+            if ((dr == DialogResult.OK) && (nodeSelectDlg.Changed == true))
             {
+                List<LipSyncMapItem> newMappings = new List<LipSyncMapItem>();
+                LipSyncMapItem tempMapItem = null;
+
                 _mapping.LibraryReferenceName = nameTextBox.Text;
                 _rowNames.Clear();
                 _rowNames.AddRange(nodeSelectDlg.NodeNames);
+
+                foreach (string nodeName in nodeSelectDlg.NodeNames)
+                {
+                    tempMapItem = _mapping.MapItems.Find(
+                        delegate(LipSyncMapItem item)
+                        {
+                            return item.Name.Equals(nodeName);
+                        });
+
+                    if (tempMapItem != null)
+                    {
+                        newMappings.Add(tempMapItem);
+                    }
+                    else
+                    {
+                        newMappings.Add(new LipSyncMapItem(nodeName,-1));
+                    }
+                }
+
                 _mapping.MapItems.Clear();
-                _rowNames.ForEach(x => _mapping.MapItems.Add(new LipSyncMapItem(x, stringNum++)));
+                
+                int stringCount = 0;
+                foreach (LipSyncMapItem mapItem in newMappings)
+                {
+                    mapItem.StringNum = stringCount++;
+                    _mapping.MapItems.Add(mapItem);
+                }
+
                 reconfigureDataTable();
             }
         } 
