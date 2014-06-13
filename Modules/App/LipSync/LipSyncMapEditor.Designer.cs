@@ -31,11 +31,11 @@
             this.buttonOK = new System.Windows.Forms.Button();
             this.buttonCancel = new System.Windows.Forms.Button();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
-            this.colorDialog1 = new System.Windows.Forms.ColorDialog();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.nameTextBox = new System.Windows.Forms.TextBox();
             this.assignButton = new System.Windows.Forms.Button();
+            this.matrixEditorBn = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -110,11 +110,22 @@
             this.assignButton.UseVisualStyleBackColor = true;
             this.assignButton.Click += new System.EventHandler(this.Assign_Click);
             // 
+            // matrixEditorBn
+            // 
+            this.matrixEditorBn.Location = new System.Drawing.Point(15, 424);
+            this.matrixEditorBn.Name = "matrixEditorBn";
+            this.matrixEditorBn.Size = new System.Drawing.Size(75, 23);
+            this.matrixEditorBn.TabIndex = 26;
+            this.matrixEditorBn.Text = "Matrix Editor";
+            this.matrixEditorBn.UseVisualStyleBackColor = true;
+            this.matrixEditorBn.Click += new System.EventHandler(this.matrixEditorBn_Click);
+            // 
             // LipSyncMapEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(755, 461);
+            this.Controls.Add(this.matrixEditorBn);
             this.Controls.Add(this.assignButton);
             this.Controls.Add(this.nameTextBox);
             this.Controls.Add(this.label2);
@@ -142,11 +153,11 @@
         private System.Windows.Forms.Button buttonOK;
         private System.Windows.Forms.Button buttonCancel;
         private System.Windows.Forms.DataGridView dataGridView1;
-        private System.Windows.Forms.ColorDialog colorDialog1;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox nameTextBox;
         private System.Windows.Forms.Button assignButton;
+        private System.Windows.Forms.Button matrixEditorBn;
 
     }
 }

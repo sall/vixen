@@ -37,6 +37,7 @@
             this.resetButton = new System.Windows.Forms.Button();
             this.nodeTreeView = new Common.Controls.MultiSelectTreeview();
             this.recurseCB = new System.Windows.Forms.CheckBox();
+            this.allowGroupsCheckbox = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // okButton
@@ -67,7 +68,6 @@
             this.chosenTargets.Name = "chosenTargets";
             this.chosenTargets.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.chosenTargets.Size = new System.Drawing.Size(187, 251);
-            this.chosenTargets.Sorted = true;
             this.chosenTargets.TabIndex = 3;
             // 
             // addButton
@@ -129,6 +129,17 @@
             this.recurseCB.Text = "Add Recursively";
             this.recurseCB.UseVisualStyleBackColor = true;
             // 
+            // allowGroupsCheckbox
+            // 
+            this.allowGroupsCheckbox.AutoSize = true;
+            this.allowGroupsCheckbox.Location = new System.Drawing.Point(218, 239);
+            this.allowGroupsCheckbox.Name = "allowGroupsCheckbox";
+            this.allowGroupsCheckbox.Size = new System.Drawing.Size(88, 17);
+            this.allowGroupsCheckbox.TabIndex = 8;
+            this.allowGroupsCheckbox.Text = "Allow Groups";
+            this.allowGroupsCheckbox.UseVisualStyleBackColor = true;
+            this.allowGroupsCheckbox.CheckedChanged += new System.EventHandler(this.allowGroupsCheckbox_CheckedChanged);
+            // 
             // LipSyncNodeSelect
             // 
             this.AcceptButton = this.okButton;
@@ -136,6 +147,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.cancelButton;
             this.ClientSize = new System.Drawing.Size(532, 327);
+            this.Controls.Add(this.allowGroupsCheckbox);
             this.Controls.Add(this.recurseCB);
             this.Controls.Add(this.resetButton);
             this.Controls.Add(this.removeButton);
@@ -162,5 +174,6 @@
         private System.Windows.Forms.Button removeButton;
         private System.Windows.Forms.Button resetButton;
         private System.Windows.Forms.CheckBox recurseCB;
+        private System.Windows.Forms.CheckBox allowGroupsCheckbox;
     }
 }

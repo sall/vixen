@@ -23,49 +23,27 @@ namespace VixenModules.App.LipSyncApp
         public LipSyncMapColorSelect()
         {
             InitializeComponent();
-            intensityUpDown.Items.AddRange(Enumerable.Range(0, 101).ToArray());
         }
 
 
         public List<ElementNode> ChosenNodes
 		{
-			//get { return _targetEffect; }
 			set
 			{
-                List<ElementNode> nodeList = value;
-				_discreteColors = false;
-				if (value == null) return;
-
-				HashSet<Color> validColors = new HashSet<Color>();
-
-				// look for the color property of the target effect element, and restrict the gradient.
-				// If it's a group, iterate through all children (and their children, etc.), finding as many color
-				// properties as possible; then we can decide what to do based on that.
-				validColors.AddRange(nodeList.SelectMany(x => ColorModule.getValidColorsForElementNode(x, true)));
-				_discreteColors = validColors.Any();
-				_validDiscreteColors = validColors;
+                lipSyncMapColorCtrl1.ChosenNodes = value;
 			}
 		}
-
-        private Color _color;
-        private HSV _hsvColor;
-        private RGB _rgbColor;
 
         public RGB RGBColor
         {
             get
             {
-                return _rgbColor;
+                return lipSyncMapColorCtrl1.RGBColor;
             }
 
             set
             {
-                _rgbColor = value;
-                _hsvColor = HSV.FromRGB(_rgbColor);
-                _color = _rgbColor.ToArgb();
-
-                intensityTrackBar.Value = (int)(_hsvColor.V * 100);
-                panelColor.BackColor = _color;
+                lipSyncMapColorCtrl1.RGBColor = value;
             }
         }
 
@@ -73,31 +51,25 @@ namespace VixenModules.App.LipSyncApp
         {
             get
             {
-                return _hsvColor;
+                return lipSyncMapColorCtrl1.HSVColor;
             }
 
             set
             {
-                _hsvColor = value;
-                _rgbColor = _hsvColor.ToRGB();
-                _color = _rgbColor.ToArgb();
-
-                intensityTrackBar.Value = (int)(_hsvColor.V * 100);
-                panelColor.BackColor = _color;
+                lipSyncMapColorCtrl1.HSVColor = value;
             }
         }
 
         public Color Color
         {
-            get { return _color; }
+            get 
+            { 
+                return lipSyncMapColorCtrl1.Color; 
+            }
+
             set
             {
-                _color = value;
-                _rgbColor = new RGB(value);
-                _hsvColor = HSV.FromRGB(_rgbColor);
-
-                intensityTrackBar.Value = (int)(_hsvColor.V * 100);
-                panelColor.BackColor = _color;
+                lipSyncMapColorCtrl1.Color = value;
             }
         }   
 
@@ -105,64 +77,13 @@ namespace VixenModules.App.LipSyncApp
         {
             get
             {
-                return _hsvColor.V;
+                return lipSyncMapColorCtrl1.Intensity;
             }
 
             set
             {
-                _hsvColor.V = value;
-                _rgbColor = _hsvColor.ToRGB();
-                _color = _rgbColor.ToArgb();
-
-                panelColor.BackColor = _color;
-                intensityTrackBar.Value = (int)(Intensity * 100);
+                lipSyncMapColorCtrl1.Intensity = value;
             }
         }
-
-        private void panelColor_Click(object sender, EventArgs e)
-		{
-            if (_discreteColors) 
-            {
-				using (DiscreteColorPicker dcp = new DiscreteColorPicker()) 
-                {
-					dcp.ValidColors = _validDiscreteColors;
-					dcp.SingleColorOnly = true;
-					dcp.SelectedColors = new List<Color> {Color};
-					DialogResult result = dcp.ShowDialog();
-					if (result == DialogResult.OK) {
-						if (dcp.SelectedColors.Count() == 0) {
-							Color = Color.White;
-						}
-						else {
-                             RGBColor = dcp.SelectedColors.First();
-						}
-					}
-				}
-			}
-			else {
-				using (ColorPicker cp = new ColorPicker()) {
-					cp.LockValue_V = true;
-					cp.Color = XYZ.FromRGB(Color);
-					DialogResult result = cp.ShowDialog();
-					if (result == DialogResult.OK) 
-                    {
-                        RGBColor = cp.Color.ToRGB();
-					}
-				}
-			}
-		}
-
-        private void intensityTrackBar_ValueChanged(object sender, EventArgs e)
-        {
-            intensityUpDown.SelectedIndex = intensityTrackBar.Value;
-            Intensity = intensityUpDown.SelectedIndex / 100.0;
-        }
-
-        private void intensityUpDown_SelectedItemChanged(object sender, EventArgs e)
-        {
-            intensityTrackBar.Value = this.intensityUpDown.SelectedIndex;
-            Intensity = intensityUpDown.SelectedIndex / 100.0;
-        }
-
 	}
 }

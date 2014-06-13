@@ -12,10 +12,13 @@ namespace VixenModules.App.LipSyncApp
 {
     public partial class LipSyncNodeSelect : Form
     {
+        private bool _userAdd;
+
         public LipSyncNodeSelect()
         {
             InitializeComponent();
             Changed = false;
+            _userAdd = false;
         }
 
         public bool Changed { get; set; }
@@ -42,6 +45,7 @@ namespace VixenModules.App.LipSyncApp
 
         }
 
+        private List<String> _origNodeNames;
         public List<string> NodeNames
         {
             get
@@ -57,6 +61,7 @@ namespace VixenModules.App.LipSyncApp
             set
             {
                 List<string> names = value;
+                _origNodeNames = value;
                 if (names != null)
                 {
                     names.ForEach(x => findAndAddElements(x, false));
@@ -71,6 +76,7 @@ namespace VixenModules.App.LipSyncApp
 
         private void resetButton_Click(object sender, EventArgs e)
         {
+            _origNodeNames.Clear();
             chosenTargets.Items.Clear();
             Changed = true;
         }
@@ -96,7 +102,10 @@ namespace VixenModules.App.LipSyncApp
 
         private void addElementNodes(ElementNode node, bool recurse)
         {
-            addToChosenTargets(node);
+            if ((allowGroupsCheckbox.Checked == true) || (node.IsLeaf == true))
+            {
+                addToChosenTargets(node);
+            }
 
             if (recurse == true)
             {
@@ -124,6 +133,7 @@ namespace VixenModules.App.LipSyncApp
             {
                 findAndAddElements(treeNode.Text, recurseCB.Checked);
             }
+            _userAdd = true;
         }
 
         private void removeButton_Click(object sender, EventArgs e)
@@ -133,6 +143,18 @@ namespace VixenModules.App.LipSyncApp
                 chosenTargets.Items.RemoveAt(chosenTargets.SelectedIndices[i]);
                 Changed = true;
             }
+            _userAdd = true;
+        }
+
+        private void allowGroupsCheckbox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (_userAdd == false)
+            {
+                chosenTargets.Items.Clear();
+                _origNodeNames.ForEach(x => findAndAddElements(x, false));
+                Changed = true;
+            }
+
         }
     }
 }

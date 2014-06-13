@@ -72,6 +72,11 @@ namespace VixenModules.App.LipSyncApp
             }
         }
 
+        public override string ToString()
+        {
+            return Name;
+        }
+
     }
 
    
