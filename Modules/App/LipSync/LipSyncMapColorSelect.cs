@@ -17,8 +17,6 @@ namespace VixenModules.App.LipSyncApp
 {
     public partial class LipSyncMapColorSelect : Form
     {
-   		private bool _discreteColors;
-		private IEnumerable<Color> _validDiscreteColors;
 
         public LipSyncMapColorSelect()
         {

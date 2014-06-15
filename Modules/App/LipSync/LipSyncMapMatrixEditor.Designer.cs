@@ -46,13 +46,15 @@
             this.pixelsUpDown = new System.Windows.Forms.NumericUpDown();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.blackCheckBox = new System.Windows.Forms.CheckBox();
-            this.button1 = new System.Windows.Forms.Button();
+            this.assignButton = new System.Windows.Forms.Button();
             this.label6 = new System.Windows.Forms.Label();
             this.phonemePicture = new System.Windows.Forms.PictureBox();
             this.prevPhonemeButton = new System.Windows.Forms.Button();
             this.nextPhonemeButton = new System.Windows.Forms.Button();
             this.clearButton = new System.Windows.Forms.Button();
             this.phonemeLabel = new System.Windows.Forms.Label();
+            this.importButton = new System.Windows.Forms.Button();
+            this.exportButton = new System.Windows.Forms.Button();
             this.lipSyncMapColorCtrl1 = new VixenModules.App.LipSyncApp.LipSyncMapColorCtrl();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.groupBox1.SuspendLayout();
@@ -68,7 +70,7 @@
             // 
             this.buttonOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonOK.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.buttonOK.Location = new System.Drawing.Point(595, 389);
+            this.buttonOK.Location = new System.Drawing.Point(596, 111);
             this.buttonOK.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.buttonOK.Name = "buttonOK";
             this.buttonOK.Size = new System.Drawing.Size(80, 25);
@@ -81,7 +83,7 @@
             // 
             this.buttonCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.buttonCancel.Location = new System.Drawing.Point(596, 420);
+            this.buttonCancel.Location = new System.Drawing.Point(597, 142);
             this.buttonCancel.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(80, 25);
@@ -99,7 +101,6 @@
             this.dataGridView1.TabIndex = 18;
             this.dataGridView1.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellClick);
             this.dataGridView1.CellPainting += new System.Windows.Forms.DataGridViewCellPaintingEventHandler(this.dataGridView1_CellPainting);
-            this.dataGridView1.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellValueChanged);
             // 
             // label1
             // 
@@ -159,7 +160,7 @@
             this.groupBox1.Size = new System.Drawing.Size(91, 91);
             this.groupBox1.TabIndex = 23;
             this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Orientation";
+            this.groupBox1.Text = "Strings are";
             // 
             // label2
             // 
@@ -296,15 +297,15 @@
             this.blackCheckBox.Text = "Black is Transparent";
             this.blackCheckBox.UseVisualStyleBackColor = true;
             // 
-            // button1
+            // assignButton
             // 
-            this.button1.Location = new System.Drawing.Point(97, 23);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
-            this.button1.TabIndex = 32;
-            this.button1.Text = "Assign";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.assignButton.Location = new System.Drawing.Point(97, 23);
+            this.assignButton.Name = "assignButton";
+            this.assignButton.Size = new System.Drawing.Size(75, 23);
+            this.assignButton.TabIndex = 32;
+            this.assignButton.Text = "Assign";
+            this.assignButton.UseVisualStyleBackColor = true;
+            this.assignButton.Click += new System.EventHandler(this.assignButton_Click);
             // 
             // label6
             // 
@@ -345,9 +346,9 @@
             // 
             // clearButton
             // 
-            this.clearButton.Location = new System.Drawing.Point(27, 469);
+            this.clearButton.Location = new System.Drawing.Point(602, 318);
             this.clearButton.Name = "clearButton";
-            this.clearButton.Size = new System.Drawing.Size(70, 23);
+            this.clearButton.Size = new System.Drawing.Size(75, 23);
             this.clearButton.TabIndex = 37;
             this.clearButton.Text = "Clear";
             this.clearButton.UseVisualStyleBackColor = true;
@@ -360,6 +361,25 @@
             this.phonemeLabel.TabIndex = 38;
             this.phonemeLabel.Text = "Phoneme";
             this.phonemeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // importButton
+            // 
+            this.importButton.Location = new System.Drawing.Point(602, 224);
+            this.importButton.Name = "importButton";
+            this.importButton.Size = new System.Drawing.Size(75, 23);
+            this.importButton.TabIndex = 39;
+            this.importButton.Text = "Import";
+            this.importButton.UseVisualStyleBackColor = true;
+            this.importButton.Click += new System.EventHandler(this.importButton_Click);
+            // 
+            // exportButton
+            // 
+            this.exportButton.Location = new System.Drawing.Point(602, 253);
+            this.exportButton.Name = "exportButton";
+            this.exportButton.Size = new System.Drawing.Size(75, 23);
+            this.exportButton.TabIndex = 40;
+            this.exportButton.Text = "Export";
+            this.exportButton.UseVisualStyleBackColor = true;
             // 
             // lipSyncMapColorCtrl1
             // 
@@ -380,13 +400,15 @@
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.CancelButton = this.buttonCancel;
             this.ClientSize = new System.Drawing.Size(687, 509);
+            this.Controls.Add(this.exportButton);
+            this.Controls.Add(this.importButton);
             this.Controls.Add(this.phonemeLabel);
             this.Controls.Add(this.clearButton);
             this.Controls.Add(this.nextPhonemeButton);
             this.Controls.Add(this.prevPhonemeButton);
             this.Controls.Add(this.phonemePicture);
             this.Controls.Add(this.label6);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.assignButton);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.startingElementCombo);
@@ -440,7 +462,7 @@
         private System.Windows.Forms.NumericUpDown pixelsUpDown;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.TrackBar zoomTrackbar;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button assignButton;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.CheckBox blackCheckBox;
         private System.Windows.Forms.PictureBox phonemePicture;
@@ -448,6 +470,8 @@
         private System.Windows.Forms.Button nextPhonemeButton;
         private System.Windows.Forms.Button clearButton;
         private System.Windows.Forms.Label phonemeLabel;
+        private System.Windows.Forms.Button importButton;
+        private System.Windows.Forms.Button exportButton;
 
     }
 }

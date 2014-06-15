@@ -17,6 +17,13 @@ namespace VixenModules.App.LipSyncApp
             MapItems = new List<LipSyncMapItem>();
             MapItems.Add(new LipSyncMapItem());
             IsDefaultMapping = false;
+            MatrixStringCount = 1;
+            MatrixPixelsPerString = 1;
+            IsMatrix = false;
+            StartNode = "";
+            ZoomLevel = 1;
+            Horizontal = true;
+            Vertical = false;
         }
 
         public LipSyncMapData(List<string> stringNames)
@@ -27,7 +34,13 @@ namespace VixenModules.App.LipSyncApp
             {
                 MapItems.Add(new LipSyncMapItem(stringName,stringNum++));
             }
-
+            MatrixStringCount = 1;
+            MatrixPixelsPerString = 1;
+            IsMatrix = false;
+            StartNode = "";
+            ZoomLevel = 1;
+            Horizontal = true;
+            Vertical = false;
         }
 
         public LipSyncMapData(LipSyncMapData data)
@@ -37,6 +50,13 @@ namespace VixenModules.App.LipSyncApp
             LibraryReferenceName = (string)data.LibraryReferenceName.Clone();
             IsDefaultMapping = data.IsDefaultMapping;
             StringCount = data.StringCount;
+            MatrixStringCount = data.MatrixStringCount;
+            MatrixPixelsPerString = data.MatrixPixelsPerString;
+            IsMatrix = data.IsMatrix;
+            StartNode = data.StartNode;
+            ZoomLevel = data.ZoomLevel;
+            Horizontal = data.Horizontal;
+            Vertical = data.Vertical;
         }
 
         public override IModuleDataModel Clone()
@@ -46,11 +66,40 @@ namespace VixenModules.App.LipSyncApp
             newInstance.StringCount = StringCount;
             newInstance.LibraryReferenceName = LibraryReferenceName;
             newInstance.IsDefaultMapping = false;
+            newInstance.IsMatrix = IsMatrix;
+            newInstance.MatrixPixelsPerString = MatrixPixelsPerString;
+            newInstance.MatrixStringCount = MatrixStringCount;
+            newInstance.StartNode = StartNode;
+            newInstance.ZoomLevel = ZoomLevel;
+            newInstance.Horizontal = Horizontal;
+            newInstance.Vertical = Vertical;
+
             return newInstance;
         }
 
         [DataMember]
         public int StringCount { get; set; }
+
+        [DataMember]
+        public int MatrixStringCount { get; set; }
+
+        [DataMember]
+        public int MatrixPixelsPerString { get; set; }
+
+        [DataMember]
+        public bool IsMatrix { get; set; }
+
+        [DataMember]
+        public string StartNode { get; set; }
+
+        [DataMember]
+        public int ZoomLevel { get; set; }
+
+        [DataMember]
+        public bool Horizontal { get; set; }
+
+        [DataMember]
+        public bool Vertical { get; set; }
 
         [DataMember]
         public List<LipSyncMapItem> MapItems { get; set; }

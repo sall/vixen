@@ -413,7 +413,6 @@ namespace VixenModules.App.LipSyncApp
 
         private void Assign_Click(object sender, EventArgs e)
         {
-            int stringNum = 0;
             LipSyncNodeSelect nodeSelectDlg = new LipSyncNodeSelect();
             nodeSelectDlg.NodeNames = _rowNames;
 
@@ -460,14 +459,7 @@ namespace VixenModules.App.LipSyncApp
 
         private void matrixEditorBn_Click(object sender, EventArgs e)
         {
-            BuilMapDataFromDialog();
-            LipSyncMapMatrixEditor matrixEditor = new LipSyncMapMatrixEditor(MapData);
-            DialogResult dr = matrixEditor.ShowDialog();
-            if (dr == DialogResult.OK)
-            {
-                MapData = matrixEditor.MapData;
-                reconfigureDataTable();
-            }
+            _mapping.IsMatrix = true;
         } 
     }
 }

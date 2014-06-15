@@ -168,9 +168,74 @@ namespace VixenModules.App.LipSyncApp
             return true;
         }
 
+        private bool EditStringMapping(string name, LipSyncMapData newMapping)
+        {
+            bool retVal = false;
+            bool doRemove = true;
+            LipSyncMapEditor editor = new LipSyncMapEditor(newMapping);
+            editor.LibraryMappingName = name;
+
+            if (editor.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                if ((name.Equals(editor.LibraryMappingName) == false) &&
+                    (this.Contains(editor.LibraryMappingName) == true))
+                {
+                    DialogResult dr =
+                        MessageBox.Show("Overwrite existing " +
+                            editor.LibraryMappingName + " mapping?",
+                            "Map exists",
+                            MessageBoxButtons.YesNo);
+
+                    doRemove = (dr == DialogResult.Yes) ? true : false;
+                }
+
+                if (doRemove == true)
+                {
+                    RemoveMapping(name);
+                }
+
+                AddMapping(!doRemove, editor.LibraryMappingName, editor.MapData);
+                retVal = true;
+            }
+
+            return retVal;
+        }
+
+        private bool EditMatrixMapping(string name, LipSyncMapData newMapping)
+        {
+            bool retVal = false;
+            bool doRemove = true;
+            LipSyncMapMatrixEditor editor = new LipSyncMapMatrixEditor(newMapping);
+            editor.LibraryMappingName = name;
+
+            if (editor.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                if ((name.Equals(editor.LibraryMappingName) == false) &&
+                    (this.Contains(editor.LibraryMappingName) == true))
+                {
+                    DialogResult dr =
+                        MessageBox.Show("Overwrite existing " +
+                            editor.LibraryMappingName + " mapping?",
+                            "Map exists",
+                            MessageBoxButtons.YesNo);
+
+                    doRemove = (dr == DialogResult.Yes) ? true : false;
+                }
+
+                if (doRemove == true)
+                {
+                    RemoveMapping(name);
+                }
+
+                AddMapping(!doRemove, editor.LibraryMappingName, editor.MapData);
+                retVal = true;
+            }
+
+            return retVal;
+        }
+
         public bool EditLibraryMapping(string name)
         {
-            bool doRemove = true;
             bool retVal = false;
             LipSyncMapData origMapping = GetMapping(name);
 
@@ -178,35 +243,15 @@ namespace VixenModules.App.LipSyncApp
             {
                 LipSyncMapData newMapping = new LipSyncMapData(origMapping);
 
-                LipSyncMapEditor editor = new LipSyncMapEditor(newMapping);
-                editor.LibraryMappingName = name;
-
-                if (editor.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                if (newMapping.IsMatrix == false)
                 {
-                    if ((name.Equals(editor.LibraryMappingName) == false) &&
-                        (this.Contains(editor.LibraryMappingName) == true)) 
-                    {
-                        DialogResult dr =
-                            MessageBox.Show("Overwrite existing " + 
-                                editor.LibraryMappingName + " mapping?", 
-                                "Map exists", 
-                                MessageBoxButtons.YesNo);
-
-                        doRemove = (dr == DialogResult.Yes) ? true : false;
-                    }
-
-                    if (doRemove == true)
-                    {
-                        RemoveMapping(name);
-                    }
-                    
-                    AddMapping(!doRemove,editor.LibraryMappingName, editor.MapData);
-                    retVal = true;
+                    retVal = EditStringMapping(name, newMapping);
+                }
+                else
+                {
+                    retVal = EditMatrixMapping(name, newMapping);
                 }
             }
-
-
-
             return retVal;
         }
 

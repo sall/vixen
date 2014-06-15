@@ -13,16 +13,21 @@ namespace VixenModules.App.LipSyncApp
     public partial class LipSyncMapMatrixEditor : Form
     {
         private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
-        private LipSyncMapData _mapping;
-        private DataTable currentDataTable;
-        private static Dictionary<string, Bitmap> _phonemeBitmaps = null;
+        private LipSyncMapData _origMapping;
+        private LipSyncMapData _newMapping;
+        private Dictionary<PhonemeType, DataTable> dataTables;
+        private static Dictionary<PhonemeType, Bitmap> _phonemeBitmaps = null;
         private List<string> _rowNames = null;
-        private bool _doMatrixUpdate = false;
+        private bool _doMatrixUpdate = true;
         private int zoomSteps = 1;
         private const int ZOOM_STEP_DELTA = 1;
         private const int CELL_BASE_WIDTH = 50;
         private int currentPhonemeIndex;
-        private string[] phonemeNames;
+        private PhonemeType[] phonemeArray;
+        private bool verticalChecked;
+        private bool horizontalChecked;
+        
+        
 
         public LipSyncMapMatrixEditor()
         {
@@ -30,19 +35,18 @@ namespace VixenModules.App.LipSyncApp
             this.LibraryMappingName = "Default";
             InitializeComponent();
             LoadResourceBitmaps();
+            dataTables = new Dictionary<PhonemeType, DataTable>();
         }
 
         public LipSyncMapMatrixEditor(LipSyncMapData mapData)
         {
             InitializeComponent();
-            _doMatrixUpdate = false;
             LoadResourceBitmaps();
-            this.MapData = mapData;
-            _doMatrixUpdate = true;
+            dataTables = new Dictionary<PhonemeType, DataTable>();
+            this.MapData = (LipSyncMapData)mapData.Clone();
         }
 
         private string _name;
-
         public string LibraryMappingName
         {
             get { return _name; }
@@ -52,28 +56,30 @@ namespace VixenModules.App.LipSyncApp
             }
         }
 
-        private int CalcNumDataGridRows()
+        private int CalcNumDataGridRows
         {
-            return (horizontalRadio.Checked) ?
-                Convert.ToInt32(stringsUpDown.Value) : Convert.ToInt32(pixelsUpDown.Value);
+            get
+            {
+                return (horizontalChecked) ?
+                    Convert.ToInt32(stringsUpDown.Value) : Convert.ToInt32(pixelsUpDown.Value);
+            }
         }
 
-        private int CalcNumDataGridCols()
+        private int CalcNumDataGridCols
         {
-            return (horizontalRadio.Checked) ?
-                Convert.ToInt32(pixelsUpDown.Value) : Convert.ToInt32(stringsUpDown.Value);
+            get
+            {
+                return (horizontalChecked) ?
+                    Convert.ToInt32(pixelsUpDown.Value) : Convert.ToInt32(stringsUpDown.Value);
+            }
         }
 
         private LipSyncMapItem FindRenderMapItem (int row, int column)
         {
-
-            int numCols = CalcNumDataGridCols();
-            int numRows = CalcNumDataGridRows();
-
-            int displayRow = (horizontalRadio.Checked) ? row : column;
-            int displayCol = (verticalRadio.Checked) ? row : column;
+            int displayRow = (horizontalChecked) ? row : column;
+            int displayCol = (verticalChecked) ? row : column;
             
-            int startMapIndex = _mapping.MapItems.FindIndex(
+            int startMapIndex = _newMapping.MapItems.FindIndex(
             delegate(LipSyncMapItem mapItem)
             {
                 return mapItem.Name.Equals(startingElementCombo.Text);
@@ -82,51 +88,71 @@ namespace VixenModules.App.LipSyncApp
             LipSyncMapItem retVal = null;
 
 
-            int calcIndex = (horizontalRadio.Checked) ? 
-                ((numCols * row) + column) + startMapIndex : ((numRows * column) + row) + startMapIndex;
+            int calcIndex = (horizontalChecked) ? 
+                ((CalcNumDataGridCols * row) + column) + startMapIndex : ((CalcNumDataGridRows * column) + row) + startMapIndex;
 
-            if (calcIndex < _mapping.MapItems.Count)
+            if (calcIndex < _newMapping.MapItems.Count)
             {
-                retVal = _mapping.MapItems.ElementAt(calcIndex);
+                retVal = _newMapping.MapItems.ElementAt(calcIndex);
             }
 
             return retVal;
         }
 
-        private DataTable BuildDialogFromMap(LipSyncMapData data)
+        private DataTable BuildBlankTable()
         {
-
-            int numCols = CalcNumDataGridCols();
-            int numRows = CalcNumDataGridRows();
-
             DataTable dt = new DataTable(_name);
 
-            _name = data.LibraryReferenceName;
+            int cols = CalcNumDataGridCols;
+            int rows = CalcNumDataGridRows;
 
-            for (int col = 0; col < numCols; col++)
+            for (int col = 0; col < cols; col++)
             {
                 dt.Columns.Add(col.ToString(), typeof(Color));
             }
 
-            for (int row = 0; row < numRows; row++)
+            for (int row = 0; row < rows; row++)
             {
                 DataRow dr = dt.Rows.Add();
+
+                for (int col = 0; col < cols; col++)
+                {
+                    dr[col] = Color.Black;
+                }
             }
+            return dt;
+        }
+
+        private DataTable BuildDialogFromMap(LipSyncMapData data)
+        {
+            _name = data.LibraryReferenceName;
+
+            stringsUpDown.Value = (Decimal)_newMapping.MatrixStringCount;
+            pixelsUpDown.Value = (Decimal)_newMapping.MatrixPixelsPerString;
+            zoomTrackbar.Value = _newMapping.ZoomLevel;
+            horizontalRadio.Checked = _newMapping.Horizontal;
+            verticalRadio.Checked = _newMapping.Vertical;
+
+            DataTable dt = BuildBlankTable();
+            int cols = CalcNumDataGridCols;
+            int rows = CalcNumDataGridRows;
 
             LipSyncMapItem mapItem = null;
 
-            for (int row = 0; row < numRows; row++ )
+            DataRow dr;
+            for (int row = 0; row < rows; row++)
             {
-                for (int col = 0; col < numCols; col++)
+                dr = dt.Rows[row];
+                for (int col = 0; col < cols; col++)
                 {
                     mapItem = FindRenderMapItem(row,col);
-                    DataRow dr = dt.Rows[row];
+                    
 
                     if (mapItem != null)
                     {
-                        dr[col] = 
-                            (mapItem.PhonemeList[CurrentPhonemeString] == false) ? 
-                            Color.Black : mapItem.ElementColor;
+                        dr[col] =
+                            (mapItem.ElementColors.ContainsKey(phonemeArray[currentPhonemeIndex]) == false) ?
+                                Color.Black : mapItem.ElementColors[phonemeArray[currentPhonemeIndex]];
                     }
                     else
                     {
@@ -136,14 +162,6 @@ namespace VixenModules.App.LipSyncApp
             }
 
             return dt;
-        }
-
-        private string CurrentPhonemeString 
-        {
-            get
-            {
-                return phonemeNames[currentPhonemeIndex];
-            }
         }
 
         private ElementNode FindElementNode(string elementName)
@@ -166,40 +184,61 @@ namespace VixenModules.App.LipSyncApp
             return theNode;
         }
 
-        private void BuilMapDataFromDialog()
+        private void BuildMapDataFromDialog()
         {
-            int currentRow = 0;
+            BuildMapDataFromDialog(phonemeArray[currentPhonemeIndex]);
+        }
 
-            _mapping.StringCount = _rowNames.Count();
-            _mapping.MapItems.Clear();
+        private void BuildMapDataFromDialog(PhonemeType phoneme)
+        {
+            LipSyncMapItem mapItem;
+            int numRows = CalcNumDataGridRows;
+            int numCols = CalcNumDataGridCols;
 
-            for (int stringNum = 0; stringNum < _rowNames.Count; stringNum++)
+            for (int row = 0; row < numRows; row++)
             {
-                DataRow dr = currentDataTable.Rows[currentRow];
-                string elementName = dr[0].ToString();
-                LipSyncMapItem item = new LipSyncMapItem();
-                ElementNode theNode = FindElementNode(elementName);
-                    
-                item.Name = dr[0].ToString();
-                item.ElementGuid = theNode.Id;
-                item.StringNum = stringNum;
+                DataRow dr = currentDataTable.Rows[row];
 
-                for (int theCount = 1; theCount < dr.ItemArray.Count() - 1; theCount++) 
+                for (int col = 0; col < numCols; col++)
                 {
-                    bool checkVal =
-                        (dr[theCount].GetType() == typeof(Boolean)) ? (Boolean)dr[theCount] : false;
-                    item.PhonemeList.Add(
-                        dr.Table.Columns[theCount].ColumnName, checkVal
-                        );
+                    mapItem = FindRenderMapItem(row, col);
+                    if (mapItem != null)
+                    {
+                        if (mapItem.ElementColors == null)
+                        {
+                            mapItem.ElementColors = new Dictionary<PhonemeType, Color>();
+                        }
+                        mapItem.ElementColors[phoneme] = (Color)dr[col];
+                    }
                 }
-                item.ElementColor = (Color)dr[dr.ItemArray.Count() - 1];
+            }
 
-                _mapping.MapItems.Add(item);
-                currentRow++;
-                if (currentRow >= currentDataTable.Rows.Count)
+            _newMapping.IsMatrix = true;
+            _newMapping.MatrixStringCount = Convert.ToInt32(stringsUpDown.Value);
+            _newMapping.MatrixPixelsPerString = Convert.ToInt32(pixelsUpDown.Value);
+            _newMapping.StartNode = startingElementCombo.Text;
+            _newMapping.ZoomLevel = zoomTrackbar.Value;
+            _newMapping.Horizontal = horizontalRadio.Checked;
+            _newMapping.Vertical = verticalRadio.Checked;
+
+        }
+
+        private DataTable currentDataTable
+        {
+            get
+            {
+                PhonemeType currentPhoneme = phonemeArray[currentPhonemeIndex];
+
+                if (!dataTables.ContainsKey(currentPhoneme))
                 {
-                    return;
+                    dataTables.Add(currentPhoneme, BuildBlankTable());
                 }
+                return dataTables[currentPhoneme];
+            }
+
+            set
+            {
+                dataTables[phonemeArray[currentPhonemeIndex]] = value;
             }
         }
 
@@ -207,18 +246,19 @@ namespace VixenModules.App.LipSyncApp
         {
             get
             {
-                BuilMapDataFromDialog();
-                return _mapping;
+                return _newMapping;
             }
 
             set
             {
                 ElementNode tempNode = null;
-                _mapping = value;
+                _origMapping = value;
+                _newMapping = (LipSyncMapData)_origMapping.Clone();
+
                 _rowNames = new List<string>();
                 try
                 {
-                    foreach(LipSyncMapItem mapItem in _mapping.MapItems)
+                    foreach(LipSyncMapItem mapItem in _newMapping.MapItems)
                     {
                         tempNode = VixenSystem.Nodes.GetElementNode(mapItem.ElementGuid);
                         if (tempNode == null)
@@ -237,10 +277,6 @@ namespace VixenModules.App.LipSyncApp
                     }
                 }
                 catch (Exception e) { };
-
-                configureStartingElementCombo();
-                currentDataTable = BuildDialogFromMap(value);
-                updatedataGridView1();
             }
         }
 
@@ -251,27 +287,37 @@ namespace VixenModules.App.LipSyncApp
 
         private void NextPhonmeIndex()
         {
+            BuildMapDataFromDialog(); 
             currentPhonemeIndex++;
-            currentPhonemeIndex %= phonemeNames.Count();
+            currentPhonemeIndex %= phonemeArray.Count();
             SetPhonemePicture();
-            currentDataTable = BuildDialogFromMap(_mapping);
+            currentDataTable = BuildDialogFromMap(_newMapping);
             updatedataGridView1();
         }
 
         private void PrevPhonemeIndex()
         {
+            BuildMapDataFromDialog();
             currentPhonemeIndex = 
-                (currentPhonemeIndex == 0) ? phonemeNames.Count() : currentPhonemeIndex;
+                (currentPhonemeIndex == 0) ? phonemeArray.Count() : currentPhonemeIndex;
             currentPhonemeIndex--;
             SetPhonemePicture();
-            currentDataTable = BuildDialogFromMap(_mapping);
+            currentDataTable = BuildDialogFromMap(_newMapping);
             updatedataGridView1();
+        }
+
+        private string CurrentPhonemeString
+        {
+            get
+            {
+                return phonemeArray[currentPhonemeIndex].ToString();
+            }
         }
 
         private void SetPhonemePicture()
         {
             phonemePicture.Image = 
-                new Bitmap(_phonemeBitmaps[CurrentPhonemeString], 48, 48);
+                new Bitmap(_phonemeBitmaps[phonemeArray[currentPhonemeIndex]], 48, 48);
             phonemeLabel.Text = CurrentPhonemeString;
         }
 
@@ -283,35 +329,36 @@ namespace VixenModules.App.LipSyncApp
                 if (assembly != null)
                 {
                     ResourceManager lipSyncRM = new ResourceManager("VixenModules.App.LipSyncApp.LipSyncResources", assembly);
-                    _phonemeBitmaps = new Dictionary<string, Bitmap>();
-                    _phonemeBitmaps.Add("AI", (Bitmap)lipSyncRM.GetObject("AI"));
-                    _phonemeBitmaps.Add("E", (Bitmap)lipSyncRM.GetObject("E"));
-                    _phonemeBitmaps.Add("ETC", (Bitmap)lipSyncRM.GetObject("etc"));
-                    _phonemeBitmaps.Add("FV", (Bitmap)lipSyncRM.GetObject("FV"));
-                    _phonemeBitmaps.Add("L", (Bitmap)lipSyncRM.GetObject("L"));
-                    _phonemeBitmaps.Add("MBP", (Bitmap)lipSyncRM.GetObject("MBP"));
-                    _phonemeBitmaps.Add("O", (Bitmap)lipSyncRM.GetObject("O"));
-                    _phonemeBitmaps.Add("REST", (Bitmap)lipSyncRM.GetObject("rest"));
-                    _phonemeBitmaps.Add("U", (Bitmap)lipSyncRM.GetObject("U"));
-                    _phonemeBitmaps.Add("WQ", (Bitmap)lipSyncRM.GetObject("WQ"));
+                    _phonemeBitmaps = new Dictionary<PhonemeType, Bitmap>();
+                    _phonemeBitmaps.Add(PhonemeType.AI, (Bitmap)lipSyncRM.GetObject("AI"));
+                    _phonemeBitmaps.Add(PhonemeType.E, (Bitmap)lipSyncRM.GetObject("E"));
+                    _phonemeBitmaps.Add(PhonemeType.etc, (Bitmap)lipSyncRM.GetObject("etc"));
+                    _phonemeBitmaps.Add(PhonemeType.FV, (Bitmap)lipSyncRM.GetObject("FV"));
+                    _phonemeBitmaps.Add(PhonemeType.L, (Bitmap)lipSyncRM.GetObject("L"));
+                    _phonemeBitmaps.Add(PhonemeType.MBP, (Bitmap)lipSyncRM.GetObject("MBP"));
+                    _phonemeBitmaps.Add(PhonemeType.O, (Bitmap)lipSyncRM.GetObject("O"));
+                    _phonemeBitmaps.Add(PhonemeType.Rest, (Bitmap)lipSyncRM.GetObject("rest"));
+                    _phonemeBitmaps.Add(PhonemeType.U, (Bitmap)lipSyncRM.GetObject("U"));
+                    _phonemeBitmaps.Add(PhonemeType.WQ, (Bitmap)lipSyncRM.GetObject("WQ"));
                 }
             }
 
-            phonemeNames = _phonemeBitmaps.Keys.ToArray();
             currentPhonemeIndex = 0;
+            phonemeArray = _phonemeBitmaps.Keys.ToArray();
             SetPhonemePicture();
         }
 
         private void configureStartingElementCombo()
         {
             startingElementCombo.Items.Clear();
-            startingElementCombo.Items.AddRange(_mapping.MapItems.ToArray());
+            startingElementCombo.Items.AddRange(_newMapping.MapItems.ToArray());
             startingElementCombo.SelectedIndex = 0;
         }
         private void LipSyncMapSetup_Load(object sender, EventArgs e)
         {
-            updatedataGridView1();
             configureStartingElementCombo();
+            currentDataTable = BuildDialogFromMap(_newMapping);
+            updatedataGridView1();
         }
 
         private void updatedataGridView1()
@@ -325,8 +372,8 @@ namespace VixenModules.App.LipSyncApp
             dataGridView1.RowHeadersVisible = true;
             dataGridView1.DataSource = currentDataTable;
 
-            int x = CalcNumDataGridCols();
-            int y = CalcNumDataGridRows();
+            int x = CalcNumDataGridCols;
+            int y = CalcNumDataGridRows;
 
             DataGridViewColumn dgvCol;
             for (int j = 0; j < dataGridView1.Columns.Count; j++)
@@ -334,7 +381,7 @@ namespace VixenModules.App.LipSyncApp
                 dgvCol = dataGridView1.Columns[j];
                 dgvCol.Width = CELL_BASE_WIDTH + (int)(ZOOM_STEP_DELTA * zoomSteps);
                 dgvCol.SortMode = DataGridViewColumnSortMode.NotSortable;
-                dgvCol.HeaderCell.Value = (verticalRadio.Checked) ? (j * y).ToString() : j.ToString();
+                dgvCol.HeaderCell.Value = (verticalChecked) ? (j * y).ToString() : j.ToString();
             }
 
             DataGridViewRow dgvRow;
@@ -342,7 +389,7 @@ namespace VixenModules.App.LipSyncApp
             {
                 dgvRow = dataGridView1.Rows[j];
                 dgvRow.Height = CELL_BASE_WIDTH + (int)(ZOOM_STEP_DELTA * zoomSteps);
-                dgvRow.HeaderCell.Value = (horizontalRadio.Checked) ? (j * x).ToString() : j.ToString();
+                dgvRow.HeaderCell.Value = (horizontalChecked) ? (j * x).ToString() : j.ToString();
             }
         }
 
@@ -394,7 +441,7 @@ namespace VixenModules.App.LipSyncApp
 
         private void buttonOK_Click(object sender, EventArgs e)
         {
-
+            BuildMapDataFromDialog();
         }
 
 
@@ -408,7 +455,7 @@ namespace VixenModules.App.LipSyncApp
             if (_doMatrixUpdate == true)
             {
                 currentDataTable.Rows.Clear();
-                currentDataTable = BuildDialogFromMap(_mapping);
+                currentDataTable = BuildDialogFromMap(_newMapping);
                 updatedataGridView1();
             }
         }
@@ -431,26 +478,26 @@ namespace VixenModules.App.LipSyncApp
             }
         }
 
-        private void dataGridView1_CellValueChanged(object sender, DataGridViewCellEventArgs e)
-        {
-
-        }
-
-        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
-        }
-
         private void colsUpDown_ValueChanged(object sender, EventArgs e)
         {
-            currentDataTable = BuildDialogFromMap(_mapping);
-            updatedataGridView1();
+            if (pixelsUpDown.Value != _newMapping.MatrixPixelsPerString)
+            {
+                _newMapping.MatrixPixelsPerString = (int)pixelsUpDown.Value;
+                currentDataTable = BuildDialogFromMap(_newMapping);
+                updatedataGridView1(); 
+                BuildMapDataFromDialog();
+            }
         }
 
         private void rowsUpDown_ValueChanged(object sender, EventArgs e)
         {
-            currentDataTable = BuildDialogFromMap(_mapping);
-            updatedataGridView1();
+            if (stringsUpDown.Value != _newMapping.MatrixStringCount)
+            {
+                _newMapping.MatrixStringCount = (int)stringsUpDown.Value;
+                currentDataTable = BuildDialogFromMap(_newMapping);
+                BuildMapDataFromDialog();
+                updatedataGridView1();
+            }
         }
 
         private void zoomTrackbar_ValueChanged(object sender, EventArgs e)
@@ -465,17 +512,30 @@ namespace VixenModules.App.LipSyncApp
 
         private void Vertical_CheckedChanged(object sender, EventArgs e)
         {
-            currentDataTable = BuildDialogFromMap(_mapping);
-            updatedataGridView1();
+            //if (verticalRadio.Checked != verticalChecked)
+            //{
+                //BuildMapDataFromDialog();
+                horizontalChecked = horizontalRadio.Checked;
+                verticalChecked = verticalRadio.Checked;
+                //currentDataTable = BuildDialogFromMap(_newMapping);
+                updatedataGridView1();
+            //}
         }
 
         private void Horizontal_CheckedChanged(object sender, EventArgs e)
         {
-            currentDataTable = BuildDialogFromMap(_mapping);
-            updatedataGridView1();
+            //if (horizontalRadio.Checked != horizontalChecked)
+            //{
+
+                //BuildMapDataFromDialog();
+                horizontalChecked = horizontalRadio.Checked;
+                verticalChecked = verticalRadio.Checked;
+                //currentDataTable = BuildDialogFromMap(_newMapping);
+                updatedataGridView1();
+            //}
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void assignButton_Click(object sender, EventArgs e)
         {
             LipSyncNodeSelect nodeSelectDlg = new LipSyncNodeSelect();
             nodeSelectDlg.NodeNames = _rowNames;
@@ -491,7 +551,7 @@ namespace VixenModules.App.LipSyncApp
 
                 foreach (string nodeName in nodeSelectDlg.NodeNames)
                 {
-                    tempMapItem = _mapping.MapItems.Find(
+                    tempMapItem = _newMapping.MapItems.Find(
                         delegate(LipSyncMapItem item)
                         {
                             return item.Name.Equals(nodeName);
@@ -507,13 +567,13 @@ namespace VixenModules.App.LipSyncApp
                     }
                 }
 
-                _mapping.MapItems.Clear();
+                _newMapping.MapItems.Clear();
 
                 int stringCount = 0;
                 foreach (LipSyncMapItem mapItem in newMappings)
                 {
                     mapItem.StringNum = stringCount++;
-                    _mapping.MapItems.Add(mapItem);
+                    _newMapping.MapItems.Add(mapItem);
                 }
 
                 configureStartingElementCombo();
@@ -523,8 +583,11 @@ namespace VixenModules.App.LipSyncApp
 
         private void startingElementCombo_SelectedIndexChanged(object sender, EventArgs e)
         {
-            currentDataTable = BuildDialogFromMap(_mapping);
-            updatedataGridView1();
+            if (!startingElementCombo.Text.Equals(_newMapping.StartNode))
+            {
+                currentDataTable = BuildDialogFromMap(_newMapping);
+                updatedataGridView1();
+            }
         }
 
         private void prevPhonemeButton_Click(object sender, EventArgs e)
@@ -535,6 +598,44 @@ namespace VixenModules.App.LipSyncApp
         private void nextPhonemeButton_Click(object sender, EventArgs e)
         {
             NextPhonmeIndex();
+        }
+
+        private void importButton_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog fileDlg = new OpenFileDialog();
+            fileDlg.Filter = "Image Files (*.bmp, *.jpg, *.png)|*.bmp;*.jpg;*.png|All Files(*.*)|*.*";
+            DialogResult result = fileDlg.ShowDialog();
+            if (result == DialogResult.OK)
+            {
+                LipSyncMapItem mapItem;
+                Color pixelColor;
+
+                Bitmap rawBitmap = new Bitmap(fileDlg.FileName);
+                Bitmap scaledBitmap = new Bitmap(rawBitmap, CalcNumDataGridCols, CalcNumDataGridRows);
+                
+                int cols = CalcNumDataGridCols;
+                int rows = CalcNumDataGridRows;
+                for (int row = 0; row < rows; row++)
+                {
+                    DataRow dr = currentDataTable.Rows[row];
+                    for (int col = 0; col < cols; col++)
+                    {
+                        mapItem = FindRenderMapItem(row, col);
+                        if (mapItem != null)
+                        {
+                            pixelColor = scaledBitmap.GetPixel(col,row);
+                            dr[col] = pixelColor;
+                            mapItem.PhonemeList[CurrentPhonemeString] = (pixelColor != Color.Black);
+                        }
+                        else
+                        {
+                            dr[col] = Color.Gray;
+                        }
+                    }
+                }
+                BuildDialogFromMap(_newMapping);
+                updatedataGridView1();
+            }
         }
     }
 }
