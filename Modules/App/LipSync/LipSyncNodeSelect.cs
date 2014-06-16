@@ -19,6 +19,41 @@ namespace VixenModules.App.LipSyncApp
             InitializeComponent();
             Changed = false;
             _userAdd = false;
+            _matrixOptsOnly = false;
+        }
+        
+        private bool _matrixOptsOnly;
+
+        public bool StringsAreRows
+        {
+            get
+            {
+                return rowsRadioButton.Checked;
+            }
+
+            set
+            {
+                rowsRadioButton.Checked = value;
+                colsRadioButton.Checked = !value;
+            }
+        }
+
+        public bool MatrixOptionsOnly
+        {
+            get
+            {
+                return _matrixOptsOnly;
+            }
+
+            set
+            {
+                _matrixOptsOnly = value;
+                stringsGroupBox.Visible = _matrixOptsOnly;
+                rowsRadioButton.Visible = _matrixOptsOnly;
+                colsRadioButton.Visible = _matrixOptsOnly;
+                allowGroupsCheckbox.Checked = false;
+                allowGroupsCheckbox.Visible = !_matrixOptsOnly;
+            }
         }
 
         public bool Changed { get; set; }

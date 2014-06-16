@@ -199,9 +199,20 @@ namespace VixenModules.App.LipSyncApp
 
         private void buttonNewMap_Click(object sender, EventArgs e)
         {
-            string mapName = _library.AddMapping(true,null, new LipSyncMapData());
-            Library.EditLibraryMapping(mapName);
-            this.PopulateListWithMappings();
+            LipSyncNewMapType newMapTypeselector = new LipSyncNewMapType();
+            DialogResult dr = newMapTypeselector.ShowDialog();
+            if (dr == DialogResult.OK)
+            {
+                string mapName = _library.AddMapping(
+                    true, 
+                    null, 
+                    new LipSyncMapData(),
+                    newMapTypeselector.matrixMappingRadio.Checked);
+                
+                Library.EditLibraryMapping(mapName);
+                this.PopulateListWithMappings();
+            }
+
         }
 
         private void listViewMappings_KeyDown(object sender, KeyEventArgs e)

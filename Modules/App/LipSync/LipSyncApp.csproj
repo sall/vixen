@@ -125,6 +125,12 @@
       <DependentUpon>LipSyncMapSelector.cs</DependentUpon>
     </Compile>
     <Compile Include="LipSyncMapStaticData.cs" />
+    <Compile Include="LipSyncNewMapType.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="LipSyncNewMapType.Designer.cs">
+      <DependentUpon>LipSyncNewMapType.cs</DependentUpon>
+    </Compile>
     <Compile Include="LipSyncNodeSelect.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -188,6 +194,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="LipSyncMapSelector.resx">
       <DependentUpon>LipSyncMapSelector.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="LipSyncNewMapType.resx">
+      <DependentUpon>LipSyncNewMapType.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="LipSyncNodeSelect.resx">
       <DependentUpon>LipSyncNodeSelect.cs</DependentUpon>

@@ -121,7 +121,7 @@ namespace VixenModules.App.LipSyncApp
                 return null;
         }
 
-        public string AddMapping(bool insertNew, string name, LipSyncMapData mapping)
+        public string AddMapping(bool insertNew, string name, LipSyncMapData mapping, bool isMatrix = false)
         {
 
             string mapName = name;
@@ -149,6 +149,7 @@ namespace VixenModules.App.LipSyncApp
             }
             mapping.IsCurrentLibraryMapping = true;
             mapping.LibraryReferenceName = mapName;
+            mapping.IsMatrix = isMatrix;
             Library[mapName] = (insertNew) ? (LipSyncMapData)mapping.Clone() : mapping;
             return mapName;
         }
@@ -205,6 +206,7 @@ namespace VixenModules.App.LipSyncApp
         {
             bool retVal = false;
             bool doRemove = true;
+
             LipSyncMapMatrixEditor editor = new LipSyncMapMatrixEditor(newMapping);
             editor.LibraryMappingName = name;
 
@@ -227,7 +229,7 @@ namespace VixenModules.App.LipSyncApp
                     RemoveMapping(name);
                 }
 
-                AddMapping(!doRemove, editor.LibraryMappingName, editor.MapData);
+                AddMapping(!doRemove, editor.LibraryMappingName, editor.MapData,true);
                 retVal = true;
             }
 

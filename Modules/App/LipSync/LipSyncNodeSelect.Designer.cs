@@ -38,6 +38,10 @@
             this.nodeTreeView = new Common.Controls.MultiSelectTreeview();
             this.recurseCB = new System.Windows.Forms.CheckBox();
             this.allowGroupsCheckbox = new System.Windows.Forms.CheckBox();
+            this.rowsRadioButton = new System.Windows.Forms.RadioButton();
+            this.stringsGroupBox = new System.Windows.Forms.GroupBox();
+            this.colsRadioButton = new System.Windows.Forms.RadioButton();
+            this.stringsGroupBox.SuspendLayout();
             this.SuspendLayout();
             // 
             // okButton
@@ -72,9 +76,9 @@
             // 
             // addButton
             // 
-            this.addButton.Location = new System.Drawing.Point(227, 83);
+            this.addButton.Location = new System.Drawing.Point(231, 23);
             this.addButton.Name = "addButton";
-            this.addButton.Size = new System.Drawing.Size(75, 23);
+            this.addButton.Size = new System.Drawing.Size(67, 23);
             this.addButton.TabIndex = 4;
             this.addButton.Text = "->";
             this.addButton.UseVisualStyleBackColor = true;
@@ -82,9 +86,9 @@
             // 
             // removeButton
             // 
-            this.removeButton.Location = new System.Drawing.Point(227, 124);
+            this.removeButton.Location = new System.Drawing.Point(231, 52);
             this.removeButton.Name = "removeButton";
-            this.removeButton.Size = new System.Drawing.Size(75, 23);
+            this.removeButton.Size = new System.Drawing.Size(67, 23);
             this.removeButton.TabIndex = 5;
             this.removeButton.Text = "<-";
             this.removeButton.UseVisualStyleBackColor = true;
@@ -92,9 +96,9 @@
             // 
             // resetButton
             // 
-            this.resetButton.Location = new System.Drawing.Point(227, 166);
+            this.resetButton.Location = new System.Drawing.Point(231, 81);
             this.resetButton.Name = "resetButton";
-            this.resetButton.Size = new System.Drawing.Size(75, 23);
+            this.resetButton.Size = new System.Drawing.Size(67, 23);
             this.resetButton.TabIndex = 6;
             this.resetButton.Text = "Reset";
             this.resetButton.UseVisualStyleBackColor = true;
@@ -122,7 +126,7 @@
             this.recurseCB.AutoSize = true;
             this.recurseCB.Checked = true;
             this.recurseCB.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.recurseCB.Location = new System.Drawing.Point(218, 216);
+            this.recurseCB.Location = new System.Drawing.Point(218, 229);
             this.recurseCB.Name = "recurseCB";
             this.recurseCB.Size = new System.Drawing.Size(103, 17);
             this.recurseCB.TabIndex = 7;
@@ -132,13 +136,46 @@
             // allowGroupsCheckbox
             // 
             this.allowGroupsCheckbox.AutoSize = true;
-            this.allowGroupsCheckbox.Location = new System.Drawing.Point(218, 239);
+            this.allowGroupsCheckbox.Location = new System.Drawing.Point(218, 206);
             this.allowGroupsCheckbox.Name = "allowGroupsCheckbox";
             this.allowGroupsCheckbox.Size = new System.Drawing.Size(88, 17);
             this.allowGroupsCheckbox.TabIndex = 8;
             this.allowGroupsCheckbox.Text = "Allow Groups";
             this.allowGroupsCheckbox.UseVisualStyleBackColor = true;
             this.allowGroupsCheckbox.CheckedChanged += new System.EventHandler(this.allowGroupsCheckbox_CheckedChanged);
+            // 
+            // rowsRadioButton
+            // 
+            this.rowsRadioButton.AutoSize = true;
+            this.rowsRadioButton.Checked = true;
+            this.rowsRadioButton.Location = new System.Drawing.Point(13, 19);
+            this.rowsRadioButton.Name = "rowsRadioButton";
+            this.rowsRadioButton.Size = new System.Drawing.Size(52, 17);
+            this.rowsRadioButton.TabIndex = 9;
+            this.rowsRadioButton.TabStop = true;
+            this.rowsRadioButton.Text = "Rows";
+            this.rowsRadioButton.UseVisualStyleBackColor = true;
+            // 
+            // stringsGroupBox
+            // 
+            this.stringsGroupBox.Controls.Add(this.colsRadioButton);
+            this.stringsGroupBox.Controls.Add(this.rowsRadioButton);
+            this.stringsGroupBox.Location = new System.Drawing.Point(218, 120);
+            this.stringsGroupBox.Name = "stringsGroupBox";
+            this.stringsGroupBox.Size = new System.Drawing.Size(88, 70);
+            this.stringsGroupBox.TabIndex = 10;
+            this.stringsGroupBox.TabStop = false;
+            this.stringsGroupBox.Text = "Strings are";
+            // 
+            // colsRadioButton
+            // 
+            this.colsRadioButton.AutoSize = true;
+            this.colsRadioButton.Location = new System.Drawing.Point(13, 42);
+            this.colsRadioButton.Name = "colsRadioButton";
+            this.colsRadioButton.Size = new System.Drawing.Size(45, 17);
+            this.colsRadioButton.TabIndex = 11;
+            this.colsRadioButton.Text = "Cols";
+            this.colsRadioButton.UseVisualStyleBackColor = true;
             // 
             // LipSyncNodeSelect
             // 
@@ -147,6 +184,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.cancelButton;
             this.ClientSize = new System.Drawing.Size(532, 327);
+            this.Controls.Add(this.stringsGroupBox);
             this.Controls.Add(this.allowGroupsCheckbox);
             this.Controls.Add(this.recurseCB);
             this.Controls.Add(this.resetButton);
@@ -159,6 +197,8 @@
             this.Name = "LipSyncNodeSelect";
             this.Text = "LipSyncNodeSelect";
             this.Load += new System.EventHandler(this.LipSyncNodeSelect_Load);
+            this.stringsGroupBox.ResumeLayout(false);
+            this.stringsGroupBox.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -175,5 +215,8 @@
         private System.Windows.Forms.Button resetButton;
         private System.Windows.Forms.CheckBox recurseCB;
         private System.Windows.Forms.CheckBox allowGroupsCheckbox;
+        private System.Windows.Forms.RadioButton rowsRadioButton;
+        private System.Windows.Forms.GroupBox stringsGroupBox;
+        private System.Windows.Forms.RadioButton colsRadioButton;
     }
 }
