@@ -36,7 +36,6 @@
             this.zoomTrackbar = new System.Windows.Forms.TrackBar();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.blackCheckBox = new System.Windows.Forms.CheckBox();
-            this.lipSyncMapColorCtrl1 = new VixenModules.App.LipSyncApp.LipSyncMapColorCtrl();
             this.assignButton = new System.Windows.Forms.Button();
             this.label6 = new System.Windows.Forms.Label();
             this.clearButton = new System.Windows.Forms.Button();
@@ -48,6 +47,7 @@
             this.nextPhonemeButton = new System.Windows.Forms.Button();
             this.prevPhonemeButton = new System.Windows.Forms.Button();
             this.phonemePicture = new System.Windows.Forms.PictureBox();
+            this.lipSyncMapColorCtrl1 = new VixenModules.App.LipSyncApp.LipSyncMapColorCtrl();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.zoomTrackbar)).BeginInit();
             this.groupBox3.SuspendLayout();
@@ -138,17 +138,6 @@
             this.blackCheckBox.Text = "Black is Transparent";
             this.blackCheckBox.UseVisualStyleBackColor = true;
             // 
-            // lipSyncMapColorCtrl1
-            // 
-            this.lipSyncMapColorCtrl1.Color = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
-            this.lipSyncMapColorCtrl1.HSVColor = ((Common.Controls.ColorManagement.ColorModels.HSV)(resources.GetObject("lipSyncMapColorCtrl1.HSVColor")));
-            this.lipSyncMapColorCtrl1.Intensity = 0D;
-            this.lipSyncMapColorCtrl1.Location = new System.Drawing.Point(4, 14);
-            this.lipSyncMapColorCtrl1.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.lipSyncMapColorCtrl1.Name = "lipSyncMapColorCtrl1";
-            this.lipSyncMapColorCtrl1.Size = new System.Drawing.Size(188, 56);
-            this.lipSyncMapColorCtrl1.TabIndex = 0;
-            // 
             // assignButton
             // 
             this.assignButton.Location = new System.Drawing.Point(296, 28);
@@ -177,6 +166,7 @@
             this.clearButton.TabIndex = 37;
             this.clearButton.Text = "Clear";
             this.clearButton.UseVisualStyleBackColor = true;
+            this.clearButton.Click += new System.EventHandler(this.clearButton_Click);
             // 
             // importButton
             // 
@@ -252,6 +242,17 @@
             this.phonemePicture.Size = new System.Drawing.Size(48, 48);
             this.phonemePicture.TabIndex = 43;
             this.phonemePicture.TabStop = false;
+            // 
+            // lipSyncMapColorCtrl1
+            // 
+            this.lipSyncMapColorCtrl1.Color = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.lipSyncMapColorCtrl1.HSVColor = ((Common.Controls.ColorManagement.ColorModels.HSV)(resources.GetObject("lipSyncMapColorCtrl1.HSVColor")));
+            this.lipSyncMapColorCtrl1.Intensity = 0D;
+            this.lipSyncMapColorCtrl1.Location = new System.Drawing.Point(4, 14);
+            this.lipSyncMapColorCtrl1.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
+            this.lipSyncMapColorCtrl1.Name = "lipSyncMapColorCtrl1";
+            this.lipSyncMapColorCtrl1.Size = new System.Drawing.Size(188, 56);
+            this.lipSyncMapColorCtrl1.TabIndex = 0;
             // 
             // LipSyncMapMatrixEditor
             // 

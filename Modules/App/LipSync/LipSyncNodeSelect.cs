@@ -24,6 +24,8 @@ namespace VixenModules.App.LipSyncApp
         
         private bool _matrixOptsOnly;
 
+        public int MaxNodes { get; set; }
+
         public bool BottomUp
         {
             get
@@ -171,7 +173,7 @@ namespace VixenModules.App.LipSyncApp
                 }
             }
 
-            if (found == false)
+            if ((found == false) && (chosenTargets.Items.Count < MaxNodes))
             {
                 chosenTargets.Items.Add(node);
             }

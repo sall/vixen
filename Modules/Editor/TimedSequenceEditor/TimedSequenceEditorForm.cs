@@ -3159,7 +3159,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
         private void resetLipSyncNodes()
         {
-            foreach (Row row in TimelineControl.VisibleRows)
+            foreach (Row row in TimelineControl.Rows)
             {
                 for (int j = 0; j < row.ElementCount; j++)
                 {
@@ -3167,11 +3167,12 @@ namespace VixenModules.Editor.TimedSequenceEditor
                     IEffectModuleInstance effect = elem._effectNode.Effect;
                     if (effect.GetType() == typeof(LipSync))
                     {
-                        effect.PreRender();
+                        ((LipSync)effect).MakeDirty();
                     }
 
                 }
             }
+            TimelineControl.grid.ResetAllElements();
         }
 
         private void defaultMapToolStripMenuItem_DropDownOpening(object sender, EventArgs e)

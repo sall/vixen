@@ -202,5 +202,9 @@ namespace VixenModules.Effect.LipSync
             }
         }
 
+        public void MakeDirty()
+        {
+            this.IsDirty = true;
+        }
     }
 }

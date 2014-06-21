@@ -104,7 +104,7 @@ namespace VixenModules.App.LipSyncApp
                 calcIndex = (stringsAreRows) ?
                     ((calcGridCols * row) + (calcGridCols - column)) + startMapIndex :
                     ((calcGridRows * column) + (calcGridRows - row)) + startMapIndex;
-                calcIndex--;
+                calcIndex = (calcIndex == 0) ? calcIndex : calcIndex - 1;
             }
             else
             {
@@ -113,7 +113,7 @@ namespace VixenModules.App.LipSyncApp
                     ((calcGridRows * column) + row) + startMapIndex;
             }
 
-            if (calcIndex < _newMapping.MapItems.Count)
+            if ((calcIndex >= 0) && (calcIndex < _newMapping.MapItems.Count))
             {
                 retVal = _newMapping.MapItems.ElementAt(calcIndex);
             }
@@ -260,6 +260,18 @@ namespace VixenModules.App.LipSyncApp
             }
         }
 
+        private void BuildRowNameList()
+        {
+            _rowNames = new List<string>();
+            
+            try
+            {
+                _newMapping.MapItems.ForEach(x => _rowNames.Add(x.Name));
+            }
+            catch (Exception e) { };
+
+        }
+
         public LipSyncMapData MapData
         {
             get
@@ -269,34 +281,12 @@ namespace VixenModules.App.LipSyncApp
 
             set
             {
-                ElementNode tempNode = null;
                 _origMapping = value;
                 _newMapping = (LipSyncMapData)_origMapping.Clone();
 
-                _rowNames = new List<string>();
-                try
-                {
-                    foreach(LipSyncMapItem mapItem in _newMapping.MapItems)
-                    {
-                        tempNode = VixenSystem.Nodes.GetElementNode(mapItem.ElementGuid);
-                        if (tempNode == null)
-                        {
-                            continue;
-                        }
-                        
-                        if (tempNode.Element != null)
-                        {
-                            _rowNames.Add(tempNode.Element.Name);
-                        }
-                        else
-                        {
-                            _rowNames.Add(tempNode.Name);
-                        }
-                    }
-                    zoomSteps = _newMapping.ZoomLevel;
-                    doDataGridResize();
-                }
-                catch (Exception e) { };
+                BuildRowNameList();
+                zoomSteps = _newMapping.ZoomLevel;
+                doDataGridResize();
             }
         }
 
@@ -370,7 +360,11 @@ namespace VixenModules.App.LipSyncApp
 
         private void LipSyncMapSetup_Load(object sender, EventArgs e)
         {
-            assignNodes();
+            if ((_newMapping.MatrixStringCount != 1) && (_newMapping.MapItems.Count == 1))
+            {
+                assignNodes();
+            }
+            
             currentDataTable = BuildDialogFromMap(_newMapping);
             updatedataGridView1();
         }
@@ -569,7 +563,10 @@ namespace VixenModules.App.LipSyncApp
 
         private void assignNodes()
         {
+            BuildRowNameList();
+
             LipSyncNodeSelect nodeSelectDlg = new LipSyncNodeSelect();
+            nodeSelectDlg.MaxNodes = _newMapping.MatrixStringCount * _newMapping.MatrixPixelsPerString;
             nodeSelectDlg.MatrixOptionsOnly = true;
             nodeSelectDlg.StringsAreRows = _newMapping.StringsAreRows;
             nodeSelectDlg.NodeNames = _rowNames;
@@ -614,7 +611,9 @@ namespace VixenModules.App.LipSyncApp
                     _newMapping.MapItems.Add(mapItem);
                 }
 
-                _newMapping.StartNode = _newMapping.MapItems[0].Name;
+                _newMapping.StartNode =
+                    (_newMapping.MapItems.Count != 0) ? _newMapping.MapItems[0].Name : "";
+
                 _newMapping.BottomRight = nodeSelectDlg.BottomRight;
                 reconfigureDataTable();
             }
@@ -707,6 +706,13 @@ namespace VixenModules.App.LipSyncApp
                 }
                 rawBitmap.Save(fileDlg.FileName);
             }
+        }
+
+        private void clearButton_Click(object sender, EventArgs e)
+        {
+            currentDataTable = BuildBlankTable();
+            updatedataGridView1();
+            BuildMapDataFromDialog();
         }
     }
 }
