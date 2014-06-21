@@ -33,13 +33,13 @@
             this.stringMappingRadio = new System.Windows.Forms.RadioButton();
             this.matrixMappingRadio = new System.Windows.Forms.RadioButton();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
-            this.pixelsUpDown = new System.Windows.Forms.NumericUpDown();
             this.stringsUpDown = new System.Windows.Forms.NumericUpDown();
+            this.pixelsUpDown = new System.Windows.Forms.NumericUpDown();
+            this.label3 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pixelsUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.stringsUpDown)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pixelsUpDown)).BeginInit();
             this.SuspendLayout();
             // 
             // okButton
@@ -83,6 +83,7 @@
             this.matrixMappingRadio.TabIndex = 3;
             this.matrixMappingRadio.Text = "Pixel Matrix / Megatree";
             this.matrixMappingRadio.UseVisualStyleBackColor = true;
+            this.matrixMappingRadio.CheckedChanged += new System.EventHandler(this.matrixMappingRadio_CheckedChanged);
             // 
             // groupBox1
             // 
@@ -98,50 +99,6 @@
             this.groupBox1.TabIndex = 4;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Map Type";
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(25, 67);
-            this.label2.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(39, 13);
-            this.label2.TabIndex = 26;
-            this.label2.Text = "Strings";
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(25, 94);
-            this.label3.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(34, 13);
-            this.label3.TabIndex = 27;
-            this.label3.Text = "Pixels";
-            // 
-            // pixelsUpDown
-            // 
-            this.pixelsUpDown.Location = new System.Drawing.Point(76, 91);
-            this.pixelsUpDown.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.pixelsUpDown.Maximum = new decimal(new int[] {
-            999,
-            0,
-            0,
-            0});
-            this.pixelsUpDown.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.pixelsUpDown.Name = "pixelsUpDown";
-            this.pixelsUpDown.Size = new System.Drawing.Size(51, 20);
-            this.pixelsUpDown.TabIndex = 28;
-            this.pixelsUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.pixelsUpDown.Value = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
             // 
             // stringsUpDown
             // 
@@ -166,6 +123,52 @@
             0,
             0,
             0});
+            this.stringsUpDown.ValueChanged += new System.EventHandler(this.stringsUpDown_ValueChanged);
+            // 
+            // pixelsUpDown
+            // 
+            this.pixelsUpDown.Location = new System.Drawing.Point(76, 91);
+            this.pixelsUpDown.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
+            this.pixelsUpDown.Maximum = new decimal(new int[] {
+            999,
+            0,
+            0,
+            0});
+            this.pixelsUpDown.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.pixelsUpDown.Name = "pixelsUpDown";
+            this.pixelsUpDown.Size = new System.Drawing.Size(51, 20);
+            this.pixelsUpDown.TabIndex = 28;
+            this.pixelsUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.pixelsUpDown.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.pixelsUpDown.ValueChanged += new System.EventHandler(this.pixelsUpDown_ValueChanged);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(25, 94);
+            this.label3.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(34, 13);
+            this.label3.TabIndex = 27;
+            this.label3.Text = "Pixels";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(25, 67);
+            this.label2.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(39, 13);
+            this.label2.TabIndex = 26;
+            this.label2.Text = "Strings";
             // 
             // LipSyncNewMapType
             // 
@@ -179,10 +182,11 @@
             this.Controls.Add(this.groupBox1);
             this.Name = "LipSyncNewMapType";
             this.Text = "LipSyncNewMapType";
+            this.Load += new System.EventHandler(this.LipSyncNewMapType_Load);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pixelsUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.stringsUpDown)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pixelsUpDown)).EndInit();
             this.ResumeLayout(false);
 
         }

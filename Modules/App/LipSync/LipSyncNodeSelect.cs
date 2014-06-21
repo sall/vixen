@@ -24,6 +24,47 @@ namespace VixenModules.App.LipSyncApp
         
         private bool _matrixOptsOnly;
 
+        public bool BottomUp
+        {
+            get
+            {
+                return (bottomRightCheckBox.Checked && colsRadioButton.Checked);
+            }
+
+            set
+            {
+                bottomRightCheckBox.Checked = value;
+                colsRadioButton.Checked = value;
+            }
+        }
+
+        public bool RightLeft
+        {
+            get
+            {
+                return (bottomRightCheckBox.Checked && rowsRadioButton.Checked);
+            }
+
+            set
+            {
+                bottomRightCheckBox.Checked = value;
+                rowsRadioButton.Checked = value;
+            }
+        }
+
+        public bool BottomRight
+        {
+            get
+            {
+                return bottomRightCheckBox.Checked;
+            }
+
+            set
+            {
+                bottomRightCheckBox.Checked = value;
+            }
+        }
+
         public bool StringsAreRows
         {
             get
@@ -51,6 +92,7 @@ namespace VixenModules.App.LipSyncApp
                 stringsGroupBox.Visible = _matrixOptsOnly;
                 rowsRadioButton.Visible = _matrixOptsOnly;
                 colsRadioButton.Visible = _matrixOptsOnly;
+                bottomRightCheckBox.Visible = _matrixOptsOnly;
                 allowGroupsCheckbox.Checked = false;
                 allowGroupsCheckbox.Visible = !_matrixOptsOnly;
             }
@@ -77,6 +119,7 @@ namespace VixenModules.App.LipSyncApp
                 nodeTreeView.Nodes.Add(newNode);
 
             }
+            
 
         }
 
@@ -190,6 +233,16 @@ namespace VixenModules.App.LipSyncApp
                 Changed = true;
             }
 
+        }
+
+        private void colsRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            bottomRightCheckBox.Text = "Bottom to Top";
+        }
+
+        private void rowsRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            bottomRightCheckBox.Text = "Right to Left";
         }
     }
 }

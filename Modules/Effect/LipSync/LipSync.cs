@@ -75,6 +75,11 @@ namespace VixenModules.Effect.LipSync
 
                 renderNodes.ForEach(delegate(ElementNode element)
                 {
+                    if (!_library.Library.ContainsKey(_data.PhonemeMapping))
+                    {
+                        _data.PhonemeMapping = _library.DefaultMappingName;
+                    }
+
                     if (_library.Library.TryGetValue(_data.PhonemeMapping, out mapData) &&
                     (mapData.PhonemeState(element.Name, _data.StaticPhoneme)))
                     {

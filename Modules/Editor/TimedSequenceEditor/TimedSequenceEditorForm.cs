@@ -3137,8 +3137,12 @@ namespace VixenModules.Editor.TimedSequenceEditor
         {
             LipSyncMapSelector mapSelector = new LipSyncMapSelector();
             DialogResult dr = mapSelector.ShowDialog();
-            sequenceModified();
-            resetLipSyncNodes();
+            if (mapSelector.Changed == true)
+            {
+                mapSelector.Changed = false;
+                sequenceModified();
+                resetLipSyncNodes();
+            }
         }
 
         private void setDefaultMap_Click(object sender,EventArgs e)
@@ -3148,7 +3152,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
             {
                 _library.DefaultMappingName = menu.Text; 
                 sequenceModified();
-                resetLipSyncNodes();
+                //resetLipSyncNodes();
             }
             
         }

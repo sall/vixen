@@ -29,7 +29,6 @@ namespace VixenModules.App.LipSyncApp
         private int stringCount = 1;
         private int pixelCount = 1;
         
-        
 
         public LipSyncMapMatrixEditor()
         {
@@ -40,6 +39,8 @@ namespace VixenModules.App.LipSyncApp
             dataTables = new Dictionary<PhonemeType, DataTable>();
             stringsAreRows = true;
             startMapIndex = -1;
+            zoomSteps = 1;
+            
         }
 
         public LipSyncMapMatrixEditor(LipSyncMapData mapData)
@@ -50,6 +51,7 @@ namespace VixenModules.App.LipSyncApp
             this.MapData = (LipSyncMapData)mapData.Clone();
             stringsAreRows = mapData.StringsAreRows;
             startMapIndex = -1;
+            zoomSteps = mapData.ZoomLevel;
         }
 
         public string LibraryMappingName
@@ -93,10 +95,23 @@ namespace VixenModules.App.LipSyncApp
 
             LipSyncMapItem retVal = null;
 
+            int calcGridCols = CalcNumDataGridCols;
+            int calcGridRows = CalcNumDataGridRows;
+            int calcIndex;
 
-            int calcIndex = (stringsAreRows) ? 
-                ((CalcNumDataGridCols * row) + column) + startMapIndex : 
-                ((CalcNumDataGridRows * column) + row) + startMapIndex;
+            if (_newMapping.BottomRight == true)
+            {
+                calcIndex = (stringsAreRows) ?
+                    ((calcGridCols * row) + (calcGridCols - column)) + startMapIndex :
+                    ((calcGridRows * column) + (calcGridRows - row)) + startMapIndex;
+                calcIndex--;
+            }
+            else
+            {
+                calcIndex = (stringsAreRows) ?
+                    ((calcGridCols * row) + column) + startMapIndex :
+                    ((calcGridRows * column) + row) + startMapIndex;
+            }
 
             if (calcIndex < _newMapping.MapItems.Count)
             {
@@ -222,6 +237,7 @@ namespace VixenModules.App.LipSyncApp
             _newMapping.MatrixStringCount = stringCount;
             _newMapping.MatrixPixelsPerString = pixelCount;
             _newMapping.ZoomLevel = zoomTrackbar.Value;
+            _newMapping.LibraryReferenceName = nameTextBox.Text;
         }
 
         private DataTable currentDataTable
@@ -240,6 +256,7 @@ namespace VixenModules.App.LipSyncApp
             set
             {
                 dataTables[phonemeArray[currentPhonemeIndex]] = value;
+                doDataGridResize();
             }
         }
 
@@ -276,6 +293,8 @@ namespace VixenModules.App.LipSyncApp
                             _rowNames.Add(tempNode.Name);
                         }
                     }
+                    zoomSteps = _newMapping.ZoomLevel;
+                    doDataGridResize();
                 }
                 catch (Exception e) { };
             }
@@ -333,12 +352,12 @@ namespace VixenModules.App.LipSyncApp
                     _phonemeBitmaps = new Dictionary<PhonemeType, Bitmap>();
                     _phonemeBitmaps.Add(PhonemeType.AI, (Bitmap)lipSyncRM.GetObject("AI"));
                     _phonemeBitmaps.Add(PhonemeType.E, (Bitmap)lipSyncRM.GetObject("E"));
-                    _phonemeBitmaps.Add(PhonemeType.etc, (Bitmap)lipSyncRM.GetObject("etc"));
+                    _phonemeBitmaps.Add(PhonemeType.ETC, (Bitmap)lipSyncRM.GetObject("etc"));
                     _phonemeBitmaps.Add(PhonemeType.FV, (Bitmap)lipSyncRM.GetObject("FV"));
                     _phonemeBitmaps.Add(PhonemeType.L, (Bitmap)lipSyncRM.GetObject("L"));
                     _phonemeBitmaps.Add(PhonemeType.MBP, (Bitmap)lipSyncRM.GetObject("MBP"));
                     _phonemeBitmaps.Add(PhonemeType.O, (Bitmap)lipSyncRM.GetObject("O"));
-                    _phonemeBitmaps.Add(PhonemeType.Rest, (Bitmap)lipSyncRM.GetObject("rest"));
+                    _phonemeBitmaps.Add(PhonemeType.REST, (Bitmap)lipSyncRM.GetObject("rest"));
                     _phonemeBitmaps.Add(PhonemeType.U, (Bitmap)lipSyncRM.GetObject("U"));
                     _phonemeBitmaps.Add(PhonemeType.WQ, (Bitmap)lipSyncRM.GetObject("WQ"));
                 }
@@ -351,10 +370,7 @@ namespace VixenModules.App.LipSyncApp
 
         private void LipSyncMapSetup_Load(object sender, EventArgs e)
         {
-            while (string.IsNullOrWhiteSpace(_newMapping.StartNode))
-            {
-                assignNodes();
-            }
+            assignNodes();
             currentDataTable = BuildDialogFromMap(_newMapping);
             updatedataGridView1();
         }
@@ -374,21 +390,30 @@ namespace VixenModules.App.LipSyncApp
             int y = CalcNumDataGridRows;
 
             DataGridViewColumn dgvCol;
+            int colIndexVal = 0;
             for (int j = 0; j < dataGridView1.Columns.Count; j++)
             {
                 dgvCol = dataGridView1.Columns[j];
                 dgvCol.Width = CELL_BASE_WIDTH + (int)(ZOOM_STEP_DELTA * zoomSteps);
                 dgvCol.SortMode = DataGridViewColumnSortMode.NotSortable;
-                dgvCol.HeaderCell.Value = (!stringsAreRows) ? (j * y).ToString() : j.ToString();
+
+                colIndexVal = (MapData.BottomRight) ? dataGridView1.Columns.Count - j - 1 : j;
+                dgvCol.HeaderCell.Value = (!stringsAreRows) ? (j * y).ToString() : colIndexVal.ToString();
             }
 
             DataGridViewRow dgvRow;
+            int rowIndexVal = 0;
+
             for (int j = 0; j < dataGridView1.Rows.Count; j++)
             {
                 dgvRow = dataGridView1.Rows[j];
                 dgvRow.Height = CELL_BASE_WIDTH + (int)(ZOOM_STEP_DELTA * zoomSteps);
-                dgvRow.HeaderCell.Value = (stringsAreRows) ? (j * x).ToString() : j.ToString();
+
+                rowIndexVal = (MapData.BottomRight) ? dataGridView1.Rows.Count - j - 1: j;
+
+                dgvRow.HeaderCell.Value = (stringsAreRows) ? (j * x).ToString() : rowIndexVal.ToString();
             }
+            doDataGridResize();
         }
 
         private void dataGridView1_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
@@ -532,14 +557,14 @@ namespace VixenModules.App.LipSyncApp
                 zoomSteps = 1;
             }
             updatedataGridView1();
-            doDataGridResize();
-
         }
 
 
         private void assignButton_Click(object sender, EventArgs e)
         {
+            BuildMapDataFromDialog(); 
             assignNodes();
+            updatedataGridView1();
         }
 
         private void assignNodes()
@@ -548,6 +573,7 @@ namespace VixenModules.App.LipSyncApp
             nodeSelectDlg.MatrixOptionsOnly = true;
             nodeSelectDlg.StringsAreRows = _newMapping.StringsAreRows;
             nodeSelectDlg.NodeNames = _rowNames;
+            nodeSelectDlg.BottomRight = _newMapping.BottomRight;
 
             DialogResult dr = nodeSelectDlg.ShowDialog();
             if ((dr == DialogResult.OK) && (nodeSelectDlg.Changed == true))
@@ -589,18 +615,9 @@ namespace VixenModules.App.LipSyncApp
                 }
 
                 _newMapping.StartNode = _newMapping.MapItems[0].Name;
+                _newMapping.BottomRight = nodeSelectDlg.BottomRight;
                 reconfigureDataTable();
             }
-        }
-
-        private void prevPhonemeButton_Click(object sender, EventArgs e)
-        {
-            PrevPhonemeIndex();
-        }
-
-        private void nextPhonemeButton_Click(object sender, EventArgs e)
-        {
-            NextPhonmeIndex();
         }
 
         private void importButton_Click(object sender, EventArgs e)
@@ -614,10 +631,13 @@ namespace VixenModules.App.LipSyncApp
                 Color pixelColor;
 
                 Bitmap rawBitmap = new Bitmap(fileDlg.FileName);
-                Bitmap scaledBitmap = new Bitmap(rawBitmap, CalcNumDataGridCols, CalcNumDataGridRows);
+                FastPixel.FastPixel scaledImage = 
+                    new FastPixel.FastPixel(new Bitmap(rawBitmap, CalcNumDataGridCols, CalcNumDataGridRows));
                 
                 int cols = CalcNumDataGridCols;
                 int rows = CalcNumDataGridRows;
+
+                scaledImage.Lock();
                 for (int row = 0; row < rows; row++)
                 {
                     DataRow dr = currentDataTable.Rows[row];
@@ -626,7 +646,7 @@ namespace VixenModules.App.LipSyncApp
                         mapItem = FindRenderMapItem(row, col);
                         if (mapItem != null)
                         {
-                            pixelColor = scaledBitmap.GetPixel(col,row);
+                            pixelColor = scaledImage.GetPixel(col, row);
                             dr[col] = pixelColor;
                             mapItem.PhonemeList[CurrentPhonemeString] = (pixelColor != Color.Black);
                         }
@@ -636,8 +656,56 @@ namespace VixenModules.App.LipSyncApp
                         }
                     }
                 }
+                scaledImage.Unlock(false);
+
                 BuildDialogFromMap(_newMapping);
                 updatedataGridView1();
+            }
+        }
+
+        private void nextPhonemeButton_Click(object sender, EventArgs e)
+        {
+            NextPhonmeIndex();
+        }
+
+        private void prevPhonemeButton_Click(object sender, EventArgs e)
+        {
+            PrevPhonemeIndex();
+        }
+
+        private void exportButton_Click(object sender, EventArgs e)
+        {
+            BuildMapDataFromDialog();
+
+            SaveFileDialog fileDlg = new SaveFileDialog();
+            fileDlg.Filter = "Bitmap Files (*.bmp )|*.bmp |All Files(*.*)|*.*";
+            DialogResult result = fileDlg.ShowDialog();
+            if (result == DialogResult.OK)
+            {
+                LipSyncMapItem mapItem;
+
+                int cols = CalcNumDataGridCols;
+                int rows = CalcNumDataGridRows;
+
+                Bitmap rawBitmap = new Bitmap(cols, rows);
+
+                for (int row = 0; row < rows; row++)
+                {
+                    DataRow dr = currentDataTable.Rows[row];
+                    for (int col = 0; col < cols; col++)
+                    {
+                        mapItem = FindRenderMapItem(row, col);
+                        if (mapItem != null)
+                        {
+                            rawBitmap.SetPixel(col, row, (Color)dr[col]);
+                        }
+                        else
+                        {
+                            rawBitmap.SetPixel(col, row, Color.Black);
+                        }
+                    }
+                }
+                rawBitmap.Save(fileDlg.FileName);
             }
         }
     }

@@ -11,7 +11,7 @@ using Vixen.Sys;
 
 namespace VixenModules.App.LipSyncApp
 {
-    public enum PhonemeType { AI, E, O, U, FV, L, MBP, WQ, etc, Rest, Unknown };
+    public enum PhonemeType { AI, E, O, U, FV, L, MBP, WQ, ETC, REST, Unknown };
 
     public abstract class PapagayoImportObject
     {
@@ -505,7 +505,7 @@ namespace VixenModules.App.LipSyncApp
     public class PapagayoPhoneme : PapagayoImportObject
     {
         string m_Text = null;
-        PhonemeType m_type = PhonemeType.Rest;
+        PhonemeType m_type = PhonemeType.REST;
 
         public PapagayoPhoneme(PapagayoPhoneme copyObj)
         {
@@ -518,7 +518,7 @@ namespace VixenModules.App.LipSyncApp
 
         public PapagayoPhoneme(string pair, PapagayoPhoneme lastObj)
         {
-            m_type = PhonemeType.Rest;
+            m_type = PhonemeType.REST;
             m_Text = "Rest";
             if (pair != null)
             {
@@ -533,7 +533,7 @@ namespace VixenModules.App.LipSyncApp
                     }
                     catch (Exception)
                     {
-                        m_type = PhonemeType.Rest;
+                        m_type = PhonemeType.REST;
                     }
 
                     if (lastObj != null)
@@ -610,9 +610,9 @@ namespace VixenModules.App.LipSyncApp
 	            { "AY1" , PhonemeType.AI },
 	            { "AY2" , PhonemeType.AI },
 	            { "B" , PhonemeType.MBP }, 
-	            { "CH" , PhonemeType.etc },
-	            { "D" , PhonemeType.etc },
-	            { "DH" , PhonemeType.etc },
+	            { "CH" , PhonemeType.ETC },
+	            { "D" , PhonemeType.ETC },
+	            { "DH" , PhonemeType.ETC },
 	            { "EH" , PhonemeType.E },
                 { "EH0" , PhonemeType.E },
 	            { "EH1" , PhonemeType.E },
@@ -626,8 +626,8 @@ namespace VixenModules.App.LipSyncApp
 	            { "EY1" , PhonemeType.E },
 	            { "EY2" , PhonemeType.E },
 	            { "F" , PhonemeType.FV }, 
-	            { "G" , PhonemeType.etc }, 
-	            { "HH" , PhonemeType.etc }, 
+	            { "G" , PhonemeType.ETC }, 
+	            { "HH" , PhonemeType.ETC }, 
 	            { "IH" , PhonemeType.AI },
                 { "IH0" , PhonemeType.AI },
 	            { "IH1" , PhonemeType.AI },
@@ -636,11 +636,11 @@ namespace VixenModules.App.LipSyncApp
                 { "IY0" , PhonemeType.E }, 
 	            { "IY1" , PhonemeType.E },
 	            { "IY2" , PhonemeType.E },
-	            { "JH" , PhonemeType.etc },
-	            { "K" , PhonemeType.etc }, 
+	            { "JH" , PhonemeType.ETC },
+	            { "K" , PhonemeType.ETC }, 
 	            { "M" , PhonemeType.MBP }, 
-	            { "N" , PhonemeType.etc }, 
-	            { "NG" , PhonemeType.etc }, 
+	            { "N" , PhonemeType.ETC }, 
+	            { "NG" , PhonemeType.ETC }, 
 	            { "OW" , PhonemeType.O }, 
                 { "OW0" , PhonemeType.O }, 
 	            { "OW1" , PhonemeType.O },
@@ -650,11 +650,11 @@ namespace VixenModules.App.LipSyncApp
 	            { "OY1" , PhonemeType.WQ },
 	            { "OY2" , PhonemeType.WQ },
 	            { "P" , PhonemeType.MBP }, 
-	            { "R" , PhonemeType.etc },
-	            { "S" , PhonemeType.etc }, 
-	            { "SH" , PhonemeType.etc },
-	            { "T" , PhonemeType.etc }, 
-	            { "TH" , PhonemeType.etc }, 
+	            { "R" , PhonemeType.ETC },
+	            { "S" , PhonemeType.ETC }, 
+	            { "SH" , PhonemeType.ETC },
+	            { "T" , PhonemeType.ETC }, 
+	            { "TH" , PhonemeType.ETC }, 
 	            { "UH" , PhonemeType.U }, 
                 { "UH0" , PhonemeType.U }, 
 	            { "UH1" , PhonemeType.U },
@@ -665,18 +665,18 @@ namespace VixenModules.App.LipSyncApp
 	            { "UW2" , PhonemeType.U },
 	            { "V" , PhonemeType.FV }, 
 	            { "W" , PhonemeType.WQ }, 
-	            { "Y" , PhonemeType.etc }, 
-	            { "Z" , PhonemeType.etc },
-	            { "ZH" , PhonemeType.etc },
+	            { "Y" , PhonemeType.ETC }, 
+	            { "Z" , PhonemeType.ETC },
+	            { "ZH" , PhonemeType.ETC },
 	            { "E21" , PhonemeType.E },
                 { "AI" , PhonemeType.AI },
                 { "E" , PhonemeType.E },
-                { "ETC" , PhonemeType.etc },
+                { "ETC" , PhonemeType.ETC },
                 { "FV" , PhonemeType.FV },
                 { "L" , PhonemeType.L },
                 { "MBP" , PhonemeType.MBP },
                 { "O" , PhonemeType.O },
-                { "REST" , PhonemeType.Rest },
+                { "REST" , PhonemeType.REST },
                 { "U" , PhonemeType.U },
                 { "WQ" , PhonemeType.WQ }
             };

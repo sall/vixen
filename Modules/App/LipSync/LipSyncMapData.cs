@@ -22,7 +22,8 @@ namespace VixenModules.App.LipSyncApp
             IsMatrix = false;
             StartNode = "";
             ZoomLevel = 1;
-            StringsAreRows = true;
+            StringsAreRows = false;
+            BottomRight = true;
         }
 
         public LipSyncMapData(List<string> stringNames)
@@ -38,7 +39,8 @@ namespace VixenModules.App.LipSyncApp
             IsMatrix = false;
             StartNode = "";
             ZoomLevel = 1;
-            StringsAreRows = true;
+            StringsAreRows = false;
+            BottomRight = true;
         }
 
         public LipSyncMapData(LipSyncMapData data)
@@ -54,6 +56,7 @@ namespace VixenModules.App.LipSyncApp
             StartNode = data.StartNode;
             ZoomLevel = data.ZoomLevel;
             StringsAreRows = data.StringsAreRows;
+            BottomRight = data.BottomRight;
         }
 
         public override IModuleDataModel Clone()
@@ -69,6 +72,7 @@ namespace VixenModules.App.LipSyncApp
             newInstance.StartNode = StartNode;
             newInstance.ZoomLevel = ZoomLevel;
             newInstance.StringsAreRows = StringsAreRows;
+            newInstance.BottomRight = BottomRight;
 
             return newInstance;
         }
@@ -87,6 +91,9 @@ namespace VixenModules.App.LipSyncApp
 
         [DataMember]
         public string StartNode { get; set; }
+
+        [DataMember]
+        public bool BottomRight { get; set; }
 
         [DataMember]
         public int ZoomLevel { get; set; }
@@ -130,13 +137,28 @@ namespace VixenModules.App.LipSyncApp
 
             if (item != null)
             {
-                if (item.PhonemeList[phonemeName] == true)
+                if (this.IsMatrix)
                 {
-                    HSV hsvVal = HSV.FromRGB(new RGB(item.ElementColor));
-                    retVal = hsvVal.V;
+                    PhonemeType phoneme = (PhonemeType)System.Enum.Parse(typeof(PhonemeType), phonemeName);
+                    if (item.ElementColors[phoneme] != Color.Black)
+                    {
+                        HSV hsvVal = HSV.FromRGB(new RGB(item.ElementColors[phoneme]));
+                        retVal = hsvVal.V;
+                        //retVal = 1.0;
+                    }
+
+                }
+                else 
+                {
+                    if (item.PhonemeList[phonemeName] == true)
+                    {
+                        HSV hsvVal = HSV.FromRGB(new RGB(item.ElementColor));
+                        retVal = hsvVal.V;
+                    }
                 }
             }
-            return retVal;           
+            return retVal;
+
         }
 
         public Color ConfiguredColor(string itemName, string phonemeName)
@@ -146,11 +168,25 @@ namespace VixenModules.App.LipSyncApp
 
             if (item != null)
             {
-                if (item.PhonemeList[phonemeName] == true)
+                if (this.IsMatrix) 
                 {
-                    HSV hsvVal = HSV.FromRGB(new RGB(item.ElementColor));
-                    hsvVal.V = 1;
-                    retVal = hsvVal.ToRGB().ToArgb();
+                    PhonemeType phoneme = (PhonemeType)System.Enum.Parse(typeof(PhonemeType), phonemeName); 
+                    if (item.ElementColors[phoneme] != Color.Black)
+                    {
+                        //HSV hsvVal = HSV.FromRGB(new RGB(item.ElementColors[phoneme]));
+                        //hsvVal.V = 1;
+                        //retVal = hsvVal.ToRGB().ToArgb();
+                        retVal = item.ElementColors[phoneme];
+                    }
+                }
+                else
+                {
+                    if (item.PhonemeList[phonemeName] == true)
+                    {
+                        HSV hsvVal = HSV.FromRGB(new RGB(item.ElementColor));
+                        hsvVal.V = 1;
+                        retVal = hsvVal.ToRGB().ToArgb();
+                    }
                 }
             }
             return retVal;

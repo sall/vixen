@@ -17,12 +17,16 @@ namespace VixenModules.App.LipSyncApp
     public partial class LipSyncMapSelector : Form
     {
         private Bitmap _iconBitmap;
+
         public LipSyncMapSelector()
 		{
 			InitializeComponent();
             listViewMappings.Sorting = SortOrder.Ascending;
 			Icon = Common.Resources.Properties.Resources.Icon_Vixen3;
+            Changed = false;
 		}
+
+        public bool Changed { get; set; }
 
 		private void LipSyncMapSelector_Load(object sender, EventArgs e)
 		{
@@ -113,7 +117,7 @@ namespace VixenModules.App.LipSyncApp
             if (listViewMappings.SelectedItems.Count != 1)
                 return;
 
-            Library.EditLibraryMapping(listViewMappings.SelectedItems[0].Name);
+            Changed = Library.EditLibraryMapping(listViewMappings.SelectedItems[0].Name);
 
             PopulateListWithMappings();
         }
@@ -142,6 +146,7 @@ namespace VixenModules.App.LipSyncApp
                     Library.RemoveMapping(listViewMappings.Items[j].Name);
                 }
 
+                Changed = true;
                 PopulateListWithMappings();
             }
         }
@@ -203,13 +208,16 @@ namespace VixenModules.App.LipSyncApp
             DialogResult dr = newMapTypeselector.ShowDialog();
             if (dr == DialogResult.OK)
             {
+                LipSyncMapData newMap = new LipSyncMapData();
+                newMap.MatrixStringCount = newMapTypeselector.StringCount;
+                newMap.MatrixPixelsPerString = newMapTypeselector.PixelsPerString;
                 string mapName = _library.AddMapping(
                     true, 
                     null, 
-                    new LipSyncMapData(),
+                    newMap,
                     newMapTypeselector.matrixMappingRadio.Checked);
                 
-                Library.EditLibraryMapping(mapName);
+                Changed = Library.EditLibraryMapping(mapName);
                 this.PopulateListWithMappings();
             }
 
@@ -231,6 +239,7 @@ namespace VixenModules.App.LipSyncApp
                 LipSyncMapData tempItem = new LipSyncMapData(_library.GetMapping(lvItem.Name));
                 string mapName = _library.AddMapping(true, lvItem.Name, tempItem);
                 this.PopulateListWithMappings();
+                Changed = true;
             }
 
         }
