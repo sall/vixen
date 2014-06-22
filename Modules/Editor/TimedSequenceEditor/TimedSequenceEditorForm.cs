@@ -3347,7 +3347,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
         private void lipSyncMappingsToolStripMenuItem_DropDownOpening(object sender, EventArgs e)
         {
             this.changeMapToolStripMenuItem.Enabled =
-             TimelineControl.SelectedElements.Any(effect => effect.EffectNode.Effect.GetType() == typeof(LipSync));
+             (_library.Library.Count > 1) &&
+             (TimelineControl.SelectedElements.Any(effect => effect.EffectNode.Effect.GetType() == typeof(LipSync)));
         }
 
 
@@ -3373,7 +3374,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
                 if (element.EffectNode.Effect.GetType() == typeof(LipSync))
                 {
                     ((LipSync)element.EffectNode.Effect).PhonemeMapping =  toolStripSender.Text;
-                    element.EffectNode.Effect.Render();
+                    resetLipSyncNodes();
                 }
             });
 
