@@ -414,7 +414,8 @@ namespace VixenModules.App.LipSyncApp
         private void Assign_Click(object sender, EventArgs e)
         {
             LipSyncNodeSelect nodeSelectDlg = new LipSyncNodeSelect();
-            nodeSelectDlg.MaxNodes = _mapping.MapItems.Count;
+            //nodeSelectDlg.MaxNodes = _mapping.MapItems.Count;
+            nodeSelectDlg.MaxNodes = Int32.MaxValue;
             nodeSelectDlg.MatrixOptionsOnly = false;
             nodeSelectDlg.NodeNames = _rowNames;
 

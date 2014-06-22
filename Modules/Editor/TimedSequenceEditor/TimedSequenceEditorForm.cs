@@ -3152,7 +3152,6 @@ namespace VixenModules.Editor.TimedSequenceEditor
             {
                 _library.DefaultMappingName = menu.Text; 
                 sequenceModified();
-                //resetLipSyncNodes();
             }
             
         }
@@ -3343,9 +3342,44 @@ namespace VixenModules.Editor.TimedSequenceEditor
             textConverter.TranslateFailure += new EventHandler<TranslateFailureEventArgs>(translateFailureHandler);
             textConverter.MarkCollections = _sequence.MarkCollections;
             textConverter.Show(this);
-        }          
+        }
 
-	}
+        private void lipSyncMappingsToolStripMenuItem_DropDownOpening(object sender, EventArgs e)
+        {
+            this.changeMapToolStripMenuItem.Enabled =
+             TimelineControl.SelectedElements.Any(effect => effect.EffectNode.Effect.GetType() == typeof(LipSync));
+        }
+
+
+        private void changeMapToolStripMenuItem_DropDownOpening(object sender, EventArgs e)
+        {
+            string defaultText = _library.DefaultMappingName;
+            this.changeMapToolStripMenuItem.DropDownItems.Clear();
+
+            foreach (LipSyncMapData mapping in _library.Library.Values)
+            {
+                ToolStripMenuItem menuItem = new ToolStripMenuItem(mapping.LibraryReferenceName);
+                menuItem.Click += changeMappings_Click;
+                this.changeMapToolStripMenuItem.DropDownItems.Add(menuItem);
+            }
+        }
+
+        private void changeMappings_Click(object sender, EventArgs e)
+        {
+            ToolStripMenuItem toolStripSender = (ToolStripMenuItem)sender;
+
+            TimelineControl.SelectedElements.ToList().ForEach(delegate(Element element)
+            {
+                if (element.EffectNode.Effect.GetType() == typeof(LipSync))
+                {
+                    ((LipSync)element.EffectNode.Effect).PhonemeMapping =  toolStripSender.Text;
+                    element.EffectNode.Effect.Render();
+                }
+            });
+
+        }
+
+    }
 
 	[Serializable]
 	internal class TimelineElementsClipboardData
