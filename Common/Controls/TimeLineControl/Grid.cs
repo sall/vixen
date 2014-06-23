@@ -1,37 +1,36 @@
 ﻿using System;
-using System.Linq;
-using System.Drawing;
-using System.Windows.Forms;
+using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Drawing.Drawing2D;
-using System.Text;
-using System.Diagnostics;
 using System.ComponentModel;
-using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
-using Common.Controls.ColorManagement.ColorModels;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using NLog;
+using Vixen;
 using Vixen.Execution.Context;
-using System.Collections.Concurrent;
 
 namespace Common.Controls.Timeline
 {
 	/// <summary>
 	/// Makes up the main part of the TimelineControl. A scrollable container which presents rows which contain elements.
 	/// </summary>
-	[System.ComponentModel.DesignerCategory("")] // Prevent this from showing up in designer.
-	public partial class Grid : TimelineControlBase, IEnumerable<Row>, IDisposable
+	[DesignerCategory("")] // Prevent this from showing up in designer.
+	public partial class Grid : TimelineControlBase, IEnumerable<Row>
 	{
 		#region Members
-        private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
+        private static readonly Logger Logging = LogManager.GetCurrentClassLogger();
 		private List<Row> m_rows; // the rows in the grid
 		private DragState m_dragState = DragState.Normal; // the current dragging state
 
 		private Point m_selectionRectangleStart; // the location (on the grid canvas) where the selection box starts.
 		private Rectangle m_ignoreDragArea; // the area in which move movements should be ignored, before we start dragging
+		private Point m_waitingBeginGridLocation;
 		private List<Element> m_mouseDownElements; // the elements under the cursor on a mouse click
-
+		private Point m_lastSingleSelectedElementLocation;
 		private Row m_mouseDownElementRow = null;
 		            // the row that the clicked m_mouseDownElement belongs to (a single element may be in multiple rows)
 
@@ -52,7 +51,7 @@ namespace Common.Controls.Timeline
 		public Grid(TimeInfo timeinfo)
 			: base(timeinfo)
 		{
-			this.AutoScroll = true;
+			AutoScroll = true;
 			AllowGridResize = true;
 			AutoScrollMargin = new Size(24, 24);
 			TotalTime = TimeSpan.FromMinutes(1);
@@ -88,6 +87,8 @@ namespace Common.Controls.Timeline
 			DragDrop += TimelineGrid_DragDrop;
 			StartBackgroundRendering();
 			CurrentDragSnapPoints = new SortedDictionary<TimeSpan, List<SnapDetails>>();
+			EnableSnapTo = true;
+			SnapStrength = 2;
 		}
 
 		protected override void Dispose(bool disposing)
@@ -156,8 +157,8 @@ namespace Common.Controls.Timeline
 
 		private void ResizeGridHorizontally()
 		{
-			if (this.InvokeRequired)
-				this.Invoke(new Vixen.Delegates.GenericDelegate(ResizeGridHorizontally));
+			if (InvokeRequired)
+				Invoke(new Delegates.GenericDelegate(ResizeGridHorizontally));
 			else {
 				// resize the scroll canvas to be the new size of the whole display time, and cap it to not go past the end
 				AutoScrollMinSize = new Size((int) timeToPixels(TotalTime), AutoScrollMinSize.Height);
@@ -173,6 +174,8 @@ namespace Common.Controls.Timeline
 		#region Properties
 
 		public bool EnableSnapTo { get; set; }
+
+		public int SnapStrength { get; set; }
 
 		public bool SuppressInvalidate { get; set; }
 
@@ -197,6 +200,9 @@ namespace Common.Controls.Timeline
 			}
 		}
 
+		/// <summary>
+		/// Returns the Rows in the grid
+		/// </summary>
 		public List<Row> Rows
 		{
 			get { return m_rows; }
@@ -225,7 +231,7 @@ namespace Common.Controls.Timeline
 		/// </summary>
 		public Row ActiveRow
 		{
-			get { return Rows.Where(x => x.Active).FirstOrDefault(); }
+			get { return Rows.FirstOrDefault(x => x.Active); }
 		}
 
 		public IEnumerable<Row> VisibleRows
@@ -272,7 +278,12 @@ namespace Common.Controls.Timeline
 		// private properties
 		private bool CtrlPressed
 		{
-			get { return Form.ModifierKeys.HasFlag(Keys.Control); }
+			get { return ModifierKeys.HasFlag(Keys.Control); }
+		}
+
+		private bool ShiftPressed
+		{
+			get { return ModifierKeys.HasFlag(Keys.Shift); }
 		}
 
 		private int CurrentRowIndexUnderMouse { get; set; }
@@ -368,7 +379,6 @@ namespace Common.Controls.Timeline
 
 			} else {
 				if (RenderProgressChanged != null) {
-					EventArgs args = new EventArgs();
 					RenderProgressChanged(this, new RenderElementEventArgs(percent));
 				}
 			}
@@ -495,12 +505,6 @@ namespace Common.Controls.Timeline
 		private void RowToggledHandler(object sender, EventArgs e)
 		{
 			ResizeGridHeight();
-			Row row = (Row)sender;
-			if (row.TreeOpen)
-			{
-				List<Row> rows = row.Descendants().Where(x => x.Visible == true).ToList();
-				RenderVisibleRows(rows); 
-			}
  
 			if (!SuppressInvalidate) Invalidate();
 		}
@@ -522,11 +526,29 @@ namespace Common.Controls.Timeline
 			return Rows.GetEnumerator();
 		}
 
-		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+		IEnumerator IEnumerable.GetEnumerator()
 		{
 			return GetEnumerator();
 		}
 
+		public delegate List<Element> CloneSelectedElementsDelegate(IEnumerable<Element> elements);
+
+		public CloneSelectedElementsDelegate SelectedElementsCloneDelegate { get; set; }
+
+		protected void CloneSelectedElementsForMove()
+		{
+			List<Element> elements = SelectedElementsCloneDelegate.Invoke(SelectedElements);
+			ClearSelectedElements();
+			foreach (var element in elements)
+			{
+				element.Selected = true;
+			}
+			_SelectionChanged();
+		}
+
+		/// <summary>
+		/// Clears all the selected flags on the currently selected elements.
+		/// </summary>
 		public void ClearSelectedElements()
 		{
 			foreach (Element te in SelectedElements.ToArray())
@@ -535,6 +557,10 @@ namespace Common.Controls.Timeline
 			_SelectionChanged();
 		}
 
+		/// <summary>
+		/// Clears all the selected rows. Optional row to be excluded.
+		/// </summary>
+		/// <param name="leaveRowSelected">Optional row will be left alone.</param>
 		public void ClearSelectedRows(Row leaveRowSelected = null)
 		{
 			foreach (Row row in Rows) {
@@ -545,6 +571,10 @@ namespace Common.Controls.Timeline
 			_SelectionChanged();
 		}
 
+		/// <summary>
+		/// Clears the Active row flag on all rows. Optional row to be excluded.
+		/// </summary>
+		/// <param name="leaveRowActive"></param>
 		public void ClearActiveRows(Row leaveRowActive = null)
 		{
 			foreach (Row row in Rows)
@@ -556,6 +586,10 @@ namespace Common.Controls.Timeline
 			//_SelectionChanged();
 		}
 
+		/// <summary>
+		/// Add a row to the Grid
+		/// </summary>
+		/// <param name="row"></param>
 		public void AddRow(Row row)
 		{
 			Rows.Add(row);
@@ -563,6 +597,11 @@ namespace Common.Controls.Timeline
 			if (!SuppressInvalidate) Invalidate();
 		}
 
+		/// <summary>
+		/// Remove a specific Row from the Grid
+		/// </summary>
+		/// <param name="row"></param>
+		/// <returns></returns>
 		public bool RemoveRow(Row row)
 		{
 			bool rv = Rows.Remove(row);
@@ -581,7 +620,7 @@ namespace Common.Controls.Timeline
 		/// <returns>Boolen indicating whether the move occured</returns>
 		public bool MoveResizeElement(Element element, TimeSpan start, TimeSpan duration)
 		{
-			if (element == null || start > TotalTime || start + duration > TotalTime || start > element.EndTime
+			if (element == null || start > TotalTime || start + duration > TotalTime 
 				|| duration < TimeSpan.FromMilliseconds(1))
 			{
 				return false;
@@ -591,8 +630,8 @@ namespace Common.Controls.Timeline
 			element.BeginUpdate();
 			element.StartTime = start;
 			element.Duration = duration;
-			RenderElement(element);
 			element.EndUpdate();
+			RenderElement(element);
 
 			if (ElementsMovedNew != null)
 				ElementsMovedNew(this, new ElementsChangedTimesEventArgs(m_elemMoveInfo, ElementMoveType.Move));
@@ -609,11 +648,11 @@ namespace Common.Controls.Timeline
 		/// </summary>
 		/// <param name="element"></param>
 		/// <param name="start"></param>
-		/// <param name="duration"></param>
+		/// <param name="end"></param>
 		/// <returns>Boolen indicating whether the move occured</returns>
 		public bool MoveResizeElementByStartEnd(Element element, TimeSpan start, TimeSpan end)
 		{
-			if (element == null || start > TotalTime || end > TotalTime || start > end)
+			if (element == null || start > TotalTime || end > TotalTime || start >= end)
 			{
 				return false;
 			}
@@ -630,7 +669,7 @@ namespace Common.Controls.Timeline
 		/// </summary>
 		public void MoveElementsByTime(IEnumerable<Element> elements, TimeSpan offset)
 		{
-			if (elements.Count() <= 0)
+			if (!elements.Any())
 				return;
 
 			m_elemMoveInfo = new ElementMoveInfo(new Point(), elements, VisibleTimeStart);
@@ -751,13 +790,14 @@ namespace Common.Controls.Timeline
 
 		protected Row RowContainingElement(Element element)
 		{
-			foreach (Row row in Rows) {
-				if (row.ContainsElement(element))
-					return row;
-			}
-			return null;
+			return Rows.FirstOrDefault(row => row.ContainsElement(element));
 		}
 
+		/// <summary>
+		/// Get a list of elements that contain the specified time.
+		/// </summary>
+		/// <param name="time"></param>
+		/// <returns>List of Element</returns>
 		public List<Element> ElementsAtTime(TimeSpan time)
 		{
 			List<Element> result = new List<Element>();
@@ -769,6 +809,49 @@ namespace Common.Controls.Timeline
 			}
 
 			return result;
+		}
+
+		/// <summary>
+		/// Select all elements that are in the Virtual box created by the two diagonal points
+		/// </summary>
+		/// <param name="startingPoint"></param>
+		/// <param name="endingPoint"></param>
+		private void SelectElementsBetween(Point startingPoint, Point endingPoint)
+		{
+			ClearSelectedRows();
+			ClearActiveRows();
+			//find all the elements between us and the last selected
+			if (endingPoint.X > startingPoint.X)
+			{
+				//Right
+				if (endingPoint.Y > startingPoint.Y)
+				{
+					//Below
+					selectElementsWithin(new Rectangle(startingPoint,
+						new Size(endingPoint.X - startingPoint.X,
+							endingPoint.Y - startingPoint.Y)));
+				} else
+				{
+					//Above
+					selectElementsWithin(new Rectangle(startingPoint.X, endingPoint.Y, endingPoint.X - startingPoint.X,
+						startingPoint.Y - endingPoint.Y));
+				}
+			} else
+			{
+				//Left
+				if (endingPoint.Y > startingPoint.Y)
+				{
+					//Below
+					selectElementsWithin(new Rectangle(endingPoint.X, startingPoint.Y, startingPoint.X - endingPoint.X,
+						endingPoint.Y - startingPoint.Y));
+				} else
+				{
+					//Above
+					selectElementsWithin(new Rectangle(endingPoint,
+						new Size(startingPoint.X - endingPoint.X,
+							startingPoint.Y - endingPoint.Y)));
+				}
+			}
 		}
 
 		// TODO: as per Jono's comment below, if we find performance lacking with large data sets,
@@ -1195,8 +1278,8 @@ namespace Common.Controls.Timeline
 
 			// the start time and end times for specified points are 2 pixels
 			// per snap level away from the snap time.
-			result.SnapStart = snapTime - TimeSpan.FromTicks(TimePerPixel.Ticks*level*2);
-			result.SnapEnd = snapTime + TimeSpan.FromTicks(TimePerPixel.Ticks*level*2);
+			result.SnapStart = snapTime - TimeSpan.FromTicks(TimePerPixel.Ticks*level*SnapStrength);
+			result.SnapEnd = snapTime + TimeSpan.FromTicks(TimePerPixel.Ticks*level*SnapStrength);
 			return result;
 		}
 
@@ -1223,6 +1306,16 @@ namespace Common.Controls.Timeline
 			if (!SuppressInvalidate) Invalidate();
 		}
 
+		private void CalculateVisibleRowDisplayTops()
+		{
+			int top = 0;
+			foreach (var visibleRow in VisibleRows)
+			{
+				visibleRow.DisplayTop = top;
+				top += visibleRow.Height;
+			}
+		}
+
 		private int CalculateAllRowsHeight(bool visibleRowsOnly = true)
 		{
 			int total = 0;
@@ -1243,10 +1336,11 @@ namespace Common.Controls.Timeline
 		{
 		
 			if (AllowGridResize) {
-				if (this.InvokeRequired) {
-					this.Invoke(new Vixen.Delegates.GenericDelegate(ResizeGridHeight));
+				if (InvokeRequired) {
+					Invoke(new Delegates.GenericDelegate(ResizeGridHeight));
 				} else {
 					AutoScrollMinSize = new Size((int)timeToPixels(TotalTime), CalculateAllRowsHeight());
+					CalculateVisibleRowDisplayTops();
 					//Invalidate();
 				}
 			}
@@ -1298,20 +1392,21 @@ namespace Common.Controls.Timeline
 
 					Point selectedTopLeft = new Point((-AutoScrollPosition.X), curY);
 					curY += row.Height;
-					Point selectedBottomRight = new Point((-AutoScrollPosition.X) + Width, curY);
 					Point lineLeft = new Point((-AutoScrollPosition.X), curY);
 					Point lineRight = new Point((-AutoScrollPosition.X) + Width, curY);
 
 					if (row.Selected)
 					{
-						g.FillRectangle(b, Util.RectangleFromPoints(selectedTopLeft, selectedBottomRight));
+						g.FillRectangle(b, Util.RectangleFromPoints(selectedTopLeft, lineRight));
 						using (Pen bp = new Pen(SelectionBorder))
 						{
-							g.DrawRectangle(bp, Util.RectangleFromPoints(selectedTopLeft, selectedBottomRight));
+							g.DrawRectangle(bp, Util.RectangleFromPoints(selectedTopLeft, lineRight));
 						}
 					}
 					if (row.Active)
-						g.FillRectangle(b, Util.RectangleFromPoints(selectedTopLeft, selectedBottomRight));
+					{
+						g.FillRectangle(b, Util.RectangleFromPoints(selectedTopLeft, lineRight));
+					}
 					g.DrawLine(p, lineLeft.X, lineLeft.Y - 1, lineRight.X, lineRight.Y - 1);
 				}
 			}
@@ -1340,13 +1435,16 @@ namespace Common.Controls.Timeline
 			Pen p;
 
 			// iterate through all snap points, and if it's visible, draw it
-			foreach (KeyValuePair<TimeSpan, List<SnapDetails>> kvp in StaticSnapPoints) {
-				SnapDetails details = null;
-				foreach (SnapDetails d in kvp.Value) {
-					if (details == null || (d.SnapLevel > details.SnapLevel && d.SnapColor != Color.Empty))
-						details = d;
-				}
-				if (kvp.Key >= VisibleTimeStart && kvp.Key < VisibleTimeEnd) {
+			foreach (KeyValuePair<TimeSpan, List<SnapDetails>> kvp in StaticSnapPoints)
+			{
+				if (kvp.Key >= VisibleTimeEnd) break;
+				if (kvp.Key >= VisibleTimeStart) {
+					SnapDetails details = null;
+					foreach (SnapDetails d in kvp.Value)
+					{
+						if (details == null || (d.SnapLevel > details.SnapLevel && d.SnapColor != Color.Empty))
+							details = d;
+					}
 					p = new Pen(details.SnapColor);
 					Single x = timeToPixels(kvp.Key);
 					p.DashPattern = new float[] {details.SnapLevel, details.SnapLevel};
@@ -1361,19 +1459,17 @@ namespace Common.Controls.Timeline
 
 		public void StartBackgroundRendering()
 		{
-			if (this.InvokeRequired) {
-				this.Invoke(new Vixen.Delegates.GenericDelegate(StartBackgroundRendering));
+			if (InvokeRequired) {
+				Invoke(new Delegates.GenericDelegate(StartBackgroundRendering));
 			} else {
 				if (renderWorker != null) {
 					if (!renderWorker.IsBusy) {
 						renderWorker.RunWorkerAsync();
 					}
 				} else {
-					renderWorker = new BackgroundWorker();
-					renderWorker.WorkerReportsProgress = true;
-					renderWorker.WorkerSupportsCancellation = true;
-					renderWorker.DoWork += new DoWorkEventHandler(renderWorker_DoWork);
-					renderWorker.ProgressChanged += new ProgressChangedEventHandler(renderWorker_ProgressChanged);
+					renderWorker = new BackgroundWorker {WorkerReportsProgress = true, WorkerSupportsCancellation = true};
+					renderWorker.DoWork += renderWorker_DoWork;
+					renderWorker.ProgressChanged += renderWorker_ProgressChanged;
 					renderWorkerFinished = new ManualResetEventSlim(false);
 					renderWorker.RunWorkerAsync();
 				}
@@ -1406,8 +1502,8 @@ namespace Common.Controls.Timeline
 							break;
 						}
 						try {
-							Size size = new Size((int) Math.Ceiling(timeToPixels(element.Duration)), element.Row.Height - 1);
-							element.SetupCachedImage(size);
+							//Size size = new Size((int) Math.Ceiling(timeToPixels(element.Duration)), element.Row.Height - 1);
+							element.RenderElement();
 							if (!SuppressInvalidate) {
 								if (element.EndTime > VisibleTimeStart && element.StartTime < VisibleTimeEnd) {
 									Invalidate();
@@ -1440,7 +1536,7 @@ namespace Common.Controls.Timeline
 		}
 
 		/// <summary>
-		/// Renders the specific element which includes rendering if needed
+		/// Renders the specific element.
 		/// </summary>
 		/// <param name="element"></param>
         public void RenderElement(Element element)
@@ -1452,7 +1548,7 @@ namespace Common.Controls.Timeline
 				//because someone is directly working with it.
 				Task.Factory.StartNew(() =>
 										{
-											element.SetupCachedImage(new Size((int)Math.Ceiling(timeToPixels(element.Duration)), element.Row.Height - 1));
+											element.RenderElement();
 											Invalidate();
 										});
 			} else
@@ -1462,58 +1558,27 @@ namespace Common.Controls.Timeline
         }
 
 		/// <summary>
-		/// Rasterizes all Visible rows in the provided row list which includes rendering if needed. 
-		/// </summary>
-		/// <param name="rows"></param>
-        public void RenderVisibleRows(List<Row> rows)
-        {
-			if (SupressRendering) return;
-			Element element;
-            foreach (Row row in rows)
-            {
-                if (row.Visible)
-                {
-					for (int i=0; i < row.ElementCount; i++ ) {
-						element = row.GetElementAtIndex(i);
-						if (!element.CachedCanvasIsCurrent) {
-							_blockingElementQueue.Add(element);
-						}
-					}
-                }
-            }
-        }
-
-		/// <summary>
-		/// Rasterizes all Visible rows in the grid which includes rendering if needed. 
-		/// </summary>
-        public void RenderAllVisibleRows()
-        {
-			RenderVisibleRows(Rows);    
-        }
-
-		/// <summary>
-		/// Rasterizes selected rows in the grid which includes rendering if needed.
+		/// Renders elements in the selected rows in the grid.
 		/// </summary>
 		/// <param name="rows"></param>
 		public void RenderRows(List<Row> rows)
 		{
 			if (SupressRendering) return;
-			Element element;
 			foreach (Row row in rows)
 			{
 				for (int i = 0; i < row.ElementCount; i++)
 				{
-					element = row.GetElementAtIndex(i);
-					if (!element.CachedCanvasIsCurrent)
+					Element element = row.GetElementAtIndex(i);
+					if (!element.IsRendered)
 					{
 						_blockingElementQueue.Add(element);
 					}
-				}	
+				}
 			}
 		}
 
 		/// <summary>
-		/// Rasterizes all rows in the grid which includes rendering if needed.
+		/// Renders all elements in all the rows.
 		/// </summary>
 		public void RenderAllRows()
 		{
@@ -1533,135 +1598,46 @@ namespace Common.Controls.Timeline
 			
         }
 
-		/// <summary>
-		/// Resets all the elements in the provided rows and forces them to be re-rasterized/rendered
-		/// </summary>
-		/// <param name="rows"></param>
-		public void ResetRowElements(List<Row> rows)
-		{
-			if (SupressRendering) return;
-			foreach (Row row in rows)
-			{
-				for (int i = 0; i < row.ElementCount; i++)
-				{
-					Element currentElement = row.GetElementAtIndex(i);
-					currentElement.Changed = true;
-				}
-			}
-
-			RenderRows(rows);
-		}
-		
-		/// <summary>
-		/// Resets all the elements in the grid and forces them to be re-rasterized/rendered
-		/// </summary>
-        public void ResetAllElements()
-        {
-			if (SupressRendering) return;
-            ClearElementRenderQueue();
-			foreach (Row row in Rows)
-			{
-				for (int i = 0; i < row.ElementCount; i++)
-				{
-					Element currentElement = row.GetElementAtIndex(i);
-					currentElement.Changed = true;
-				}
-			}
-            RenderAllVisibleRows();
-        }
-
 		#endregion
-
-		private List<List<Element>> DetermineElementStack(List<Element> elements)
-		{
-			
-			List<List<Element>> stack = new List<List<Element>>();
-			stack.Add( new List<Element>{elements[0]} );
-			bool add = true;
-			for (int i = 1; i < elements.Count; i++)
-			{
-				add = true;
-				for (int x = 0; x < stack.Count; x++)
-				{
-					if (elements[i].StartTime >= stack[x].Last().EndTime)
-					{
-						stack[x] .Add(elements[i]);
-						add = false;
-						break;
-					}
-				}
-				if (add) stack.Add(new List<Element> {elements[i]});
-			}
-
-			return stack;
-
-		}
 
 		private void DrawElement(Graphics g, Row row, Element currentElement, int top)
 		{
-			int elementRowLocation = 0;
-			int elementRowCount = 1;
-			List<Element> elements = row.GetOverlappingElements(currentElement);
-
-			if (elements.Count > 1)
+			currentElement.DisplayHeight = (row.Height - 1) / currentElement.StackCount;
+			currentElement.DisplayTop = top + (currentElement.DisplayHeight * currentElement.StackIndex);
+			currentElement.RowTopOffset = currentElement.DisplayHeight * currentElement.StackIndex;
+			int width;
+			if (currentElement.StartTime >= VisibleTimeStart)
 			{
-				var stack = DetermineElementStack(elements);
-				elementRowCount = stack.Count;
-				for (int i = 0; i < stack.Count; i++)
+				if (currentElement.EndTime < VisibleTimeEnd)
 				{
-					if (stack[i].Contains(currentElement))
-					{
-						elementRowLocation = i;
-						break;
-					}
+					width = (int) timeToPixels(currentElement.Duration);
+				}
+				else
+				{
+					width = (int) (timeToPixels(VisibleTimeEnd) - timeToPixels(currentElement.StartTime));
 				}
 			}
-
-			currentElement.DisplayHeight = (row.Height - 1) / elementRowCount;
-			currentElement.DisplayTop = top + (currentElement.DisplayHeight * elementRowLocation);
-			currentElement.RowTopOffset = currentElement.DisplayHeight * elementRowLocation;
-			Size size = new Size((int)Math.Ceiling(timeToPixels(currentElement.Duration)), row.Height - 1);
-			Bitmap elementImage;
-			try
+			else
 			{
-				elementImage = currentElement.Draw(size);
+				if (currentElement.EndTime <= VisibleTimeEnd)
+				{
+					width = (int) (timeToPixels(currentElement.EndTime) - timeToPixels(VisibleTimeStart));
+				} else
+				{
+					width = (int)(timeToPixels(VisibleTimeEnd) - timeToPixels(VisibleTimeStart));
+				}	
 			}
-			catch (Exception e)
-			{
-				//At some zoom levels and effect durations, the image that we are trying to draw can become so big that we cannot draw it.
-				//This is due to the attempted caching of the image for the full length of the effect. I 
-				//plan to rework this in 2014 because it is fundamentally flawed.
+			if (width <= 0) return;
+			Size size = new Size(width, currentElement.DisplayHeight);
+
+			Bitmap elementImage = currentElement.Draw(size, g, VisibleTimeStart, VisibleTimeEnd, (int)timeToPixels(currentElement.Duration)); 
 			
-				//Attempt to recover until this can be reworked to really only draw what is in the visible part of the 
-				//grid. Trying to resize it is crap, but if we do not draw it then the user can't do anything with it to work around the problem.
-				Logging.ErrorException(string.Format("Exception drawing element for effect {0} of size: {1} Height X {2} Width with duration of {3}.", 
-					currentElement.EffectNode.Effect.EffectName, size.Height, size.Width,currentElement.Duration), e);
-
-				MessageBox.Show(
-					string.Format("Unable to draw effect {0} at time {1} due to its size. Attempting to recover by changing its length to 5 seconds. Please report this issue and provide the logs for further investigation.",
-					currentElement.EffectNode.Effect.EffectName, currentElement.StartTime));
-				MoveResizeElement(currentElement, currentElement.StartTime, TimeSpan.FromSeconds(5));
-				size = new Size((int)Math.Ceiling(timeToPixels(currentElement.Duration)), row.Height - 1);
-				elementImage = currentElement.Draw(size);
-			}
-
-			Point finalDrawLocation = new Point((int)Math.Floor(timeToPixels(currentElement.StartTime)), currentElement.DisplayTop);
-
-			Rectangle srcRect = new Rectangle(0, 0, elementImage.Width, elementImage.Height);
+			Point finalDrawLocation = new Point((int)Math.Floor(timeToPixels(currentElement.StartTime>VisibleTimeStart?currentElement.StartTime:VisibleTimeStart)), currentElement.DisplayTop);
+			
 			Rectangle destRect = new Rectangle(finalDrawLocation.X, finalDrawLocation.Y, size.Width, currentElement.DisplayHeight);
 			currentElement.DisplayRect = destRect;
-			g.DrawImage(elementImage,
-						destRect,
-						srcRect,
-						GraphicsUnit.Pixel);
-
-			//if (srcRect.Width != destRect.Width || srcRect.Height != destRect.Height)
-			//    currentElement.Changed = true;
-
-			//g.DrawImage(elementImage, finalDrawLocation);
-
-			//lastStartTime = currentElement.StartTime;
-			//lastEndTime = currentElement.EndTime;
+			g.DrawImage(elementImage,destRect);
+			
 		}
 
 		private void _drawInfo(Graphics g)
@@ -1681,10 +1657,8 @@ namespace Common.Controls.Timeline
 		private void _drawElements(Graphics g)
 		{
 			// Draw each row
-			int top = 0; // y-coord of top of current row
 			foreach (Row row in VisibleRows) {
-				row.DisplayTop = top;
-
+				row.SetStackIndexes(VisibleTimeStart, VisibleTimeEnd);
 				for (int i = 0; i < row.ElementCount; i++) {
 					Element currentElement = row.GetElementAtIndex(i);
 					if (currentElement.EndTime < VisibleTimeStart)
@@ -1693,17 +1667,16 @@ namespace Common.Controls.Timeline
 					if (currentElement.StartTime > VisibleTimeEnd) {
 						break;
 					}
-
-					DrawElement(g, row, currentElement, top);
+					
+					DrawElement(g, row, currentElement, row.DisplayTop);
 				}
 
-				top += row.Height; // next row starts just below this row
 			}
 		}
 
 		private void _drawSelection(Graphics g)
 		{
-			if (SelectionArea == null)
+			if (SelectionArea.IsEmpty)
 				return;
 
 			using (SolidBrush b = new SolidBrush(SelectionColor)) {
@@ -1734,7 +1707,7 @@ namespace Common.Controls.Timeline
 		{
 			if (!SequenceLoading)
 				try {
-					e.Graphics.TranslateTransform(this.AutoScrollPosition.X, this.AutoScrollPosition.Y);
+					e.Graphics.TranslateTransform(AutoScrollPosition.X, AutoScrollPosition.Y);
 
 					//Stopwatch s = new Stopwatch();
 					//s.Start();
@@ -1751,8 +1724,8 @@ namespace Common.Controls.Timeline
 					//Logging.Info("OnPaint: " + s.ElapsedMilliseconds);
 				}
 				catch (Exception ex) {
-					Logging.Error("Exception in TimelineGrid.OnPaint():\n\n\t" + ex.Message + "\n\nBacktrace:\n\n\t" + ex.StackTrace);
-					MessageBox.Show("Exception in TimelineGrid.OnPaint():\n\n\t" + ex.Message + "\n\nBacktrace:\n\n\t" + ex.StackTrace);
+					Logging.ErrorException("Exception in TimelineGrid.OnPaint()",ex);
+					MessageBox.Show(@"An unexpected error occured while drawing the grid. Please notify the Vixen team and provide the error logs.");
 				}
 		}
 

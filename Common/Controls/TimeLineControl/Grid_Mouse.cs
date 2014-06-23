@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
-using System.Diagnostics;
 
 namespace Common.Controls.Timeline
 {
 	public partial class Grid
 	{
-		Form toolForm = new Form();
 		List<Element> capturedElements = new List<Element>();
 
 		#region General Mouse Event-Related
@@ -18,7 +15,7 @@ namespace Common.Controls.Timeline
 		/// <summary>
 		/// Translates a location (Point) so that its coordinates represent the coordinates on the underlying timeline, taking into account scroll position.
 		/// </summary>
-		/// <param name="e"></param>
+		/// <param name="originalLocation"></param>
 		protected Point translateLocation(Point originalLocation)
 		{
 			// Translate this location based on the auto scroll position.
@@ -44,33 +41,61 @@ namespace Common.Controls.Timeline
 				if (m_mouseDownElements.Count <= 0) {
 					// we clicked on the background - clear anything that is selected, and begin a 'selection' drag.
 					if (!CtrlPressed)
+					{
 						beginDragSelect(gridLocation);
+						m_lastSingleSelectedElementLocation = Point.Empty;
+					}
 				}
 				else {
 					// our mouse is down on something -- if it's something selected, unselect it with CTRL
 					if (m_mouseDownElements.Any(x => x.Selected)) {
 						// unselect
-						if (CtrlPressed) {
+						if (CtrlPressed)
+						{
 							foreach (Element elem in m_mouseDownElements.Where(x => x.Selected))
 								elem.Selected = false;
 							_SelectionChanged();
 						}
+						else
+						{
+							if (ShiftPressed)
+							{
+								
+								if (m_lastSingleSelectedElementLocation != Point.Empty)
+								{
+									SelectElementsBetween(m_lastSingleSelectedElementLocation, gridLocation);
+								}
+							}
+						}
 					}
 					else {
-						// there is one-or-more elements under the mouse, and none of them are selected. If CTRL isn't pressed
-						// (ie. we aren't going to ADD to the selection, but replace it) clear the current selection, then pass
-						// it to the ElementsSelected event handler to handle selection if an external party wants to handle selection.
-						if (!CtrlPressed) {
-							ClearSelectedElements();
-							ClearSelectedRows();
-							ClearActiveRows();
+						// there is one-or-more elements under the mouse, and none of them are selected. 
+						if (ShiftPressed && m_lastSingleSelectedElementLocation != Point.Empty)
+						{
+							SelectElementsBetween(m_lastSingleSelectedElementLocation, gridLocation);	
 						}
-						if (_ElementsSelected(m_mouseDownElements)) {
-							foreach (Element element in m_mouseDownElements) {
-								element.Selected = true;
+						else
+						{
+							//If CTRL isn't pressed
+							// (ie. we aren't going to ADD to the selection, but replace it) clear the current selection, then pass
+							// it to the ElementsSelected event handler to handle selection if an external party wants to handle selection.
+							if (!CtrlPressed)
+							{
+								ClearSelectedElements();
+								ClearSelectedRows();
+								ClearActiveRows();
 							}
-							_SelectionChanged();
+							if (_ElementsSelected(m_mouseDownElements))
+							{
+								foreach (Element element in m_mouseDownElements)
+								{
+									element.Selected = true;
+								}
+								m_lastSingleSelectedElementLocation = gridLocation;
+								_SelectionChanged();
+							}	
 						}
+						
 					}
 
 					if (m_mouseResizeZone == ResizeZone.None) {
@@ -110,14 +135,22 @@ namespace Common.Controls.Timeline
 						endAllDrag();
 						// If we're not dragging on mouse up, it could be a click on one of multiple
 						// selected elements. (In which case we select only that one)
-						if (m_mouseDownElements != null && m_mouseDownElements.Any()  && !CtrlPressed) {
+						if (m_mouseDownElements != null && m_mouseDownElements.Any()  && !CtrlPressed && !ShiftPressed) {
 							ClearSelectedElements();
 							if (_ElementsSelected(m_mouseDownElements)) {
 								m_mouseDownElements.First().Selected = true;
+								m_lastSingleSelectedElementLocation = gridLocation;
 								_SelectionChanged();
 								Row row = rowAt(gridLocation);
 								row.Active = true;
 							}
+						}
+						if (m_mouseDownElements != null && m_mouseDownElements.Any() && ShiftPressed ||
+							m_mouseDownElements != null && m_mouseDownElements.Any() && CtrlPressed)
+						{
+							ClearActiveRows();
+							Row row = rowAt(gridLocation);
+							row.Active = true;
 						}
 						break;
 				}
@@ -231,6 +264,12 @@ namespace Common.Controls.Timeline
 		{
 			Point gridLocation = translateLocation(e.Location);
 
+			if (ModifierKeys == Keys.Shift)
+				gridLocation.X = m_lastGridLocation.X;
+
+			if (ModifierKeys == (Keys.Shift | Keys.Alt))
+				gridLocation.Y = m_lastGridLocation.Y;
+
 			Point delta = new Point(
 				gridLocation.X - m_lastGridLocation.X,
 				gridLocation.Y - m_lastGridLocation.Y
@@ -247,7 +286,24 @@ namespace Common.Controls.Timeline
 
 				case DragState.Waiting: // Waiting to start moving an object
 					if (!m_ignoreDragArea.Contains(gridLocation))
+					{
+						if (CtrlPressed)
+						{
+							//Ensure the element under our pointer is selected.
+							List<Element> elements = elementsAt(m_waitingBeginGridLocation);
+							if (elements.Any())
+							{
+								foreach (Element elem in elements.Where(x => x.Selected == false))
+								{
+									elem.Selected = true;
+								}
+								_SelectionChanged();
+							}
+
+							CloneSelectedElementsForMove();
+						}
 						beginDragMove(gridLocation);
+					}
 					break;
 
 				case DragState.Moving: // Moving objects
@@ -322,9 +378,8 @@ namespace Common.Controls.Timeline
 		private void elementsFinishedMoving(ElementMoveType type)
 		{
 			foreach (var elem in SelectedElements) {
-				elem.Changed = true;
-				RenderElement(elem);
 				elem.EndUpdate();
+				RenderElement(elem);
 			}
 
 			endAllDrag();
@@ -419,6 +474,7 @@ namespace Common.Controls.Timeline
 		{
 			// begin the dragging process -- calculate a area outside which a drag (move) starts
 			m_dragState = DragState.Waiting;
+			m_waitingBeginGridLocation = gridLocation;
 			m_ignoreDragArea = new Rectangle(gridLocation.X - DragThreshold, gridLocation.Y - DragThreshold, DragThreshold*2,
 			                                 DragThreshold*2);
 		}
@@ -567,7 +623,7 @@ namespace Common.Controls.Timeline
 		private void MouseMove_DragMoving(Point gridLocation)
 		{
 			// if we don't have anything selected, there's no point dragging anything...
-			if (SelectedElements.Count() == 0)
+			if (!SelectedElements.Any())
 				return;
 
 			TimeSpan dt = pixelsToTime(gridLocation.X - m_elemMoveInfo.InitialGridLocation.X);
@@ -594,6 +650,8 @@ namespace Common.Controls.Timeline
 				// Get this elemenent's original times (before resize started)
 				ElementTimeInfo orig = m_elemMoveInfo.OriginalElements[elem];
 				elem.StartTime = orig.StartTime + dt;
+				//Control when the time changed event happens.
+				elem.UpdateNotifyTimeChanged();
 			}
 
 			// if we've moved vertically, we may need to move elements between rows
@@ -675,10 +733,14 @@ namespace Common.Controls.Timeline
 					case ResizeZone.Front:
 						elem.StartTime = orig.StartTime + dt;
 						elem.EndTime = orig.EndTime;
+						//Control when the time changed event happens.
+						elem.UpdateNotifyTimeChanged(); 
 						break;
 
 					case ResizeZone.Back:
 						elem.EndTime = orig.EndTime + dt;
+						//Control when the time changed event happens.
+						elem.UpdateNotifyTimeChanged();  
 						break;
 				}
 			}
@@ -739,7 +801,7 @@ namespace Common.Controls.Timeline
 		private void endAllDrag()
 		{
 			m_dragState = DragState.Normal;
-			this.Cursor = Cursors.Default;
+			Cursor = Cursors.Default;
 
 			if (m_autoScrollTimer.Enabled)
 				m_autoScrollTimer.Stop();
