@@ -18,7 +18,7 @@ namespace VixenModules.Effect.LipSync
 
         public LipSyncData()
         {
-            StaticPhoneme = "";
+            StaticPhoneme = "REST";
             PhonemeMapping = "";
         }
 
