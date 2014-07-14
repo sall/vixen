@@ -57,13 +57,28 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
+    <Compile Include="FPPCommandHandler.cs" />
+    <Compile Include="FPPData.cs" />
+    <Compile Include="FPPDataPolicy.cs" />
+    <Compile Include="FPPDataPolicyFactory.cs" />
+    <Compile Include="FPPDescriptor.cs" />
+    <Compile Include="FPPModule.cs" />
+    <Compile Include="FPPSeqOutput.cs" />
+    <Compile Include="FPPSetup.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FPPSetup.Designer.cs">
+      <DependentUpon>FPPSetup.cs</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -77,6 +92,11 @@
       <Name>Vixen</Name>
       <Private>False</Private>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="FPPSetup.resx">
+      <DependentUpon>FPPSetup.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
