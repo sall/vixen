@@ -17,109 +17,142 @@ namespace VixenModules.Output.FPPVirtual
         private const Byte _vMajor = 0;
         private const UInt32 _dataOffset = 28;
         private const UInt16 _fixedHeaderLength = 28;
-        private UInt32 _stepSize = 0;
-        private UInt16 _stepTime = 50;       //Default to 50ms Timing
+        private Int32 _seqNumChannels = 0;
+        private UInt32 _seqNumPeriods = 0;
         private UInt16 _numUniverses = 0;    //Ignored by Pi Player
         private UInt16 _universeSize = 0;    //Ignored by Pi Player
         private Byte _gamma = 1;             //0=encoded, 1=linear, 2=RGB
         private Byte _colorEncoding = 2;
-        private String _fileName = null;
+
+        private FileStream _outfs = null;
+        private BinaryWriter _dataOut = null;
 
         //step size is number of channels in output
         //num steps is number of 25,50,100ms intervals
 
         public FPPSeqOutput()
         {
-
+            SeqPeriodTime = 50;  //Default to 50ms
         }
 
-        public FPPSeqOutput(FPPData data)
+
+        public UInt16 SeqPeriodTime { get; set; }
+
+        private void WriteHeader()
         {
-            if (data != null)
+            if (_dataOut != null)
             {
-                _stepTime = data.StepTiming;
-                _stepSize = data.StepSize;
-                _fileName = data.FileName;
-            }
-
-        }
-
-        public byte[] SeqData { get; set; }
-
-        public void WriteFalconPiFile()
-        {
-
-/*
-            //Add exception handling
-
-            Byte outByte;
-
-            if (_fileName != null)
-            {
-                FileStream fs = File.Create("C:\\binary.dat", 2048, FileOptions.None);
-                BinaryWriter dataOut = new BinaryWriter(fs);
 
                 // Header Information
                 // Format Identifier
-                dataOut.Write("FSEQ");
+                _dataOut.Write("FSEQ");
 
                 // Data offset
-                dataOut.Write((Byte)(_dataOffset % 256));
-                dataOut.Write((Byte)(_dataOffset / 256));
+                _dataOut.Write((Byte)(_dataOffset % 256));
+                _dataOut.Write((Byte)(_dataOffset / 256));
 
                 // Data header
-                dataOut.Write(_vMinor);
-                dataOut.Write(_vMajor);
+                _dataOut.Write(_vMinor);
+                _dataOut.Write(_vMajor);
 
                 // Fixed header length
-                dataOut.Write((Byte)(_fixedHeaderLength % 256));
-                dataOut.Write((Byte)(_fixedHeaderLength / 256));
+                _dataOut.Write((Byte)(_fixedHeaderLength % 256));
+                _dataOut.Write((Byte)(_fixedHeaderLength / 256));
 
                 // Step Size
-                dataOut.Write((Byte)(_stepSize & 0xFF));
-                dataOut.Write((Byte)((_stepSize >> 8) & 0xFF));
-                dataOut.Write((Byte)((_stepSize >> 16) & 0xFF));
-                dataOut.Write((Byte)((_stepSize >> 24) & 0xFF));
+                _dataOut.Write((Byte)(_seqNumChannels & 0xFF));
+                _dataOut.Write((Byte)((_seqNumChannels >> 8) & 0xFF));
+                _dataOut.Write((Byte)((_seqNumChannels >> 16) & 0xFF));
+                _dataOut.Write((Byte)((_seqNumChannels >> 24) & 0xFF));
 
                 // Number of Steps
-                dataOut.Write((Byte)(SeqNumPeriods & 0xFF));
-                dataOut.Write((Byte)((SeqNumPeriods >> 8) & 0xFF));
-                dataOut.Write((Byte)((SeqNumPeriods >> 16) & 0xFF));
-                dataOut.Write((Byte)((SeqNumPeriods >> 24) & 0xFF));
+                _dataOut.Write((Byte)(_seqNumPeriods & 0xFF));
+                _dataOut.Write((Byte)((_seqNumPeriods >> 8) & 0xFF));
+                _dataOut.Write((Byte)((_seqNumPeriods >> 16) & 0xFF));
+                _dataOut.Write((Byte)((_seqNumPeriods >> 24) & 0xFF));
 
                 // Step time in ms
-                dataOut.Write((Byte)(_stepTime & 0xFF));
-                dataOut.Write((Byte)((_stepTime >> 8) & 0xFF));
+                _dataOut.Write((Byte)(SeqPeriodTime & 0xFF));
+                _dataOut.Write((Byte)((SeqPeriodTime >> 8) & 0xFF));
 
                 // universe count
-                dataOut.Write((Byte)(_numUniverses & 0xFF));
-                dataOut.Write((Byte)((_numUniverses >> 8) & 0xFF));
+                _dataOut.Write((Byte)(_numUniverses & 0xFF));
+                _dataOut.Write((Byte)((_numUniverses >> 8) & 0xFF));
 
                 // universe Size
-                dataOut.Write((Byte)(_universeSize & 0xFF));
-                dataOut.Write((Byte)((_universeSize >> 8) & 0xFF));
+                _dataOut.Write((Byte)(_universeSize & 0xFF));
+                _dataOut.Write((Byte)((_universeSize >> 8) & 0xFF));
 
                 // universe Size
-                dataOut.Write(_gamma);
+                _dataOut.Write(_gamma);
 
                 // universe Size
-                dataOut.Write(_colorEncoding);
-                dataOut.Write(0);
-                dataOut.Write(0);
-
-                for (long period = 0; period < SeqNumPeriods; period++)
-                {
-                    for (int ch = 0; ch < _stepSize; ch++)
-                    {
-                        outByte = ch < SeqNumChannels ? SeqData[(ch * SeqNumPeriods) + period] : 0;
-                        dataOut.Write(outByte);
-                    }
-                }
-
-                dataOut.Close();
-                fs.Close();
+                _dataOut.Write(_colorEncoding);
+                _dataOut.Write(0);
+                _dataOut.Write(0);
             }
- */
+        }
+        public void OpenSession(string fileName, Int32 numChannels)
+        {
+            try
+            {
+                _outfs = File.Create(fileName, numChannels * 16, FileOptions.None);
+                _dataOut = new BinaryWriter(_outfs);
+                _dataOut.Write(new Byte[_fixedHeaderLength]);
+                _seqNumChannels = numChannels;
+                _seqNumPeriods = 0;
+            }
+            catch(Exception e)
+            {
+                _outfs = null;
+                _dataOut = null;
+                throw e;
+            }
+        }
+
+        public void WriteNextPeriodData(List<Byte> periodData)
+        {
+            if (_dataOut != null)
+            {
+                try
+                {
+                    _dataOut.Write(periodData.ToArray());
+                    _seqNumPeriods++;
+
+                }
+                catch (Exception e)
+                {
+                    _dataOut = null;
+                    _outfs = null;
+                    throw e;
+                }                
+            }
+           
+        }
+
+        public void CloseSession()
+        {
+            if (_dataOut != null)
+            {
+                try
+                {
+                    _dataOut.Seek(0, SeekOrigin.Begin);
+                    WriteHeader();
+                    _dataOut.Flush();
+                    _dataOut.Close();
+                    _dataOut = null;
+                    _outfs.Close();
+                    _outfs.Close();
+                    _outfs = null;
+                    
+                }
+                catch (Exception e)
+                {
+                    _dataOut = null;
+                    _outfs = null;
+                    throw e;
+                }
+            }
         }
     }
 }

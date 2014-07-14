@@ -25,13 +25,17 @@ namespace VixenModules.Output.FPPVirtual
         private Stopwatch _timer;
         private long _lastUpdateMs;
 
+        private Dictionary<long,ICommand[]> _commandCache;
+
         private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
 
 
         public FPPModule()
         {
             _fppCommandHandler = new FPPCommandHandler();
+            _eventData = new List<byte>();
             DataPolicyFactory = new FPPDataPolicyFactory();
+            _commandCache = new Dictionary<long, ICommand[]>();
 
 
             VixenSystem.Contexts.ContextCreated += Contexts_ContextCreated;
@@ -67,9 +71,8 @@ namespace VixenModules.Output.FPPVirtual
 
         void sequenceContext_ContextEnded(object sender, EventArgs e)
         {
-            _sequenceStarted = false;
-            _output.SeqData = _eventData.ToArray<byte>();
-            
+            _output.CloseSession();
+            _sequenceStarted = false;         
         }
 
         void sequenceContext_ContextStarted(object sender, EventArgs e)
@@ -78,19 +81,12 @@ namespace VixenModules.Output.FPPVirtual
             Vixen.Execution.Context.ISequenceContext sequenceContext = (Vixen.Execution.Context.ISequenceContext)sender;
 
             _timer = new Stopwatch();
-            _eventData = new List<byte>();
-/*            _output = new VixenXmlOutput() { Audio = new Audio(), Channels = new List<string>() };
+            _output = new FPPSeqOutput();
+            _output.SeqPeriodTime = _fppData.EventTiming;
+            _output.OpenSession("C:\\Users\\ebrad\\Documents\\Vixen 3\\test.fseq",this.OutputCount);
 
-            _output.Audio.filename = sequenceContext.Sequence.SequenceData.SelectedTimingProvider.SourceName;
-            string audioname = _output.Audio.filename.Substring(_output.Audio.filename.LastIndexOf("\\") + 1);
-
-            _output.Audio.Value = audioname.Substring(0, audioname.LastIndexOf("."));
-
-            _output.Time = sequenceContext.Sequence.Length.TotalMilliseconds.ToString();
-
-            _output.EventPeriodInMilliseconds = _helixData.EventPeriod.ToString();
-*/
-            _timer.Start();
+            _lastUpdateMs = 0;
+            _commandCache.Clear();
             _sequenceStarted = true;
 
         }
@@ -101,7 +97,7 @@ namespace VixenModules.Output.FPPVirtual
             {
                 if (setup.ShowDialog() == DialogResult.OK)
                 {
-                    _fppData.StepTiming = setup.EventTiming;
+                    _fppData.EventTiming = setup.EventTiming;
                     return true;
                 }
             }
@@ -112,12 +108,23 @@ namespace VixenModules.Output.FPPVirtual
         {
             if (_sequenceStarted)
             {
-                if (_timer.ElapsedMilliseconds < _lastUpdateMs + MsPerUpdate)
+
+                _commandCache[_timer.ElapsedMilliseconds] = outputStates;
+
+                if (_timer.ElapsedMilliseconds == 0);
+                {
+                    _timer.Start();
+                }
+
+
+/*
+                else if (_timer.ElapsedMilliseconds < _lastUpdateMs + _fppData.EventTiming)
                 {
                     return;
                 }
-
                 _lastUpdateMs = _timer.ElapsedMilliseconds;
+                _eventData.Clear();                
+                
 
                 for (int i = 0; i < outputStates.Length; i++)
                 {
@@ -129,7 +136,8 @@ namespace VixenModules.Output.FPPVirtual
                     }
                     _eventData.Add(_fppCommandHandler.Value);
                 }
-
+                _output.WriteNextPeriodData(_eventData);
+*/
             }
         }
 
@@ -157,11 +165,8 @@ namespace VixenModules.Output.FPPVirtual
 
         private void initModule()
         {
-            MsPerUpdate = _fppData.StepTiming;
             _lastUpdateMs = int.MinValue;
         }
-
-        public int MsPerUpdate { get; set; }
 
     }
 

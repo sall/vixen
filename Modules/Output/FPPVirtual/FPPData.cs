@@ -10,11 +10,25 @@ namespace VixenModules.Output.FPPVirtual
     [DataContract]
     public class FPPData : ModuleDataModelBase
     {
-        [DataMember]
-        public UInt32 StepSize { get; set; }
+
+        private UInt16 _eventTiming;
 
         [DataMember]
-        public UInt16 StepTiming { get; set; }
+        public UInt16 EventTiming
+        {
+            get
+            {
+                return (_eventTiming == 0) ? (UInt16)50 : _eventTiming;
+            }
+
+            set
+            {
+                if ((value == 25) || (value == 50) || (value == 100))
+                {
+                    _eventTiming = value;
+                }
+            }
+        }
 
         [DataMember]
         public String FileName { get; set; }
