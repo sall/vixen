@@ -83,7 +83,7 @@ namespace VixenModules.Output.FPPVirtual
             _timer = new Stopwatch();
             _output = new FPPSeqOutput();
             _output.SeqPeriodTime = _fppData.EventTiming;
-            _output.OpenSession("C:\\Users\\ebrad\\Documents\\Vixen 3\\test.fseq",this.OutputCount);
+            _output.OpenSession(System.IO.Path.GetTempPath() + System.IO.Path.PathSeparator+"testSeq.fseq",this.OutputCount);
 
             _lastUpdateMs = 0;
             _commandCache.Clear();
