@@ -3641,6 +3641,20 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
         }
 
+        private void exportToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ToolStripMenuItem toolStripSender = (ToolStripMenuItem)sender;
+
+            TimelineControl.SelectedElements.ToList().ForEach(delegate(Element element)
+            {
+                if (element.EffectNode.Effect.GetType() == typeof(LipSync))
+                {
+                    ((LipSync)element.EffectNode.Effect).PhonemeMapping = toolStripSender.Text;
+                    resetLipSyncNodes();
+                }
+            });
+        }
+
     }
 
 	[Serializable]
