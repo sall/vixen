@@ -130,6 +130,7 @@
     <Compile Include="Execution\ContextTargetType.cs" />
     <Compile Include="Execution\DataSource\IMutableDataSource.cs" />
     <Compile Include="Execution\DataSource\SequenceDataPump.cs" />
+    <Compile Include="Execution\ExportTimingProvider.cs" />
     <Compile Include="Execution\IElementStateBuilder.cs" />
     <Compile Include="Execution\IContext.cs" />
     <Compile Include="Execution\IContextCurrentEffects.cs" />
