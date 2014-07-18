@@ -111,7 +111,7 @@ namespace VixenModules.Output.FPPVirtual
 
                 _commandCache[_timer.ElapsedMilliseconds] = outputStates;
 
-                if (_timer.ElapsedMilliseconds == 0);
+                if (_timer.ElapsedMilliseconds == 0)
                 {
                     _timer.Start();
                 }

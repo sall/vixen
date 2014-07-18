@@ -349,6 +349,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LipSyncApp", "Modules\App\LipSync\LipSyncApp.csproj", "{E3689E21-2204-48B9-8370-D45EE4A23451}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Export", "Modules\Timing\Export\Export.csproj", "{A0BDAE14-ED62-4ADC-8EDF-E02D479DFD53}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPPVirtual", "Modules\Output\FPPVirtual\FPPVirtual.csproj", "{CA555986-DDC2-4A36-868C-5A083DD554E7}"
 EndProject
 Global
@@ -1062,6 +1063,8 @@ Global
 		{E3689E21-2204-48B9-8370-D45EE4A23451}.Release|x64.Build.0 = Release|x64
 		{E3689E21-2204-48B9-8370-D45EE4A23451}.Release|x86.ActiveCfg = Release|x86
 		{E3689E21-2204-48B9-8370-D45EE4A23451}.Release|x86.Build.0 = Release|x86
+		{A0BDAE14-ED62-4ADC-8EDF-E02D479DFD53}.Debug|x64.ActiveCfg = Release|x64
+		{A0BDAE14-ED62-4ADC-8EDF-E02D479DFD53}.Debug|x86.ActiveCfg = Release|x86
 		{A0BDAE14-ED62-4ADC-8EDF-E02D479DFD53}.Release|x64.ActiveCfg = Release|x64
 		{A0BDAE14-ED62-4ADC-8EDF-E02D479DFD53}.Release|x64.Build.0 = Release|x64
 		{A0BDAE14-ED62-4ADC-8EDF-E02D479DFD53}.Release|x86.ActiveCfg = Release|x86

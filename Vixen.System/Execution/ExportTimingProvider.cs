@@ -33,9 +33,9 @@ namespace Vixen.Execution
                     if (moduleDescriptor != null)
                     {
                         timers[sequence.FilePath] = Modules.ModuleManagement.GetTiming(moduleDescriptor.TypeId);
-                        return new string[] { sequence.FilePath };
                     }
                 }
+                return new string[] { sequence.FilePath };
             }
 
             return new string[0];
