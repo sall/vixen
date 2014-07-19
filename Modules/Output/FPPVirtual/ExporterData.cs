@@ -5,10 +5,10 @@ using System.Text;
 using Vixen.Module;
 using System.Runtime.Serialization;
 
-namespace VixenModules.Output.FPPVirtual
+namespace VixenModules.Output.Exporter
 {
     [DataContract]
-    public class FPPData : ModuleDataModelBase
+    public class ExporterData : ModuleDataModelBase
     {
 
         private UInt16 _eventTiming;
@@ -18,7 +18,7 @@ namespace VixenModules.Output.FPPVirtual
         {
             get
             {
-                return (_eventTiming == 0) ? (UInt16)50 : _eventTiming;
+                return (_eventTiming == 0) ? (UInt16)25 : _eventTiming;
             }
 
             set

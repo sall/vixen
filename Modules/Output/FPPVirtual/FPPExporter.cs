@@ -2,16 +2,18 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Vixen.Module.Controller;
-using Vixen.Sys;
-using Vixen.Execution;
-using Vixen.Commands;
 using System.Text;
+using System.Threading;
+using Vixen.Commands;
+using Vixen.Execution;
+using Vixen.Execution.Context;
+using Vixen.Module.Controller;
+using Vixen.Module.Timing;
+using Vixen.Sys;
 
-
-namespace VixenModules.Output.FPPVirtual
+namespace VixenModules.Output.Exporter
 {
-    public class FPPSeqOutput
+    public class FPPExporter
     {
         private const Byte _vMinor = 0;
         private const Byte _vMajor = 0;
@@ -30,7 +32,7 @@ namespace VixenModules.Output.FPPVirtual
         //step size is number of channels in output
         //num steps is number of 25,50,100ms intervals
 
-        public FPPSeqOutput()
+        public FPPExporter()
         {
             SeqPeriodTime = 50;  //Default to 50ms
         }
@@ -45,7 +47,10 @@ namespace VixenModules.Output.FPPVirtual
 
                 // Header Information
                 // Format Identifier
-                _dataOut.Write("FSEQ");
+                _dataOut.Write('F');
+                _dataOut.Write('S');
+                _dataOut.Write('E');
+                _dataOut.Write('Q');
 
                 // Data offset
                 _dataOut.Write((Byte)(_dataOffset % 256));
@@ -88,21 +93,21 @@ namespace VixenModules.Output.FPPVirtual
 
                 // universe Size
                 _dataOut.Write(_colorEncoding);
-                _dataOut.Write(0);
-                _dataOut.Write(0);
+                _dataOut.Write((Byte)0);
+                _dataOut.Write((Byte)0);
             }
         }
         public void OpenSession(string fileName, Int32 numChannels)
         {
             try
             {
-                _outfs = File.Create(fileName, numChannels * 16, FileOptions.None);
+                _outfs = File.Create(fileName, numChannels * 2, FileOptions.None);
                 _dataOut = new BinaryWriter(_outfs);
                 _dataOut.Write(new Byte[_fixedHeaderLength]);
                 _seqNumChannels = numChannels;
                 _seqNumPeriods = 0;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 _outfs = null;
                 _dataOut = null;
@@ -125,9 +130,9 @@ namespace VixenModules.Output.FPPVirtual
                     _dataOut = null;
                     _outfs = null;
                     throw e;
-                }                
+                }
             }
-           
+
         }
 
         public void CloseSession()
@@ -144,7 +149,7 @@ namespace VixenModules.Output.FPPVirtual
                     _outfs.Close();
                     _outfs.Close();
                     _outfs = null;
-                    
+
                 }
                 catch (Exception e)
                 {

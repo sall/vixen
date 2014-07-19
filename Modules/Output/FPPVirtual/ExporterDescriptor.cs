@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Vixen.Module.Controller;
 
-namespace VixenModules.Output.FPPVirtual
+namespace VixenModules.Output.Exporter
 {
-    public class FPPDescriptor : ControllerModuleDescriptorBase
+    public class ExporterDescriptor : ControllerModuleDescriptorBase
     {
         /// <summary>
         /// Unique Identifier for the controller
@@ -25,7 +25,7 @@ namespace VixenModules.Output.FPPVirtual
         /// </summary>
         public override string Description
         {
-            get { return "Falcon Pi Player Virtual Controller"; }
+            get { return "Exporter Virtual Controller"; }
         }
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace VixenModules.Output.FPPVirtual
         /// </summary>
         public override Type ModuleClass
         {
-            get { return typeof(FPPModule); }
+            get { return typeof(ExporterModule); }
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace VixenModules.Output.FPPVirtual
         /// </summary>
         public override Type ModuleDataClass
         {
-            get { return typeof(FPPData); }
+            get { return typeof(ExporterData); }
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace VixenModules.Output.FPPVirtual
         /// </summary>
         public override string TypeName
         {
-            get { return "FPP Virtual Controller"; }
+            get { return "Exporter Virtual Controller"; }
         }
 
         /// <summary>

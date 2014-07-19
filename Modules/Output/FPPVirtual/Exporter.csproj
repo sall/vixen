@@ -7,7 +7,7 @@
     <ProjectGuid>{CA555986-DDC2-4A36-868C-5A083DD554E7}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>VixenModules.Output.FPPVirtual</RootNamespace>
+    <RootNamespace>VixenModules.Output.Exporter</RootNamespace>
     <AssemblyName>FPPVirtual</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -66,19 +66,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FPPCommandHandler.cs" />
-    <Compile Include="FPPData.cs" />
-    <Compile Include="FPPDataPolicy.cs" />
-    <Compile Include="FPPDataPolicyFactory.cs" />
-    <Compile Include="FPPDescriptor.cs" />
-    <Compile Include="FPPModule.cs" />
-    <Compile Include="FPPSeqOutput.cs" />
-    <Compile Include="FPPSetup.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="FPPSetup.Designer.cs">
-      <DependentUpon>FPPSetup.cs</DependentUpon>
-    </Compile>
+    <Compile Include="ExporterCommandHandler.cs" />
+    <Compile Include="ExporterData.cs" />
+    <Compile Include="ExporterDataPolicy.cs" />
+    <Compile Include="ExporterDataPolicyFactory.cs" />
+    <Compile Include="ExporterDescriptor.cs" />
+    <Compile Include="ExporterModule.cs" />
+    <Compile Include="FPPExporter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -92,11 +86,6 @@
       <Name>Vixen</Name>
       <Private>False</Private>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="FPPSetup.resx">
-      <DependentUpon>FPPSetup.cs</DependentUpon>
-    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

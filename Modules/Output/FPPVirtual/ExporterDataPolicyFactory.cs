@@ -4,13 +4,13 @@ using System.Linq;
 using System.Text;
 using Vixen.Sys;
 
-namespace VixenModules.Output.FPPVirtual
+namespace VixenModules.Output.Exporter
 {
-    class FPPDataPolicyFactory : IDataPolicyFactory
+    class ExporterDataPolicyFactory : IDataPolicyFactory
     {
         public IDataPolicy CreateDataPolicy()
         {
-            return new FPPDataPolicy();
+            return new ExporterDataPolicy();
         }
     }
 }

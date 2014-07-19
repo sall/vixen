@@ -5,9 +5,9 @@ using System.Text;
 using Vixen.Sys.Dispatch;
 using Vixen.Commands;
 
-namespace VixenModules.Output.FPPVirtual
+namespace VixenModules.Output.Exporter
 {
-    class FPPCommandHandler : CommandDispatch
+    class ExporterCommandHandler : CommandDispatch
     {
         public byte Value { get; private set; }
 
