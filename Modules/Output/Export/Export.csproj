@@ -7,8 +7,8 @@
     <ProjectGuid>{CA555986-DDC2-4A36-868C-5A083DD554E7}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>VixenModules.Output.Exporter</RootNamespace>
-    <AssemblyName>FPPVirtual</AssemblyName>
+    <RootNamespace>VixenModules.Output.Export</RootNamespace>
+    <AssemblyName>ExportController</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -66,13 +66,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ExporterCommandHandler.cs" />
-    <Compile Include="ExporterData.cs" />
-    <Compile Include="ExporterDataPolicy.cs" />
-    <Compile Include="ExporterDataPolicyFactory.cs" />
-    <Compile Include="ExporterDescriptor.cs" />
-    <Compile Include="ExporterModule.cs" />
+    <Compile Include="ExportCommandHandler.cs" />
+    <Compile Include="ExportData.cs" />
+    <Compile Include="ExportDataPolicy.cs" />
+    <Compile Include="ExportDataPolicyFactory.cs" />
+    <Compile Include="ExportDescriptor.cs" />
+    <Compile Include="ExportModule.cs" />
     <Compile Include="FPPExporter.cs" />
+    <Compile Include="IExportWriter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

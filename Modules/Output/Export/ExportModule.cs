@@ -15,14 +15,15 @@ using System.IO;
 using System.Diagnostics;
 
 
-namespace VixenModules.Output.Exporter
+namespace VixenModules.Output.Export
 {
-    public class ExporterModule : ControllerModuleInstanceBase
+    public class ExportModule : ControllerModuleInstanceBase, IExportController
     {
         private bool _sequenceStarted = false;
-        private ExporterData _exporterData;
-        private ExporterCommandHandler _exporterCommandHandler;
-        private FPPExporter _output;
+        private ExportData _exporterData;
+        private ExportCommandHandler _exporterCommandHandler;
+        private IExportWriter _output;
+        private string _outFileName;
         private List<byte> _eventData;
         private double _nextUpdateMS;
         private ITiming _timer;
@@ -30,16 +31,23 @@ namespace VixenModules.Output.Exporter
         private Dictionary<long,ICommand[]> _commandCache;
         private static EventWaitHandle runWH;
         private static EventWaitHandle saveWH;
+        private int _updateInterval;
+        private Dictionary<string, IExportWriter> _writers;
+        private Dictionary<string,string> _exportFileTypes;
+
 
         private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
 
 
-        public ExporterModule()
+        public ExportModule()
         {
-            _exporterCommandHandler = new ExporterCommandHandler();
+            _updateInterval = -1;
+            _exporterCommandHandler = new ExportCommandHandler();
             _eventData = new List<byte>();
-            DataPolicyFactory = new ExporterDataPolicyFactory();
+            DataPolicyFactory = new ExportDataPolicyFactory();
             _commandCache = new Dictionary<long, ICommand[]>();
+            _writers = new Dictionary<string, IExportWriter>();
+            _exportFileTypes = new Dictionary<string, string>();
 
             ts1MS = new TimeSpan(0, 0, 0, 0, 1);
 
@@ -52,6 +60,29 @@ namespace VixenModules.Output.Exporter
             VixenSystem.Contexts.ContextCreated += Contexts_ContextCreated;
             VixenSystem.Contexts.ContextReleased += Contexts_ContextReleased;
 
+            var type = typeof(IExportWriter);
+            var types = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(s => s.GetTypes())
+                .Where(p => type.IsAssignableFrom(p) && !p.Equals(type));
+
+            IExportWriter exportWriter;
+            foreach (Type theType in types.ToArray())
+            {
+                exportWriter = (IExportWriter)Activator.CreateInstance(theType);
+                _writers[exportWriter.FileType] = exportWriter;
+                _exportFileTypes[exportWriter.FileTypeDescr] = exportWriter.FileType;
+            }
+
+            _output = _writers.FirstOrDefault().Value;
+
+        }
+
+        public Dictionary<string,string> ExportFileTypes 
+        { 
+            get
+            {
+                return _exportFileTypes;
+            }
         }
 
         void Contexts_ContextCreated(object sender, ContextEventArgs e)
@@ -118,9 +149,8 @@ namespace VixenModules.Output.Exporter
 
             if (sequenceContext.Sequence.SelectedTimingProvider.ProviderType.Equals("Export"))
             {
-                _output = new FPPExporter();
-                _output.SeqPeriodTime = _exporterData.EventTiming;
-                _output.OpenSession(System.IO.Path.GetTempPath() + "testSeq.fseq", this.OutputCount);
+                _output.SeqPeriodTime = (ushort) UpdateInterval;
+                _output.OpenSession(_outFileName, this.OutputCount);
 
                 _nextUpdateMS = 0;
                 _commandCache.Clear();
@@ -142,7 +172,7 @@ namespace VixenModules.Output.Exporter
                     return;
                 }
                 _commandCache[Convert.ToInt32(currentMS)] = (ICommand[])outputStates.Clone();
-                _nextUpdateMS += _exporterData.EventTiming;
+                _nextUpdateMS += UpdateInterval;
                 _timer.Position = TimeSpan.FromMilliseconds(_nextUpdateMS);
                 //_timer.Position = TimeSpan.FromMilliseconds(currentMS + 25);
             }
@@ -167,8 +197,55 @@ namespace VixenModules.Output.Exporter
             }
             set
             {
-                _exporterData = (ExporterData)value;
+                _exporterData = (ExportData)value;
                 initModule();
+            }
+        }
+
+
+        public new int UpdateInterval
+        {
+            get
+            {
+                if (_updateInterval == -1)
+                {
+                    _updateInterval = Vixen.Sys.VixenSystem.DefaultUpdateInterval;
+                }
+                return _updateInterval;
+            }
+
+            set { _updateInterval = value; }
+        }
+
+        public string OutputType
+        {
+            get
+            {
+                return _output.FileType;
+            }
+
+            set
+            {
+                IExportWriter tempOutput;
+                if (_writers.TryGetValue((string)value, out tempOutput))
+                {
+                    _output = tempOutput;
+                }
+            }
+        }
+
+        public string OutFileName
+        {
+            get
+            {
+                return _outFileName;
+            }
+
+            set
+            {
+                _outFileName = (string)value;
+                string ext = Path.GetExtension(_outFileName).ToUpper();
+                OutputType = ext;
             }
         }
 

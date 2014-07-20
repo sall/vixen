@@ -28,6 +28,7 @@ namespace VixenApplication
 		private CpuUsage _cpuUsage;
 
 		private VixenApplicationData _applicationData;
+        private ExportForm _exportForm;
 
 		public VixenApplication()
 		{
@@ -633,6 +634,15 @@ namespace VixenApplication
 			}
 		}
 
+        private void ShowExportSequenceForm()
+        {
+            if ((_exportForm == null) || (_exportForm.IsDisposed))
+            {
+                _exportForm = new ExportForm();
+            }
+            _exportForm.Show();
+        }
+
 		private void setupElementsGroupsToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			SetupElements();
@@ -667,5 +677,10 @@ namespace VixenApplication
 		{
 			SetupDisplay();
 		}
+
+        private void buttonExportSequence_Click(object sender, EventArgs e)
+        {
+            ShowExportSequenceForm();
+        }
 	}
 }

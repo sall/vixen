@@ -5,9 +5,9 @@ using Vixen.Sys;
 using Vixen.Data.Evaluator;
 using Vixen.Data.Combinator._8Bit;
 
-namespace VixenModules.Output.Exporter
+namespace VixenModules.Output.Export
 {
-    class ExporterDataPolicy : ControllerDataPolicy
+    class ExportDataPolicy : ControllerDataPolicy
     {
         protected override IEvaluator GetEvaluator()
         {

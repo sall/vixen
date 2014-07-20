@@ -5,9 +5,9 @@ using System.Text;
 using Vixen.Sys.Dispatch;
 using Vixen.Commands;
 
-namespace VixenModules.Output.Exporter
+namespace VixenModules.Output.Export
 {
-    class ExporterCommandHandler : CommandDispatch
+    class ExportCommandHandler : CommandDispatch
     {
         public byte Value { get; private set; }
 

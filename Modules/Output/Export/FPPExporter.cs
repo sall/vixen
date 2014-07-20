@@ -11,9 +11,9 @@ using Vixen.Module.Controller;
 using Vixen.Module.Timing;
 using Vixen.Sys;
 
-namespace VixenModules.Output.Exporter
+namespace VixenModules.Output.Export
 {
-    public class FPPExporter
+    public class FPPExportWriter : IExportWriter
     {
         private const Byte _vMinor = 0;
         private const Byte _vMajor = 0;
@@ -32,7 +32,7 @@ namespace VixenModules.Output.Exporter
         //step size is number of channels in output
         //num steps is number of 25,50,100ms intervals
 
-        public FPPExporter()
+        public FPPExportWriter()
         {
             SeqPeriodTime = 50;  //Default to 50ms
         }
@@ -40,7 +40,7 @@ namespace VixenModules.Output.Exporter
 
         public UInt16 SeqPeriodTime { get; set; }
 
-        private void WriteHeader()
+        public void WriteFileHeader()
         {
             if (_dataOut != null)
             {
@@ -97,6 +97,12 @@ namespace VixenModules.Output.Exporter
                 _dataOut.Write((Byte)0);
             }
         }
+
+        public void WriteFileFooter()
+        {
+
+        }
+
         public void OpenSession(string fileName, Int32 numChannels)
         {
             try
@@ -142,7 +148,7 @@ namespace VixenModules.Output.Exporter
                 try
                 {
                     _dataOut.Seek(0, SeekOrigin.Begin);
-                    WriteHeader();
+                    WriteFileHeader();
                     _dataOut.Flush();
                     _dataOut.Close();
                     _dataOut = null;
@@ -157,6 +163,22 @@ namespace VixenModules.Output.Exporter
                     _outfs = null;
                     throw e;
                 }
+            }
+        }
+
+        public string FileType
+        {
+            get
+            {
+                return "FSEQ";
+            }
+        }
+
+        public string FileTypeDescr
+        {
+            get
+            {
+                return "Falcon Pi Player";
             }
         }
     }

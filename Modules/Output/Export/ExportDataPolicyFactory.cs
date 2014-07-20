@@ -4,13 +4,13 @@ using System.Linq;
 using System.Text;
 using Vixen.Sys;
 
-namespace VixenModules.Output.Exporter
+namespace VixenModules.Output.Export
 {
-    class ExporterDataPolicyFactory : IDataPolicyFactory
+    class ExportDataPolicyFactory : IDataPolicyFactory
     {
         public IDataPolicy CreateDataPolicy()
         {
-            return new ExporterDataPolicy();
+            return new ExportDataPolicy();
         }
     }
 }

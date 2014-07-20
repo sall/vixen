@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("FPPVirtual")]
-[assembly: AssemblyDescription("Falcon Pi Player Virtual Controller / Aggregator")]
+[assembly: AssemblyTitle("Export")]
+[assembly: AssemblyDescription("Data Export Controller")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("FPPVirtual")]
+[assembly: AssemblyProduct("Export")]
 [assembly: AssemblyCopyright("Copyright ©  2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("535baafc-9abe-42e1-b4e6-95e13320527e")]
+[assembly: Guid("3D87814A-4EFA-40A6-B0E4-211388495DAB")]
 
 // Version information for an assembly consists of the following four values:
 //

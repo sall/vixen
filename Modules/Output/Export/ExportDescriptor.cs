@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Vixen.Module.Controller;
 
-namespace VixenModules.Output.Exporter
+namespace VixenModules.Output.Export
 {
-    public class ExporterDescriptor : ControllerModuleDescriptorBase
+    public class ExportDescriptor : ControllerModuleDescriptorBase
     {
         /// <summary>
         /// Unique Identifier for the controller
@@ -25,7 +25,7 @@ namespace VixenModules.Output.Exporter
         /// </summary>
         public override string Description
         {
-            get { return "Exporter Virtual Controller"; }
+            get { return "Export Virtual Controller"; }
         }
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace VixenModules.Output.Exporter
         /// </summary>
         public override Type ModuleClass
         {
-            get { return typeof(ExporterModule); }
+            get { return typeof(ExportModule); }
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace VixenModules.Output.Exporter
         /// </summary>
         public override Type ModuleDataClass
         {
-            get { return typeof(ExporterData); }
+            get { return typeof(ExportData); }
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace VixenModules.Output.Exporter
         /// </summary>
         public override string TypeName
         {
-            get { return "Exporter Virtual Controller"; }
+            get { return "Export Virtual Controller"; }
         }
 
         /// <summary>
