@@ -109,14 +109,23 @@ namespace VixenApplication
             outputController = 
                 controllers.Where(x => x.Name.Equals("Export Virtual Controller")).FirstOrDefault();
 
-            _controllerModule = (IExportController)outputController.ControllerModuleInstance;
+            if (outputController != null)
+            {
+                _controllerModule = (IExportController)outputController.ControllerModuleInstance;
 
-            
-            outputFormatComboBox.Items.Clear();
-            outputFormatComboBox.Items.AddRange(_controllerModule.ExportFileTypes.Keys.ToArray());
 
-            outputFormatComboBox.SelectedIndex = 0;
-            resolutionComboBox.SelectedIndex = 1;
+                outputFormatComboBox.Items.Clear();
+                outputFormatComboBox.Items.AddRange(_controllerModule.ExportFileTypes.Keys.ToArray());
+
+                outputFormatComboBox.SelectedIndex = 0;
+                resolutionComboBox.SelectedIndex = 1;
+
+            }
+            else
+            {
+                MessageBox.Show("Unable to find Virtual Export Controller, have you added it to your display?", "Error");
+                Close();
+            }
             
         }
 
@@ -156,6 +165,7 @@ namespace VixenApplication
                 }
             }
 
+            checkExportdir();
             _outFileName = _exportDir +
                 Path.DirectorySeparatorChar +
                 Path.GetFileNameWithoutExtension(openFileDialog.FileName) + "." +
