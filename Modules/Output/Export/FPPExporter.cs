@@ -29,6 +29,8 @@ namespace VixenModules.Output.Export
         private FileStream _outfs = null;
         private BinaryWriter _dataOut = null;
 
+        private Byte[] _padding;
+
         //step size is number of channels in output
         //num steps is number of 25,50,100ms intervals
 
@@ -112,6 +114,14 @@ namespace VixenModules.Output.Export
                 _dataOut.Write(new Byte[_fixedHeaderLength]);
                 _seqNumChannels = numChannels;
                 _seqNumPeriods = 0;
+                if ((_seqNumChannels % 4) != 0)
+                {
+                    _padding = Enumerable.Repeat((Byte)0, 4 - (_seqNumChannels % 4)).ToArray();
+                }
+                else
+                {
+                    _padding = null;
+                }
             }
             catch (Exception e)
             {
@@ -128,6 +138,11 @@ namespace VixenModules.Output.Export
                 try
                 {
                     _dataOut.Write(periodData.ToArray());
+                    if (_padding != null)
+                    {
+                        _dataOut.Write(_padding);
+                    }
+                    
                     _seqNumPeriods++;
 
                 }
