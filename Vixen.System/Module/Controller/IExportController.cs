@@ -9,5 +9,6 @@ namespace Vixen.Module.Controller
     {
         Dictionary<string,string> ExportFileTypes { get; }
         string OutFileName { get; set; }
+        int UpdateInterval { get; set; }
     }
 }

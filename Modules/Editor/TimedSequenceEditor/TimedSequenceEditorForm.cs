@@ -3640,29 +3640,6 @@ namespace VixenModules.Editor.TimedSequenceEditor
             });
 
         }
-
-        private void exportToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            string[] timingSources;
-            TimingProviders timingProviders = new TimingProviders(_sequence);
-            
-            try
-            {
-                timingSources = timingProviders.GetAvailableTimingSources("Export");
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-                return;
-            }
-
-            if (timingSources.Length > 0)
-            {
-                SelectedTimingProvider exportTimingProvider = new SelectedTimingProvider("Export", timingSources.First());
-                _sequence.SelectedTimingProvider = exportTimingProvider;
-            }
-        }
-
     }
 
 	[Serializable]

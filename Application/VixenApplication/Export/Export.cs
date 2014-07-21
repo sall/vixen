@@ -1,7 +1,9 @@
 ﻿using System;
+
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using Vixen.Module.Timing;
 using Vixen.Module.App;
 using Vixen.Services;
 using Vixen.Execution;
@@ -14,7 +16,15 @@ namespace VixenApplication
     {
         private ISequence _sequence = null;
         private ISequenceContext _context = null;
+        private int _oldUpdateInterval;
 
+        public void CancelExport()
+        {
+            if (_context != null)
+            {
+                _context.Stop();
+            }
+        }
 
         public void DoExport(string sequenceFileName)
         {
@@ -22,6 +32,10 @@ namespace VixenApplication
 
             if (_sequence != null)
             {
+
+                _oldUpdateInterval = Vixen.Sys.VixenSystem.DefaultUpdateInterval;
+                Vixen.Sys.VixenSystem.DefaultUpdateInterval = 500;
+
                 string[] timingSources;
                 TimingProviders timingProviders = new TimingProviders(_sequence);
 
@@ -41,16 +55,61 @@ namespace VixenApplication
                     MessageBox.Show(@"Unable to play this sequence.  See error log for details.");
                     return;
                 }
-                //_context.SequenceStarted += context_SequenceStarted;
-                //_context.SequenceEnded += context_SequenceEnded;
-                //_context.ContextEnded += context_ContextEnded;
 
+                _context.Sequence.ClearMedia();
+                
                 _context.Play(TimeSpan.Zero, TimeSpan.MaxValue);
+
+                _context.SequenceEnded += context_SequenceEnded;
             }
-
-
-
         }
 
+        void context_SequenceEnded(object sender, EventArgs e)
+        {
+            _oldUpdateInterval = Vixen.Sys.VixenSystem.DefaultUpdateInterval;
+            _context.ContextEnded -= context_SequenceEnded;
+        }
+
+        public double SequenceLenghth
+        {
+            get
+            {
+                double retVal = 0;
+                if (_context != null)
+                {
+                    retVal = _context.Sequence.Length.TotalMilliseconds;
+                }
+                return retVal;
+            }
+        }
+
+        public ITiming SequenceTiming
+        {
+            get
+            {
+                ITiming retVal = null;
+                if (_context != null)
+                {
+                    retVal = _context.Sequence.GetTiming();
+                }
+                return retVal;
+            }
+        }
+
+        public void SetContextEndHandler(System.EventHandler eventHandler)
+        {
+            if (_context != null)
+            {
+                _context.ContextEnded += eventHandler;
+            }
+        }
+
+        public void ClearContextEndHandler(System.EventHandler eventHandler)
+        {
+            if (_context != null)
+            {
+                _context.ContextEnded -= eventHandler;
+            }
+        }
     }
 }

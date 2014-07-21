@@ -124,8 +124,6 @@ namespace VixenModules.Editor.TimedSequenceEditor
             this.toolStripSeparator13 = new System.Windows.Forms.ToolStripSeparator();
             this.papagayoImportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.textConverterToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator14 = new System.Windows.Forms.ToolStripSeparator();
-            this.exportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.timerPlaying = new System.Windows.Forms.Timer(this.components);
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
@@ -906,9 +904,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
             this.changeMapToolStripMenuItem,
             this.toolStripSeparator13,
             this.papagayoImportToolStripMenuItem,
-            this.textConverterToolStripMenuItem,
-            this.toolStripSeparator14,
-            this.exportToolStripMenuItem});
+            this.textConverterToolStripMenuItem});
             this.lipSyncMappingsToolStripMenuItem.Name = "lipSyncMappingsToolStripMenuItem";
             this.lipSyncMappingsToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
             this.lipSyncMappingsToolStripMenuItem.Text = "Lip Sync";
@@ -953,18 +949,6 @@ namespace VixenModules.Editor.TimedSequenceEditor
             this.textConverterToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.textConverterToolStripMenuItem.Text = "Lyric Converter";
             this.textConverterToolStripMenuItem.Click += new System.EventHandler(this.textConverterToolStripMenuItem_Click);
-            // 
-            // toolStripSeparator14
-            // 
-            this.toolStripSeparator14.Name = "toolStripSeparator14";
-            this.toolStripSeparator14.Size = new System.Drawing.Size(163, 6);
-            // 
-            // exportToolStripMenuItem
-            // 
-            this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-            this.exportToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
-            this.exportToolStripMenuItem.Text = "Export";
-            this.exportToolStripMenuItem.Click += new System.EventHandler(this.exportToolStripMenuItem_Click);
             // 
             // timerPlaying
             // 
@@ -1358,8 +1342,6 @@ namespace VixenModules.Editor.TimedSequenceEditor
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator13;
         private System.Windows.Forms.ToolStripMenuItem papagayoImportToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem textConverterToolStripMenuItem;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator14;
         private System.Windows.Forms.ToolStripMenuItem changeMapToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem exportToolStripMenuItem;
 	}
 }

@@ -6,7 +6,9 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Windows.Forms;
+using Vixen.Module.Timing;
 using Vixen.Services;
 using Vixen.Sys;
 using Vixen.Sys.Output;
@@ -20,6 +22,8 @@ namespace VixenApplication
         private string _outFileName;
         private Export _exportOps;
         private IExportController _controllerModule = null;
+        private ITiming _timing;
+        private bool _doProgressUpdate;
 
         public ExportForm()
         {
@@ -28,9 +32,39 @@ namespace VixenApplication
             _exportOps = new Export();
             exportProgressBar.Visible = false;
             currentTimeLabel.Visible = false;
+
+            backgroundWorker1.DoWork += new DoWorkEventHandler(backgroundWorker1_DoWork);
+            backgroundWorker1.ProgressChanged += new ProgressChangedEventHandler(backgroundWorker1_ProgressChanged);
         }
 
         public ISequence Sequence { get; set; }
+
+        private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
+        {
+            double percentComplete = 0;
+            if (_timing != null)
+            {
+                while (_doProgressUpdate)
+                {
+                    Thread.Sleep(25);
+                    currentTimeLabel.Text = string.Format("{0:D2}:{1:D2}.{2:D3}",
+                                                            _timing.Position.Minutes,
+                                                            _timing.Position.Seconds,
+                                                            _timing.Position.Milliseconds);
+
+                    percentComplete =
+                        (_timing.Position.TotalMilliseconds /
+                        _exportOps.SequenceLenghth) * 100;
+
+                    backgroundWorker1.ReportProgress((int)percentComplete);                    
+                }
+            }
+        }
+
+        private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            exportProgressBar.Value = e.ProgressPercentage;
+        }
 
         private bool loadSequence()
         {
@@ -113,13 +147,39 @@ namespace VixenApplication
             }
 
             _controllerModule.OutFileName = _outFileName;
+            _controllerModule.UpdateInterval = Convert.ToInt32(resolutionComboBox.Text);
+            exportProgressBar.Visible = true;
+            currentTimeLabel.Visible = true; ;
 
-            exportProgressBar.Visible = false;
-            currentTimeLabel.Visible = false;
+            startButton.Enabled = false;
+            cancelButton.Enabled = true;
 
  
             _exportOps.DoExport(sequenceNameField.Text);
+            _exportOps.SetContextEndHandler(context_SequenceEnded);
+            _timing = _exportOps.SequenceTiming;
 
+            _doProgressUpdate = true;
+            backgroundWorker1.RunWorkerAsync();
+
+
+
+        }
+
+        private void context_SequenceEnded(object sender, EventArgs e)
+        {
+            startButton.Enabled = true;
+            cancelButton.Enabled = false;
+            _doProgressUpdate = false;
+        }
+
+        private void cancelButton_Click(object sender, EventArgs e)
+        {
+            _doProgressUpdate = false;
+            cancelButton.Enabled = false;
+            startButton.Enabled = true;
+            _exportOps.CancelExport();
+            _exportOps.ClearContextEndHandler(context_SequenceEnded);
         }
 
     }

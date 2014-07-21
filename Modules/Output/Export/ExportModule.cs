@@ -4,8 +4,10 @@ using System.Linq;
 using Vixen.Module.Controller;
 using Vixen.Sys;
 using Vixen.Execution;
+using Vixen.Execution.Context;
 using Vixen.Commands;
 using Vixen.Module.Timing;
+using Vixen.Module.Media;
 using System.Text;
 using System.Threading;
 using System.Xml;
@@ -19,7 +21,7 @@ namespace VixenModules.Output.Export
 {
     public class ExportModule : ControllerModuleInstanceBase, IExportController
     {
-        private bool _sequenceStarted = false;
+        private bool _exportStarted = false;
         private ExportData _exporterData;
         private ExportCommandHandler _exporterCommandHandler;
         private IExportWriter _output;
@@ -34,7 +36,9 @@ namespace VixenModules.Output.Export
         private int _updateInterval;
         private Dictionary<string, IExportWriter> _writers;
         private Dictionary<string,string> _exportFileTypes;
-
+        private bool _doStartupDelay;
+        private ISequenceContext _sequenceContext = null;
+       
 
         private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
 
@@ -48,6 +52,7 @@ namespace VixenModules.Output.Export
             _commandCache = new Dictionary<long, ICommand[]>();
             _writers = new Dictionary<string, IExportWriter>();
             _exportFileTypes = new Dictionary<string, string>();
+            _doStartupDelay = true;
 
             ts1MS = new TimeSpan(0, 0, 0, 0, 1);
 
@@ -93,8 +98,8 @@ namespace VixenModules.Output.Export
             {
                 sequenceContext.ContextStarted += sequenceContext_ContextStarted;
                 sequenceContext.ContextEnded += sequenceContext_ContextEnded;
-
             }
+
         }
 
 
@@ -113,15 +118,16 @@ namespace VixenModules.Output.Export
 
         void sequenceContext_ContextEnded(object sender, EventArgs e)
         {
+            _doStartupDelay = true;
             if (_output != null)
             {
-                _sequenceStarted = false;
+                _exportStarted = false;
                 saveWH.WaitOne();
                 foreach (ICommand[] cmds in _commandCache.Values)
                 {
                     _eventData.Clear();
 
-                    for (int i = 1; i < cmds.Length; i++)
+                    for (int i = 0; i < cmds.Length; i++)
                     {
                         _exporterCommandHandler.Reset();
                         ICommand command = cmds[i];
@@ -144,25 +150,30 @@ namespace VixenModules.Output.Export
         void sequenceContext_ContextStarted(object sender, EventArgs e)
         {
             runWH.Reset();
-            Vixen.Execution.Context.ISequenceContext sequenceContext = (Vixen.Execution.Context.ISequenceContext)sender;
-            _timer =  sequenceContext.Sequence.GetTiming();
+            _sequenceContext = sender as ISequenceContext;
 
-            if (sequenceContext.Sequence.SelectedTimingProvider.ProviderType.Equals("Export"))
+            _timer = _sequenceContext.Sequence.GetTiming();
+
+            if (_sequenceContext.Sequence.SelectedTimingProvider.ProviderType.Equals("Export"))
             {
-                _output.SeqPeriodTime = (ushort) UpdateInterval;
+                _output.SeqPeriodTime = (ushort)UpdateInterval;
                 _output.OpenSession(_outFileName, this.OutputCount);
 
                 _nextUpdateMS = 0;
                 _commandCache.Clear();
-                _sequenceStarted = true;
-                runWH.Set();
+
+                _exportStarted = true;
+
             }
+
+            
+            runWH.Set();
         }
 
         public override void UpdateState(int chainIndex, ICommand[] outputStates)
         {
             runWH.WaitOne();
-            if (_sequenceStarted)
+            if (_exportStarted)
             {
                 saveWH.Reset();
                 double currentMS = _timer.Position.TotalMilliseconds;
@@ -171,10 +182,20 @@ namespace VixenModules.Output.Export
                 {
                     return;
                 }
+
                 _commandCache[Convert.ToInt32(currentMS)] = (ICommand[])outputStates.Clone();
+                if (_doStartupDelay == true)
+                {
+                    Vixen.Sys.VixenSystem.DefaultUpdateInterval = 25;
+                    _doStartupDelay = false;
+                }
+
                 _nextUpdateMS += UpdateInterval;
+
+
                 _timer.Position = TimeSpan.FromMilliseconds(_nextUpdateMS);
-                //_timer.Position = TimeSpan.FromMilliseconds(currentMS + 25);
+                
+
             }
             saveWH.Set();
 

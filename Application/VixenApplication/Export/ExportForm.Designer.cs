@@ -44,6 +44,7 @@
             this.exportProgressBar = new System.Windows.Forms.ToolStripProgressBar();
             this.currentTimeLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.cancelButton = new System.Windows.Forms.Button();
+            this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -188,6 +189,11 @@
             this.cancelButton.TabIndex = 15;
             this.cancelButton.Text = "Cancel";
             this.cancelButton.UseVisualStyleBackColor = true;
+            this.cancelButton.Click += new System.EventHandler(this.cancelButton_Click);
+            // 
+            // backgroundWorker1
+            // 
+            this.backgroundWorker1.WorkerReportsProgress = true;
             // 
             // ExportForm
             // 
@@ -228,5 +234,6 @@
         private System.Windows.Forms.ToolStripProgressBar exportProgressBar;
         private System.Windows.Forms.ToolStripStatusLabel currentTimeLabel;
         private System.Windows.Forms.Button cancelButton;
+        private System.ComponentModel.BackgroundWorker backgroundWorker1;
     }
 }
