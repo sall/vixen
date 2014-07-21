@@ -24,6 +24,7 @@ namespace VixenApplication
         private IExportController _controllerModule = null;
         private ITiming _timing;
         private bool _doProgressUpdate;
+        private const int RENDER_TIME_DELTA = 250;
 
         public ExportForm()
         {
@@ -42,22 +43,32 @@ namespace VixenApplication
         private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
         {
             double percentComplete = 0;
+            TimeSpan renderCheck = new TimeSpan(0, 0, 0, 0, 250);
             if (_timing != null)
             {
                 while (_doProgressUpdate)
                 {
                     Thread.Sleep(25);
-                    currentTimeLabel.Text = string.Format("{0:D2}:{1:D2}.{2:D3}",
-                                                            _timing.Position.Minutes,
-                                                            _timing.Position.Seconds,
-                                                            _timing.Position.Milliseconds);
+                    if (_timing.Position.TotalMilliseconds < RENDER_TIME_DELTA)
+                    {
+                        currentTimeLabel.Text = "Rendering Elements";
+                    }
+                    else
+                    {
+                        currentTimeLabel.Text = string.Format("{0:D2}:{1:D2}.{2:D3}",
+                                                                _timing.Position.Minutes,
+                                                                _timing.Position.Seconds,
+                                                                _timing.Position.Milliseconds);
 
-                    percentComplete =
-                        (_timing.Position.TotalMilliseconds /
-                        _exportOps.SequenceLenghth) * 100;
+                        percentComplete =
+                            (_timing.Position.TotalMilliseconds /
+                            _exportOps.SequenceLenghth) * 100;
 
-                    backgroundWorker1.ReportProgress((int)percentComplete);                    
+                        backgroundWorker1.ReportProgress((int)percentComplete);                    
+                    }
                 }
+                this.UseWaitCursor = false;
+                MessageBox.Show("File saved to " + _outFileName);
             }
         }
 
@@ -80,10 +91,6 @@ namespace VixenApplication
                     {
                         retVal = true;
                         sequenceNameField.Text = openFileDialog.FileName;
-                        _outFileName = _exportDir +
-                            Path.DirectorySeparatorChar +
-                            Path.GetFileNameWithoutExtension(openFileDialog.FileName) + "." +
-                            _controllerModule.ExportFileTypes[outputFormatComboBox.SelectedItem.ToString()];
                     }
                 }
             }
@@ -137,6 +144,9 @@ namespace VixenApplication
 
         private void startButton_Click(object sender, EventArgs e)
         {
+
+            this.UseWaitCursor = true;
+
             //Make sure a sequence is loaded
             if (string.IsNullOrWhiteSpace(sequenceNameField.Text))
             {
@@ -146,10 +156,15 @@ namespace VixenApplication
                 }
             }
 
+            _outFileName = _exportDir +
+                Path.DirectorySeparatorChar +
+                Path.GetFileNameWithoutExtension(openFileDialog.FileName) + "." +
+                _controllerModule.ExportFileTypes[outputFormatComboBox.SelectedItem.ToString()];
+
             _controllerModule.OutFileName = _outFileName;
             _controllerModule.UpdateInterval = Convert.ToInt32(resolutionComboBox.Text);
             exportProgressBar.Visible = true;
-            currentTimeLabel.Visible = true; ;
+            currentTimeLabel.Visible = true;
 
             startButton.Enabled = false;
             cancelButton.Enabled = true;

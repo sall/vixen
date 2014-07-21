@@ -13,7 +13,7 @@ using Vixen.Sys;
 
 namespace VixenModules.Output.Export
 {
-    public class FPPExportWriter : IExportWriter
+    public class FPPExporter : IExportWriter
     {
         private const Byte _vMinor = 0;
         private const Byte _vMajor = 0;
@@ -34,7 +34,7 @@ namespace VixenModules.Output.Export
         //step size is number of channels in output
         //num steps is number of 25,50,100ms intervals
 
-        public FPPExportWriter()
+        public FPPExporter()
         {
             SeqPeriodTime = 50;  //Default to 50ms
         }
@@ -193,7 +193,7 @@ namespace VixenModules.Output.Export
         {
             get
             {
-                return "Falcon Pi Player";
+                return "Falcon Player (FSEQ)";
             }
         }
     }

@@ -266,7 +266,7 @@ namespace VixenModules.Output.Export
             {
                 _outFileName = (string)value;
                 string ext = Path.GetExtension(_outFileName).ToUpper();
-                OutputType = ext;
+                OutputType = ext.TrimStart(new char[] {'.'});
             }
         }
 

@@ -66,6 +66,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CSVExporter.cs" />
     <Compile Include="ExportCommandHandler.cs" />
     <Compile Include="ExportData.cs" />
     <Compile Include="ExportDataPolicy.cs" />
