@@ -38,7 +38,9 @@ namespace VixenModules.Output.Export
         private Dictionary<string,string> _exportFileTypes;
         private bool _doStartupDelay;
         private ISequenceContext _sequenceContext = null;
-       
+
+        private static Byte globalCount = 0;
+        private Byte myCount = 0;
 
         private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
 
@@ -79,6 +81,9 @@ namespace VixenModules.Output.Export
             }
 
             _output = _writers.FirstOrDefault().Value;
+
+            globalCount++;
+            myCount = globalCount;
 
         }
 
@@ -142,6 +147,8 @@ namespace VixenModules.Output.Export
                 }
 
                 _output.CloseSession();
+
+                _sequenceContext = null;
 
                 saveWH.Reset();
             }    

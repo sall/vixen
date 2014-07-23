@@ -72,9 +72,14 @@ namespace VixenApplication
             }
         }
 
-        private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs args)
         {
-            exportProgressBar.Value = e.ProgressPercentage;
+            try
+            {
+                exportProgressBar.Value = args.ProgressPercentage;
+            }
+            catch (Exception e) { }
+            
         }
 
         private bool loadSequence()
@@ -99,34 +104,15 @@ namespace VixenApplication
 
         private void ExportForm_Load(object sender, EventArgs e)
         {
-            Sequence = null;
-            OutputController outputController = null;
-            
-            IEnumerable<OutputController> controllers = VixenSystem.OutputControllers.GetAll();
 
-            var type = typeof(IExportController);
+            outputFormatComboBox.Items.Clear();
+            outputFormatComboBox.Items.AddRange(_exportOps.FormatTypes);
 
-            outputController = 
-                controllers.Where(x => x.Name.Equals("Export Virtual Controller")).FirstOrDefault();
+            outputFormatComboBox.SelectedIndex = 0;
+            resolutionComboBox.SelectedIndex = 1;
 
-            if (outputController != null)
-            {
-                _controllerModule = (IExportController)outputController.ControllerModuleInstance;
+            stopButton.Enabled = false;
 
-
-                outputFormatComboBox.Items.Clear();
-                outputFormatComboBox.Items.AddRange(_controllerModule.ExportFileTypes.Keys.ToArray());
-
-                outputFormatComboBox.SelectedIndex = 0;
-                resolutionComboBox.SelectedIndex = 1;
-
-            }
-            else
-            {
-                MessageBox.Show("Unable to find Virtual Export Controller, have you added it to your display?", "Error");
-                Close();
-            }
-            
         }
 
         private void sequenceSetButton_Click(object sender, EventArgs e)
@@ -166,6 +152,14 @@ namespace VixenApplication
             }
 
             checkExportdir();
+
+            _controllerModule = (IExportController)_exportOps.ExportController.ControllerModuleInstance;
+            if (_controllerModule == null)
+            {
+                MessageBox.Show("Unable to find suitable export Controller", "Error");
+                return;
+            }
+
             _outFileName = _exportDir +
                 Path.DirectorySeparatorChar +
                 Path.GetFileNameWithoutExtension(openFileDialog.FileName) + "." +
@@ -177,11 +171,10 @@ namespace VixenApplication
             currentTimeLabel.Visible = true;
 
             startButton.Enabled = false;
-            cancelButton.Enabled = true;
+            stopButton.Enabled = true;
 
  
             _exportOps.DoExport(sequenceNameField.Text);
-            _exportOps.SetContextEndHandler(context_SequenceEnded);
             _timing = _exportOps.SequenceTiming;
 
             _doProgressUpdate = true;
@@ -194,17 +187,16 @@ namespace VixenApplication
         private void context_SequenceEnded(object sender, EventArgs e)
         {
             startButton.Enabled = true;
-            cancelButton.Enabled = false;
+            stopButton.Enabled = false;
             _doProgressUpdate = false;
         }
 
         private void cancelButton_Click(object sender, EventArgs e)
         {
             _doProgressUpdate = false;
-            cancelButton.Enabled = false;
+            stopButton.Enabled = false;
             startButton.Enabled = true;
             _exportOps.CancelExport();
-            _exportOps.ClearContextEndHandler(context_SequenceEnded);
         }
 
     }

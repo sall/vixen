@@ -1,14 +1,19 @@
 ﻿using System;
-
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using Vixen.Module;
+using Vixen.Module.Controller;
 using Vixen.Module.Timing;
 using Vixen.Module.App;
 using Vixen.Services;
 using Vixen.Execution;
 using Vixen.Execution.Context;
+using Vixen.Factory;
 using Vixen.Sys;
+using Vixen.Sys.Output;
+using NLog;
 
 namespace VixenApplication
 {
@@ -17,6 +22,91 @@ namespace VixenApplication
         private ISequence _sequence = null;
         private ISequenceContext _context = null;
         private int _oldUpdateInterval;
+        private OutputController _outputController = null;
+        Guid _controllerTypeId = new Guid("{F79764D7-5153-41C6-913C-2321BC2E1819}");
+        private const string EXPORT_CONTROLLER_NAME = "ExportGateway";
+
+        private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
+
+        public string[] FormatTypes
+        {
+            get
+            {
+                string[] retVal = new string[0];
+
+                OutputController outputController = this.ExportController;
+
+                if (outputController != null)
+                {
+                    IExportController _controllerModule = (IExportController)outputController.ControllerModuleInstance;
+                    retVal = _controllerModule.ExportFileTypes.Keys.ToArray();
+                }
+                return retVal;
+            }
+        }
+
+        private OutputController FindExportControler()
+        {
+            return
+                VixenSystem.OutputControllers.ToList().Find(x => x.ModuleId.Equals(_controllerTypeId));
+        }
+
+        private List<OutputController> FindNonExportControllers()
+        {
+            return VixenSystem.OutputControllers.ToList().FindAll(x => x.ModuleId != _controllerTypeId);
+        }
+
+        private void AutoConfigExportController()
+        {
+            _outputController = FindExportControler();
+            
+            if (_outputController == null) 
+            {
+                ControllerFactory controllerFactory = new ControllerFactory();
+                _outputController = (OutputController)controllerFactory.CreateDevice(_controllerTypeId, EXPORT_CONTROLLER_NAME);
+                VixenSystem.OutputControllers.Add(_outputController);
+            }
+
+            PopulateControllerCommands();
+        }
+
+        private void PopulateControllerCommands()
+        {
+            int totalOutputCount = 0;
+            int currentOutput = 0;
+            CommandOutput workCommand;
+
+            if (ExportController != null)
+            {
+                List<OutputController> ocList = FindNonExportControllers();
+                ocList.ForEach(x => totalOutputCount  += x.OutputCount);
+
+                ExportController.OutputCount = totalOutputCount;
+
+                foreach (OutputController controller in ocList)
+                {
+                    foreach (CommandOutput output in controller.Outputs)
+                    {
+                        workCommand = ExportController.Outputs[currentOutput++];
+                        workCommand.Source = output.Source;
+                    }
+                }
+            }
+
+        }      
+
+        public OutputController ExportController
+        {
+            get
+            {
+                if (_outputController == null)
+                {
+                    AutoConfigExportController();
+                }
+
+                return _outputController;
+            }
+        }
 
         public void CancelExport()
         {
@@ -26,8 +116,10 @@ namespace VixenApplication
             }
         }
 
+
         public void DoExport(string sequenceFileName)
         {
+            PopulateControllerCommands();
             _sequence = SequenceService.Instance.Load(sequenceFileName);
 
             if (_sequence != null)
@@ -67,7 +159,6 @@ namespace VixenApplication
         void context_SequenceEnded(object sender, EventArgs e)
         {
             _oldUpdateInterval = Vixen.Sys.VixenSystem.DefaultUpdateInterval;
-            _context.ContextEnded -= context_SequenceEnded;
         }
 
         public double SequenceLenghth

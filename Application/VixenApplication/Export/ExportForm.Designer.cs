@@ -43,7 +43,7 @@
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.exportProgressBar = new System.Windows.Forms.ToolStripProgressBar();
             this.currentTimeLabel = new System.Windows.Forms.ToolStripStatusLabel();
-            this.cancelButton = new System.Windows.Forms.Button();
+            this.stopButton = new System.Windows.Forms.Button();
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -181,15 +181,15 @@
             this.currentTimeLabel.Size = new System.Drawing.Size(57, 17);
             this.currentTimeLabel.Text = "00:00.000";
             // 
-            // cancelButton
+            // stopButton
             // 
-            this.cancelButton.Location = new System.Drawing.Point(250, 164);
-            this.cancelButton.Name = "cancelButton";
-            this.cancelButton.Size = new System.Drawing.Size(75, 23);
-            this.cancelButton.TabIndex = 15;
-            this.cancelButton.Text = "Cancel";
-            this.cancelButton.UseVisualStyleBackColor = true;
-            this.cancelButton.Click += new System.EventHandler(this.cancelButton_Click);
+            this.stopButton.Location = new System.Drawing.Point(250, 164);
+            this.stopButton.Name = "stopButton";
+            this.stopButton.Size = new System.Drawing.Size(75, 23);
+            this.stopButton.TabIndex = 15;
+            this.stopButton.Text = "Stop";
+            this.stopButton.UseVisualStyleBackColor = true;
+            this.stopButton.Click += new System.EventHandler(this.cancelButton_Click);
             // 
             // backgroundWorker1
             // 
@@ -200,7 +200,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(495, 227);
-            this.Controls.Add(this.cancelButton);
+            this.Controls.Add(this.stopButton);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.startButton);
@@ -233,7 +233,7 @@
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
         private System.Windows.Forms.ToolStripProgressBar exportProgressBar;
         private System.Windows.Forms.ToolStripStatusLabel currentTimeLabel;
-        private System.Windows.Forms.Button cancelButton;
+        private System.Windows.Forms.Button stopButton;
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
     }
 }
