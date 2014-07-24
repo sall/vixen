@@ -68,6 +68,7 @@ namespace VixenApplication
                     }
                 }
                 this.UseWaitCursor = false;
+                backgroundWorker1.ReportProgress(0);
                 MessageBox.Show("File saved to " + _outFileName);
             }
         }
@@ -102,6 +103,28 @@ namespace VixenApplication
             return retVal;
         }
 
+        private void UpdateNetworkList()
+        {
+            List<ControllerExportInfo> exportInfo = _exportOps.ControllerExportInfo;
+
+            networkListView.Items.Clear();
+            int startChan = 1;
+
+            foreach (ControllerExportInfo info in exportInfo)
+            {
+                ListViewItem item = new ListViewItem(info.Name);
+                item.SubItems.Add(info.Channels.ToString());
+                item.SubItems.Add(string.Format("Channels {0} to {1}", startChan, startChan + info.Channels - 1));
+
+                networkListView.Items.Add(item);
+                
+                startChan += info.Channels;
+
+
+            }
+
+        }
+
         private void ExportForm_Load(object sender, EventArgs e)
         {
 
@@ -112,6 +135,8 @@ namespace VixenApplication
             resolutionComboBox.SelectedIndex = 1;
 
             stopButton.Enabled = false;
+
+            UpdateNetworkList();
 
         }
 
@@ -174,14 +199,11 @@ namespace VixenApplication
             stopButton.Enabled = true;
 
  
-            _exportOps.DoExport(sequenceNameField.Text);
+            _exportOps.DoExport(Sequence);
             _timing = _exportOps.SequenceTiming;
-
+            _exportOps.SetContextEndHandler(context_SequenceEnded);
             _doProgressUpdate = true;
             backgroundWorker1.RunWorkerAsync();
-
-
-
         }
 
         private void context_SequenceEnded(object sender, EventArgs e)
@@ -197,6 +219,7 @@ namespace VixenApplication
             stopButton.Enabled = false;
             startButton.Enabled = true;
             _exportOps.CancelExport();
+            _exportOps.ClearContextEndHandler(context_SequenceEnded);
         }
 
     }

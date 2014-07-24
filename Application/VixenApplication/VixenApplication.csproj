@@ -112,15 +112,13 @@
     <Compile Include="DataZipForm.Designer.cs">
       <DependentUpon>DataZipForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Export\Export.cs" />
-    <Compile Include="..\..\..\..\..\Desktop\ExportForm.cs">
+    <Compile Include="Export\ExportForm.cs">
       <SubType>Form</SubType>
-      <Link>Export\ExportForm.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\..\Desktop\ExportForm.Designer.cs">
+    <Compile Include="Export\ExportForm.Designer.cs">
       <DependentUpon>ExportForm.cs</DependentUpon>
-      <Link>Export\ExportForm.Designer.cs</Link>
     </Compile>
+    <Compile Include="Export\Export.cs" />
     <Compile Include="Setup\DisplaySetup.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -294,10 +292,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="DataZipForm.resx">
       <DependentUpon>DataZipForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="..\..\..\..\..\Desktop\ExportForm.resx">
-      <DependentUpon>ExportForm.cs</DependentUpon>
-      <Link>Export\ExportForm.resx</Link>
     </EmbeddedResource>
     <EmbeddedResource Include="Setup\DisplaySetup.resx">
       <DependentUpon>DisplaySetup.cs</DependentUpon>

@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.Windows.Forms.ListViewItem listViewItem1 = new System.Windows.Forms.ListViewItem("Test");
             this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.label1 = new System.Windows.Forms.Label();
             this.sequenceNameField = new System.Windows.Forms.TextBox();
@@ -45,8 +46,14 @@
             this.currentTimeLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.stopButton = new System.Windows.Forms.Button();
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.networkListView = new System.Windows.Forms.ListView();
+            this.controllerColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.channelsColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.mappingColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
+            this.groupBox2.SuspendLayout();
             this.SuspendLayout();
             // 
             // openFileDialog
@@ -69,12 +76,12 @@
             this.sequenceNameField.Multiline = true;
             this.sequenceNameField.Name = "sequenceNameField";
             this.sequenceNameField.ReadOnly = true;
-            this.sequenceNameField.Size = new System.Drawing.Size(289, 46);
+            this.sequenceNameField.Size = new System.Drawing.Size(289, 37);
             this.sequenceNameField.TabIndex = 3;
             // 
             // sequenceChangeButton
             // 
-            this.sequenceChangeButton.Location = new System.Drawing.Point(392, 63);
+            this.sequenceChangeButton.Location = new System.Drawing.Point(398, 63);
             this.sequenceChangeButton.Name = "sequenceChangeButton";
             this.sequenceChangeButton.Size = new System.Drawing.Size(53, 23);
             this.sequenceChangeButton.TabIndex = 6;
@@ -88,7 +95,7 @@
             // 
             // startButton
             // 
-            this.startButton.Location = new System.Drawing.Point(137, 164);
+            this.startButton.Location = new System.Drawing.Point(111, 463);
             this.startButton.Name = "startButton";
             this.startButton.Size = new System.Drawing.Size(75, 23);
             this.startButton.TabIndex = 8;
@@ -147,7 +154,7 @@
             this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Location = new System.Drawing.Point(12, 12);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(470, 131);
+            this.groupBox1.Size = new System.Drawing.Size(472, 106);
             this.groupBox1.TabIndex = 13;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Settings";
@@ -158,9 +165,9 @@
             this.toolStripStatusLabel1,
             this.exportProgressBar,
             this.currentTimeLabel});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 205);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 489);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(495, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(500, 22);
             this.statusStrip1.TabIndex = 14;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -183,7 +190,7 @@
             // 
             // stopButton
             // 
-            this.stopButton.Location = new System.Drawing.Point(250, 164);
+            this.stopButton.Location = new System.Drawing.Point(218, 463);
             this.stopButton.Name = "stopButton";
             this.stopButton.Size = new System.Drawing.Size(75, 23);
             this.stopButton.TabIndex = 15;
@@ -195,11 +202,53 @@
             // 
             this.backgroundWorker1.WorkerReportsProgress = true;
             // 
+            // groupBox2
+            // 
+            this.groupBox2.Controls.Add(this.networkListView);
+            this.groupBox2.Location = new System.Drawing.Point(12, 135);
+            this.groupBox2.Name = "groupBox2";
+            this.groupBox2.Size = new System.Drawing.Size(472, 309);
+            this.groupBox2.TabIndex = 16;
+            this.groupBox2.TabStop = false;
+            this.groupBox2.Text = "Network";
+            // 
+            // networkListView
+            // 
+            this.networkListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.controllerColumn,
+            this.channelsColumn,
+            this.mappingColumn});
+            listViewItem1.StateImageIndex = 0;
+            this.networkListView.Items.AddRange(new System.Windows.Forms.ListViewItem[] {
+            listViewItem1});
+            this.networkListView.Location = new System.Drawing.Point(6, 19);
+            this.networkListView.Name = "networkListView";
+            this.networkListView.Size = new System.Drawing.Size(370, 284);
+            this.networkListView.TabIndex = 0;
+            this.networkListView.UseCompatibleStateImageBehavior = false;
+            this.networkListView.View = System.Windows.Forms.View.Details;
+            // 
+            // controllerColumn
+            // 
+            this.controllerColumn.Text = "Controller";
+            this.controllerColumn.Width = 164;
+            // 
+            // channelsColumn
+            // 
+            this.channelsColumn.Text = "Channels";
+            this.channelsColumn.Width = 63;
+            // 
+            // mappingColumn
+            // 
+            this.mappingColumn.Text = "Mapping";
+            this.mappingColumn.Width = 134;
+            // 
             // ExportForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(495, 227);
+            this.ClientSize = new System.Drawing.Size(500, 511);
+            this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.stopButton);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.groupBox1);
@@ -211,6 +260,7 @@
             this.groupBox1.PerformLayout();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
+            this.groupBox2.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -235,5 +285,10 @@
         private System.Windows.Forms.ToolStripStatusLabel currentTimeLabel;
         private System.Windows.Forms.Button stopButton;
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
+        private System.Windows.Forms.GroupBox groupBox2;
+        private System.Windows.Forms.ListView networkListView;
+        private System.Windows.Forms.ColumnHeader controllerColumn;
+        private System.Windows.Forms.ColumnHeader channelsColumn;
+        private System.Windows.Forms.ColumnHeader mappingColumn;
     }
 }
