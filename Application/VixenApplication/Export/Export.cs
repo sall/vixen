@@ -19,7 +19,6 @@ namespace VixenApplication
 {
     public class Export
     {
-        private ISequence _sequence = null;
         private ISequenceContext _context = null;
         private int _oldUpdateInterval;
         private OutputController _outputController = null;
@@ -93,8 +92,8 @@ namespace VixenApplication
                 }
             }
 
-        }      
-
+        }     
+ 
         public OutputController ExportController
         {
             get
@@ -117,30 +116,29 @@ namespace VixenApplication
         }
 
 
-        public void DoExport(string sequenceFileName)
+        public void DoExport(ISequence sequence)
         {
             PopulateControllerCommands();
-            _sequence = SequenceService.Instance.Load(sequenceFileName);
 
-            if (_sequence != null)
+            if (sequence != null)
             {
 
                 _oldUpdateInterval = Vixen.Sys.VixenSystem.DefaultUpdateInterval;
                 Vixen.Sys.VixenSystem.DefaultUpdateInterval = 500;
 
                 string[] timingSources;
-                TimingProviders timingProviders = new TimingProviders(_sequence);
+                TimingProviders timingProviders = new TimingProviders(sequence);
 
                 timingSources = timingProviders.GetAvailableTimingSources("Export");
 
                 if (timingSources.Length > 0)
                 {
                     SelectedTimingProvider exportTimingProvider = new SelectedTimingProvider("Export", timingSources.First());
-                    _sequence.SelectedTimingProvider = exportTimingProvider;
+                    sequence.SelectedTimingProvider = exportTimingProvider;
                 }
 
 
-                _context = VixenSystem.Contexts.CreateSequenceContext(new ContextFeatures(ContextCaching.NoCaching), _sequence);
+                _context = VixenSystem.Contexts.CreateSequenceContext(new ContextFeatures(ContextCaching.NoCaching), sequence);
                 if (_context == null)
                 {
                    // Logging.Error(@"Null context when attempting to play sequence.");
@@ -202,5 +200,30 @@ namespace VixenApplication
                 _context.ContextEnded -= eventHandler;
             }
         }
+
+        public List<ControllerExportInfo> ControllerExportInfo
+        {
+            get
+            {
+                int index = 0;
+                List<ControllerExportInfo> retVal = new List<ControllerExportInfo>();
+                FindNonExportControllers().ForEach(x => retVal.Add(new ControllerExportInfo(x, index++)));
+                return retVal;
+            }
+        }
+    }
+
+    public class ControllerExportInfo
+    {
+        public ControllerExportInfo(OutputController controller, int index)
+        {
+            Name = controller.Name;
+            Index = index;
+            Channels = controller.OutputCount;
+        }
+
+        public int Index { get; set; }
+        public int Channels { get; set; }
+        public string Name { get; set; }
     }
 }
