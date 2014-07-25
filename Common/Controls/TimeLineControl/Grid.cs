@@ -266,6 +266,10 @@ namespace Common.Controls.Timeline
 			}
 		}
 
+		//Drag Box Filter stuff
+		public bool DragBoxFilterEnabled { get; set; }
+		public List<Guid> DragBoxFilterTypes = new List<Guid>();
+		
 		public TimeSpan GridlineInterval { get; set; }
 		public bool OnlySnapToCurrentRow { get; set; }
 		public int SnapPriorityForElements { get; set; }
@@ -1102,7 +1106,14 @@ namespace Common.Controls.Timeline
 
 					// This row is in our selection
 					foreach (var elem in row) {
+						if (DragBoxFilterEnabled)
+						{
+							elem.Selected = (elem.StartTime < selEnd && elem.EndTime > selStart && DragBoxFilterTypes.Contains(elem.EffectNode.Effect.TypeId));
+						}
+						else
+						{
 						elem.Selected = (elem.StartTime < selEnd && elem.EndTime > selStart);
+					}
 					}
 
 					if (row == endRow) {
@@ -1915,8 +1926,9 @@ namespace Common.Controls.Timeline
 
 		private void _drawSelection(Graphics g)
 		{
-			if (!SelectionArea.IsEmpty)
-			{
+			if (SelectionArea.IsEmpty)
+				return;
+
 				using (SolidBrush b = new SolidBrush(SelectionColor))
 				{
 					g.FillRectangle(b, SelectionArea);
@@ -1925,18 +1937,20 @@ namespace Common.Controls.Timeline
 				{
 					g.DrawRectangle(p, SelectionArea);
 				}
-			}
+		}
 
-			if (!DrawingArea.IsEmpty)
+		private void _drawDrawBox(Graphics g)
+		{
+			if (DrawingArea.IsEmpty)
+				return;
+
+			using (SolidBrush b = new SolidBrush(DrawColor))
 			{
-				using (SolidBrush b = new SolidBrush(DrawColor))
-				{
-					g.FillRectangle(b, DrawingArea);
-				}
-				using (Pen p = new Pen(DrawBorder,2))
-				{
-					g.DrawRectangle(p, DrawingArea);
-				}
+				g.FillRectangle(b, DrawingArea);
+			}
+			using (Pen p = new Pen(DrawBorder,2))
+			{
+				g.DrawRectangle(p, DrawingArea);
 			}
 		}
 
@@ -2003,6 +2017,7 @@ namespace Common.Controls.Timeline
 					_drawElements(e.Graphics);
 					_drawInfo(e.Graphics);
 					_drawSelection(e.Graphics);
+					_drawDrawBox(e.Graphics);
 					_drawCursors(e.Graphics);
 					_drawResizeIndicator(e.Graphics);
 

@@ -64,6 +64,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			this.toolStripMenuItem_SnapStrength_2 = new System.Windows.Forms.ToolStripMenuItem();
 			this.toolStripMenuItem_SnapStrength_3 = new System.Windows.Forms.ToolStripMenuItem();
 			this.toolStripMenuItem_SnapStrength_4 = new System.Windows.Forms.ToolStripMenuItem();
+			this.toolStripButton_DragBoxFilter = new System.Windows.Forms.ToolStripButton();
+			this.toolStripDropDownButton_DragBoxFilter = new System.Windows.Forms.ToolStripDropDownButton();
 			this.toolStripSeparator11 = new System.Windows.Forms.ToolStripSeparator();
 			this.toolStripLabel_TimingSpeedLabel = new System.Windows.Forms.ToolStripLabel();
 			this.toolStripLabel_TimingSpeed = new System.Windows.Forms.ToolStripLabel();
@@ -194,6 +196,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
             this.toolStripButton_SelectionMode,
             this.toolStripButton_SnapTo,
             this.toolStripDropDownButton_SnapToStrength,
+            this.toolStripButton_DragBoxFilter,
+            this.toolStripDropDownButton_DragBoxFilter,
             this.toolStripSeparator11,
             this.toolStripLabel_TimingSpeedLabel,
             this.toolStripLabel_TimingSpeed,
@@ -466,6 +470,25 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			this.toolStripMenuItem_SnapStrength_4.Size = new System.Drawing.Size(80, 22);
 			this.toolStripMenuItem_SnapStrength_4.Tag = "8";
 			this.toolStripMenuItem_SnapStrength_4.Text = "4";
+			// 
+			// toolStripButton_DragBoxFilter
+			// 
+			this.toolStripButton_DragBoxFilter.CheckOnClick = true;
+			this.toolStripButton_DragBoxFilter.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+			this.toolStripButton_DragBoxFilter.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
+			this.toolStripButton_DragBoxFilter.Name = "toolStripButton_DragBoxFilter";
+			this.toolStripButton_DragBoxFilter.Size = new System.Drawing.Size(87, 19);
+			this.toolStripButton_DragBoxFilter.Text = "Drag Box Filter";
+			this.toolStripButton_DragBoxFilter.CheckedChanged += new System.EventHandler(this.toolStripButton_DragBoxFilter_CheckedChanged);
+			// 
+			// toolStripDropDownButton_DragBoxFilter
+			// 
+			this.toolStripDropDownButton_DragBoxFilter.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.None;
+			this.toolStripDropDownButton_DragBoxFilter.Image = ((System.Drawing.Image)(resources.GetObject("toolStripDropDownButton_DragBoxFilter.Image")));
+			this.toolStripDropDownButton_DragBoxFilter.ImageTransparentColor = System.Drawing.Color.Magenta;
+			this.toolStripDropDownButton_DragBoxFilter.Name = "toolStripDropDownButton_DragBoxFilter";
+			this.toolStripDropDownButton_DragBoxFilter.Size = new System.Drawing.Size(13, 4);
+			this.toolStripDropDownButton_DragBoxFilter.ToolTipText = "Drag Box Filter";
 			// 
 			// toolStripSeparator11
 			// 
@@ -1440,5 +1463,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_RIColor_Green;
 		private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_RIColor_White;
 		private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_RIColor_Red;
+		private System.Windows.Forms.ToolStripButton toolStripButton_DragBoxFilter;
+		private System.Windows.Forms.ToolStripDropDownButton toolStripDropDownButton_DragBoxFilter;
 	}
 }
