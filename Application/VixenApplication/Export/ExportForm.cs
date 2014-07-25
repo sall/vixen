@@ -83,7 +83,7 @@ namespace VixenApplication
             
         }
 
-        private bool loadSequence()
+        private bool getTargetSequences()
         {
             bool retVal = false;
             openFileDialog.InitialDirectory = SequenceService.SequenceDirectory;
@@ -92,12 +92,8 @@ namespace VixenApplication
             {
                 if (File.Exists(openFileDialog.FileName))
                 {
-                    Sequence = SequenceService.Instance.Load(openFileDialog.FileName);
-                    if (Sequence != null)
-                    {
-                        retVal = true;
-                        sequenceNameField.Text = openFileDialog.FileName;
-                    }
+                    retVal = true;
+                    sequenceNameField.Text = openFileDialog.FileName;
                 }
             }
             return retVal;
@@ -140,11 +136,6 @@ namespace VixenApplication
 
         }
 
-        private void sequenceSetButton_Click(object sender, EventArgs e)
-        {
-            loadSequence();
-        }
-
         private bool checkExportdir()
         {
             if (!Directory.Exists(_exportDir))
@@ -164,13 +155,12 @@ namespace VixenApplication
 
         private void startButton_Click(object sender, EventArgs e)
         {
-
             this.UseWaitCursor = true;
 
-            //Make sure a sequence is loaded
+            //Get Sequence Names
             if (string.IsNullOrWhiteSpace(sequenceNameField.Text))
             {
-                if (!loadSequence())
+                if (!getTargetSequences())
                 {
                     return;
                 }
@@ -192,32 +182,91 @@ namespace VixenApplication
 
             _controllerModule.OutFileName = _outFileName;
             _controllerModule.UpdateInterval = Convert.ToInt32(resolutionComboBox.Text);
-            exportProgressBar.Visible = true;
-            currentTimeLabel.Visible = true;
 
-            startButton.Enabled = false;
-            stopButton.Enabled = true;
+            
 
- 
+            loadSequence();
+
+            setWorkingState(true);
             _exportOps.DoExport(Sequence);
             _timing = _exportOps.SequenceTiming;
             _exportOps.SetContextEndHandler(context_SequenceEnded);
+
             _doProgressUpdate = true;
             backgroundWorker1.RunWorkerAsync();
+
+        }
+
+        private void loadSequence()
+        {
+            setWorkingState(true);
+            stopButton.Enabled = false;
+            setToolbarStatus(getAbbreviatedSequenceName("Loading Sequence: ",""),false);
+            Thread thread = new Thread(new ThreadStart(loadSequenceThread));
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            stopButton.Enabled = true;
+        }
+
+        private string setToolbarStatus(string progressText, bool showLiveProgress)
+        {
+            string prevVal = progressLabel.Text;
+            progressLabel.Text = progressText;
+            exportProgressBar.Visible = showLiveProgress;
+            currentTimeLabel.Visible = showLiveProgress;
+
+            return prevVal;
+        }
+
+        private void loadSequenceThread()
+        {
+            Sequence = SequenceService.Instance.Load(sequenceNameField.Text);
+        }
+
+        private string getAbbreviatedSequenceName(string prefix, string suffix)
+        {
+            return prefix  +
+                Path.GetFileNameWithoutExtension(sequenceNameField.Text) +
+                suffix;
+        }
+
+        private void setWorkingState(bool isWorking)
+        {
+            string newStatus = "";
+
+            startButton.Enabled = !isWorking;
+            stopButton.Enabled = isWorking;
+            networkListView.Enabled = !isWorking;
+            outputFormatComboBox.Enabled = !isWorking;
+            resolutionComboBox.Enabled = !isWorking;
+            _doProgressUpdate = isWorking;
+            progressLabel.Visible = isWorking;
+            exportProgressBar.Visible = isWorking;
+            currentTimeLabel.Visible = isWorking;
+
+            if (isWorking)
+            {
+                newStatus =
+                    getAbbreviatedSequenceName("Exporting: ", "");
+            }
+            else
+            {
+                sequenceNameField.Text = "";
+                backgroundWorker1.CancelAsync();
+            }
+
+            setToolbarStatus(newStatus, isWorking);
         }
 
         private void context_SequenceEnded(object sender, EventArgs e)
         {
-            startButton.Enabled = true;
-            stopButton.Enabled = false;
-            _doProgressUpdate = false;
+            setWorkingState(false);
         }
 
         private void cancelButton_Click(object sender, EventArgs e)
         {
-            _doProgressUpdate = false;
-            stopButton.Enabled = false;
-            startButton.Enabled = true;
+            setWorkingState(false);
             _exportOps.CancelExport();
             _exportOps.ClearContextEndHandler(context_SequenceEnded);
         }

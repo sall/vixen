@@ -293,6 +293,9 @@
     <EmbeddedResource Include="DataZipForm.resx">
       <DependentUpon>DataZipForm.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Export\ExportForm.resx">
+      <DependentUpon>ExportForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Setup\DisplaySetup.resx">
       <DependentUpon>DisplaySetup.cs</DependentUpon>
     </EmbeddedResource>

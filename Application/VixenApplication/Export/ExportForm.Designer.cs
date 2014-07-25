@@ -32,7 +32,6 @@
             this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.label1 = new System.Windows.Forms.Label();
             this.sequenceNameField = new System.Windows.Forms.TextBox();
-            this.sequenceChangeButton = new System.Windows.Forms.Button();
             this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
             this.startButton = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
@@ -41,7 +40,7 @@
             this.resolutionComboBox = new System.Windows.Forms.ComboBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
-            this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
+            this.progressLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.exportProgressBar = new System.Windows.Forms.ToolStripProgressBar();
             this.currentTimeLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.stopButton = new System.Windows.Forms.Button();
@@ -78,16 +77,6 @@
             this.sequenceNameField.ReadOnly = true;
             this.sequenceNameField.Size = new System.Drawing.Size(289, 37);
             this.sequenceNameField.TabIndex = 3;
-            // 
-            // sequenceChangeButton
-            // 
-            this.sequenceChangeButton.Location = new System.Drawing.Point(398, 63);
-            this.sequenceChangeButton.Name = "sequenceChangeButton";
-            this.sequenceChangeButton.Size = new System.Drawing.Size(53, 23);
-            this.sequenceChangeButton.TabIndex = 6;
-            this.sequenceChangeButton.Text = "Change";
-            this.sequenceChangeButton.UseVisualStyleBackColor = true;
-            this.sequenceChangeButton.Click += new System.EventHandler(this.sequenceSetButton_Click);
             // 
             // saveFileDialog
             // 
@@ -149,7 +138,6 @@
             this.groupBox1.Controls.Add(this.resolutionComboBox);
             this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Controls.Add(this.label4);
-            this.groupBox1.Controls.Add(this.sequenceChangeButton);
             this.groupBox1.Controls.Add(this.outputFormatComboBox);
             this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Location = new System.Drawing.Point(12, 12);
@@ -162,7 +150,7 @@
             // statusStrip1
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripStatusLabel1,
+            this.progressLabel,
             this.exportProgressBar,
             this.currentTimeLabel});
             this.statusStrip1.Location = new System.Drawing.Point(0, 489);
@@ -171,11 +159,11 @@
             this.statusStrip1.TabIndex = 14;
             this.statusStrip1.Text = "statusStrip1";
             // 
-            // toolStripStatusLabel1
+            // progressLabel
             // 
-            this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-            this.toolStripStatusLabel1.Size = new System.Drawing.Size(53, 17);
-            this.toolStripStatusLabel1.Text = "Progress:";
+            this.progressLabel.Name = "progressLabel";
+            this.progressLabel.Size = new System.Drawing.Size(53, 17);
+            this.progressLabel.Text = "Progress:";
             // 
             // exportProgressBar
             // 
@@ -201,6 +189,7 @@
             // backgroundWorker1
             // 
             this.backgroundWorker1.WorkerReportsProgress = true;
+            this.backgroundWorker1.WorkerSupportsCancellation = true;
             // 
             // groupBox2
             // 
@@ -271,7 +260,6 @@
         private System.Windows.Forms.OpenFileDialog openFileDialog;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox sequenceNameField;
-        private System.Windows.Forms.Button sequenceChangeButton;
         private System.Windows.Forms.SaveFileDialog saveFileDialog;
         private System.Windows.Forms.Button startButton;
         private System.Windows.Forms.Label label3;
@@ -280,7 +268,7 @@
         private System.Windows.Forms.ComboBox resolutionComboBox;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.StatusStrip statusStrip1;
-        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
+        private System.Windows.Forms.ToolStripStatusLabel progressLabel;
         private System.Windows.Forms.ToolStripProgressBar exportProgressBar;
         private System.Windows.Forms.ToolStripStatusLabel currentTimeLabel;
         private System.Windows.Forms.Button stopButton;

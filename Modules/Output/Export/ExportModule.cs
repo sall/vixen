@@ -193,7 +193,7 @@ namespace VixenModules.Output.Export
                 _commandCache[Convert.ToInt32(currentMS)] = (ICommand[])outputStates.Clone();
                 if (_doStartupDelay == true)
                 {
-                    Vixen.Sys.VixenSystem.DefaultUpdateInterval = 25;
+                    Vixen.Sys.VixenSystem.DefaultUpdateInterval = 0;
                     _doStartupDelay = false;
                 }
 
