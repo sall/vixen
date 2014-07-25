@@ -31,13 +31,13 @@ using Vixen.Services;
 using Vixen.Sys;
 using Vixen.Sys.State;
 using VixenModules.App.ColorGradients;
-using VixenModules.App.Curves;
 using VixenModules.App.VirtualEffect;
-using VixenModules.Media.Audio;
 using VixenModules.Sequence.Timed;
 using WeifenLuo.WinFormsUI.Docking;
 using Element = Common.Controls.Timeline.Element;
 using Timer = System.Windows.Forms.Timer;
+using VixenModules.Property.Color;
+
 
 namespace VixenModules.Editor.TimedSequenceEditor
 {
@@ -45,9 +45,9 @@ namespace VixenModules.Editor.TimedSequenceEditor
 	public partial class TimedSequenceEditorForm : Form, IEditorUserInterface, ITiming
 	{
 
-		private static readonly Logger Logging = LogManager.GetCurrentClassLogger();
-
 		#region Member Variables
+
+		private static readonly Logger Logging = LogManager.GetCurrentClassLogger();
 
 		// the sequence.
 		private TimedSequence _sequence;
@@ -98,10 +98,17 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		private readonly ContextMenuStrip contextMenuStrip = new ContextMenuStrip();
 
 		private string settingsPath;
+		private string ColorCollectionsPath;
 
 		private CurveLibrary _curveLibrary;
 		private ColorGradientLibrary _colorGradientLibrary;
 		private LipSyncMapLibrary _library;
+		private List<ColorCollection> _ColorCollections = new List<ColorCollection>();
+		
+		//Used for color collections
+		private static Random rnd = new Random();
+
+		private ToolPalette toolPaletteForm = new ToolPalette();
 
 		#endregion
 
@@ -148,6 +155,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			toolStripButton_DrawMode.DisplayStyle = ToolStripItemDisplayStyle.Image;
 			toolStripButton_SelectionMode.Image = Resources.cursor_arrow;
 			toolStripButton_SelectionMode.DisplayStyle = ToolStripItemDisplayStyle.Image;
+			toolStripButton_DragBoxFilter.Image = Resources.table_select_big;
+			toolStripButton_DragBoxFilter.DisplayStyle = ToolStripItemDisplayStyle.Image;
 			toolStripButton_IncreaseTimingSpeed.Image = Resources.plus;
 			toolStripButton_IncreaseTimingSpeed.DisplayStyle = ToolStripItemDisplayStyle.Image;
 			toolStripButton_DecreaseTimingSpeed.Image = Resources.minus;
@@ -185,6 +194,9 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			settingsPath =
 				Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vixen",
 							   "TimedSequenceEditorForm.xml");
+			ColorCollectionsPath =
+				Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vixen",
+							   "ColorCollections.xml");
 			if (File.Exists(settingsPath))
 			{
 				dockPanel.LoadFromXml(settingsPath, new DeserializeDockContent(DockingPanels_GetContentFromPersistString));
@@ -197,7 +209,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			}
 
 			XMLProfileSettings xml = new XMLProfileSettings();
-
+			
 			//Get preferences
 			_autoSaveTimer.Interval = xml.GetSetting(XMLProfileSettings.SettingType.Preferences, string.Format("{0}/AutoSaveInterval", Name), 300000);
 
@@ -206,14 +218,23 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			dockPanel.DockRightPortion = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/DockRightPortion", Name), 150);
 			autoSaveToolStripMenuItem.Checked = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/AutoSaveEnabled", Name), true);
 			toolStripMenuItem_SnapTo.Checked = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/SnapToSelected", Name), true);
-			
 			PopulateSnapStrength(xml.GetSetting(XMLProfileSettings.SettingType.AppSettings,	string.Format("{0}/SnapStrength", Name), 2));
-			
 			toolStripMenuItem_ResizeIndicator.Checked = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ResizeIndicatorEnabled", Name),false);
 			TimelineControl.grid.ResizeIndicator_Color = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ResizeIndicatorColor", Name), "Red");
+			toolStripButton_DrawMode.Checked = TimelineControl.grid.EnableDrawMode = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/DrawModeSelected", Name), false);
+			toolStripButton_SelectionMode.Checked = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/SelectionModeSelected", Name), true);
+			toolPaletteForm.Top = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteTop", Name), 150);
+			toolPaletteForm.Left = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteLeft", Name), 150);
+			toolPaletteForm.Width = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteWidth", Name), 373);
+			toolPaletteForm.Height = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteHeight", Name), 264);
+			toolPaletteForm.UnlinkCurves = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteUnlinkCurves", Name), false);
+			toolPaletteForm.UnlinkGradients = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteUnlinkGradients", Name), false);
+			toolPaletteForm.Owner = this;
 
-			//toolStripButton_DrawMode.Checked = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/DrawModeSelected", Name), false);
-			//toolStripButton_SelectionMode.Checked = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/SelectionModeSelected", Name), false);
+			if (xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteVisible", Name), false).Equals(true))
+			{
+				toolPaletteForm.Show();
+			}
 
 			foreach (ToolStripItem toolStripItem in toolStripDropDownButton_SnapToStrength.DropDownItems)
 			{
@@ -255,6 +276,9 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			TimelineControl.ElementsMovedNew += timelineControl_ElementsMovedNew;
 			TimelineControl.ElementDoubleClicked += ElementDoubleClickedHandler;
 			TimelineControl.DataDropped += timelineControl_DataDropped;
+			TimelineControl.ColorDropped += timelineControl_ColorDropped;
+			TimelineControl.CurveDropped += timelineControl_CurveDropped;
+			TimelineControl.GradientDropped += timelineControl_GradientDropped;
 
 			TimelineControl.PlaybackCurrentTimeChanged += timelineControl_PlaybackCurrentTimeChanged;
 
@@ -280,6 +304,10 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			TimelineControl.grid.SelectedElementsCloneDelegate = CloneElements;
 			TimelineControl.grid.StartDrawMode += DrawElement;
 			EffectsForm.EscapeDrawMode += EscapeDrawMode;
+			toolPaletteForm.StartColorDrag += ToolPalette_ColorDrag;
+			toolPaletteForm.StartCurveDrag += ToolPalette_CurveDrag;
+			toolPaletteForm.StartGradientDrag += ToolPalette_GradientDrag;
+			toolPaletteForm.SaveToolPaletteLocation += ToolPalette_SaveLocation;
 
 			_virtualEffectLibrary =
 				ApplicationServices.Get<IAppModuleInstance>(VirtualEffectLibraryDescriptor.Guid) as
@@ -296,13 +324,14 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			{
 				_colorGradientLibrary.GradientChanged += ColorGradientLibrary_CurveChanged;	
 			}
-			
 
 			LoadAvailableEffects();
+			PopulateDragBoxFilterDropDown();
 			InitUndo();
 			updateButtonStates();
 			UpdatePasteMenuStates();
 			LoadVirtualEffects();
+			LoadColorCollections();
 
             _library = ApplicationServices.Get<IAppModuleInstance>(LipSyncMapDescriptor.ModuleID) as LipSyncMapLibrary;
 
@@ -348,6 +377,9 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			TimelineControl.ElementsMovedNew -= timelineControl_ElementsMovedNew;
 			TimelineControl.ElementDoubleClicked -= ElementDoubleClickedHandler;
 			TimelineControl.DataDropped -= timelineControl_DataDropped;
+			TimelineControl.ColorDropped -= timelineControl_ColorDropped;
+			TimelineControl.CurveDropped -= timelineControl_CurveDropped;
+			TimelineControl.GradientDropped -= timelineControl_GradientDropped;
 
 			TimelineControl.PlaybackCurrentTimeChanged -= timelineControl_PlaybackCurrentTimeChanged;
 
@@ -369,6 +401,11 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			TimelineControl.ElementsSelected -= timelineControl_ElementsSelected;
 			TimelineControl.ContextSelected -= timelineControl_ContextSelected;
 			TimelineControl.TimePerPixelChanged -= TimelineControl_TimePerPixelChanged;
+			TimelineControl.DataDropped -= timelineControl_DataDropped;
+			toolPaletteForm.StartColorDrag -= ToolPalette_ColorDrag;
+			toolPaletteForm.StartCurveDrag -= ToolPalette_CurveDrag;
+			toolPaletteForm.StartGradientDrag -= ToolPalette_GradientDrag;
+			toolPaletteForm.SaveToolPaletteLocation -= ToolPalette_SaveLocation;
 
 			Execution.ExecutionStateChanged -= OnExecutionStateChanged;
 			_autoSaveTimer.Stop();
@@ -423,6 +460,29 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 			base.Dispose(disposing);
 			GC.Collect();
+		}
+
+		private void ToolPalette_SaveLocation(object sender, EventArgs e)
+		{
+			var xml = new XMLProfileSettings();
+			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteTop", Name), toolPaletteForm.Top);
+			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteLeft", Name), toolPaletteForm.Left);
+			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteWidth", Name), toolPaletteForm.Width);
+			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteHeight", Name), toolPaletteForm.Height);
+		}
+		private void ToolPalette_ColorDrag(object sender, EventArgs e)
+		{
+			TimelineControl.grid.isColorDrop = true;
+		}
+
+		private void ToolPalette_CurveDrag(object sender, EventArgs e)
+		{
+			TimelineControl.grid.isCurveDrop = true;
+		}
+
+		private void ToolPalette_GradientDrag(object sender, EventArgs e)
+		{
+			TimelineControl.grid.isGradientDrop = true;
 		}
 
 		private Form_Effects _effectsForm = null;
@@ -512,49 +572,68 @@ namespace VixenModules.Editor.TimedSequenceEditor
 																	TimeSpan.FromSeconds(2)); // TODO: get a proper time
 										}
 									};
-				//addEffectToolStripMenuItem.DropDownItems.Add(menuItem);
+			}
+		}
 
-				// Add a button to the tool strip
-				//ToolStripItem tsItem = new ToolStripButton(guid.Value.Name);
-				//tsItem.Tag = guid.Key;
-				//tsItem.MouseDown += toolStripEffects_Item_MouseDown;
-				//tsItem.MouseMove += toolStripEffects_Item_MouseMove;
-				//tsItem.Click += toolStripEffects_Item_Click;
+		private void PopulateDragBoxFilterDropDown()
+		{
+			ToolStripMenuItem dbfInvertMenuItem = new ToolStripMenuItem("Invert Selection");
+			dbfInvertMenuItem.ShortcutKeys = Keys.Control | Keys.I;
+			dbfInvertMenuItem.ShowShortcutKeys = true;
+			dbfInvertMenuItem.MouseUp += (sender, e) =>
+				{
+					//Shortcut key counts as a .Click, so this goes here...
+					toolStripDropDownButton_DragBoxFilter.ShowDropDown();
+				};
+			dbfInvertMenuItem.Click += (sender, e) =>
+				{
+					foreach (ToolStripMenuItem mnuItem in toolStripDropDownButton_DragBoxFilter.DropDownItems)
+					{
+						mnuItem.Checked = (mnuItem.Checked ? false : true);
+					}
+				};
+			toolStripDropDownButton_DragBoxFilter.DropDownItems.Add(dbfInvertMenuItem);
 
-				//toolStripEffects.Items.Add(tsItem);
-				//toolStripExVirtualEffects.Items.Add(tsItem);
+			foreach (IEffectModuleDescriptor effectDesriptor in
+					ApplicationServices.GetModuleDescriptors<IEffectModuleInstance>().Cast<IEffectModuleDescriptor>())
+			{
+				//Populate Drag Box Filter drop down with effect types
+				ToolStripMenuItem dbfMenuItem = new ToolStripMenuItem(effectDesriptor.EffectName, effectDesriptor.GetRepresentativeImage(48, 48));
+				dbfMenuItem.CheckOnClick = true;
+				dbfMenuItem.CheckStateChanged += (sender, e) =>
+					{
+						//OK, now I don't remember why I put this here, I think to make sure the list is updated when using the invert
+						if (dbfMenuItem.Checked) TimelineControl.grid.DragBoxFilterTypes.Add(effectDesriptor.TypeId);
+						else TimelineControl.grid.DragBoxFilterTypes.Remove(effectDesriptor.TypeId);
+						//Either way...(the user is getting ready to use the filter)
+						toolStripButton_DragBoxFilter.Checked = true;
+					};
+				dbfMenuItem.Click += (sender, e) =>
+					{
+						toolStripDropDownButton_DragBoxFilter.ShowDropDown();
+					};
+				toolStripDropDownButton_DragBoxFilter.DropDownItems.Add(dbfMenuItem);
 			}
 		}
 
 		private void LoadAvailableEffects()
 		{
-			foreach (
-				IEffectModuleDescriptor effectDesriptor in
-					ApplicationServices.GetModuleDescriptors<IEffectModuleInstance>().Cast<IEffectModuleDescriptor>())
+			foreach (IEffectModuleDescriptor effectDesriptor in
+				ApplicationServices.GetModuleDescriptors<IEffectModuleInstance>().Cast<IEffectModuleDescriptor>())
 			{
 				// Add an entry to the menu
 				ToolStripMenuItem menuItem = new ToolStripMenuItem(effectDesriptor.EffectName);
 				menuItem.Tag = effectDesriptor.TypeId;
 				menuItem.Click += (sender, e) =>
-									{
-										Row destination = TimelineControl.ActiveRow ?? TimelineControl.SelectedRow;
-										if (destination != null)
-										{
-											addNewEffectById((Guid)menuItem.Tag, destination, TimelineControl.CursorPosition,
-															 TimeSpan.FromSeconds(2)); // TODO: get a proper time
-										}
-									};
+					{
+						Row destination = TimelineControl.ActiveRow ?? TimelineControl.SelectedRow;
+						if (destination != null)
+						{
+							addNewEffectById((Guid)menuItem.Tag, destination, TimelineControl.CursorPosition,
+												TimeSpan.FromSeconds(2)); // TODO: get a proper time
+						}
+					};
 				addEffectToolStripMenuItem.DropDownItems.Add(menuItem);
-
-				// Add a button to the tool strip
-				//ToolStripItem tsItem = new ToolStripButton(effectDesriptor.EffectName);
-				//tsItem.Tag = effectDesriptor.TypeId;
-				//tsItem.MouseDown += toolStripEffects_Item_MouseDown;
-				//tsItem.MouseMove += toolStripEffects_Item_MouseMove;
-				//tsItem.Click += toolStripEffects_Item_Click;
-				//tsItem.Image = effectDesriptor.GetRepresentativeImage(48, 48);
-
-				//toolStripEffects.Items.Add(tsItem);
 			}
 		}
 
@@ -779,6 +858,32 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			sequenceNotModified();
 		}
 
+		private void SaveColorCollections()
+		{
+			var xmlsettings = new XmlWriterSettings()
+			{
+				Indent = true,
+				IndentChars = "\t",
+			};
+
+			DataContractSerializer dataSer = new DataContractSerializer(typeof(List<ColorCollection>));
+			var dataWriter = XmlWriter.Create(ColorCollectionsPath, xmlsettings);
+			dataSer.WriteObject(dataWriter, _ColorCollections);
+			dataWriter.Close();
+		}
+
+		private void LoadColorCollections()
+		{
+			if (System.IO.File.Exists(ColorCollectionsPath))
+			{
+				using (FileStream reader = new FileStream(ColorCollectionsPath, FileMode.Open, FileAccess.Read))
+				{
+					DataContractSerializer ser = new DataContractSerializer(typeof(List<ColorCollection>));
+					_ColorCollections = (List<ColorCollection>)ser.ReadObject(reader);
+				}
+			}
+		}
+
 		#endregion
 
 		#region Other Private Methods
@@ -911,6 +1016,224 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		#endregion
 
+		#region Library Application Private Methods
+
+		//Switch statements are the best method at this time for these methods
+
+		private void ApplyColorGradientToEffects(String LibraryReferenceName, ColorGradient colorGradient)
+		{
+			bool strayElement = false;
+
+			foreach (Element elem in TimelineControl.SelectedElements)
+			{
+				ColorGradient newColorGradient = new ColorGradient(colorGradient);
+				newColorGradient.LibraryReferenceName = LibraryReferenceName;
+				newColorGradient.IsCurrentLibraryGradient = false;
+
+				string effectName = elem.EffectNode.Effect.EffectName;
+				object[] parms = new object[elem.EffectNode.Effect.ParameterValues.Count()];
+				Array.Copy(elem.EffectNode.Effect.ParameterValues, parms, parms.Count());
+
+				switch (effectName)
+				{
+					case "Alternating":
+					case "Candle Flicker":
+					case "Custom Value":
+					case "LipSync":
+					case "Nutcracker":
+					case "Set Level":
+					case "Launcher":
+					case "RDS":
+						strayElement = true;
+						break;
+					case "Pulse":
+						parms[1] = newColorGradient;
+						break;
+					case "Chase":
+						parms[0] = 1; //GradientThroughWholeEffect;
+						parms[4] = newColorGradient;
+						break;
+					case "Spin":
+						parms[2] = 1; //GradientThroughWholeEffect;
+						parms[10] = newColorGradient;
+						break;
+					case "Twinkle":
+						parms[7] = 1; //GradientThroughWholeEffect;
+						parms[9] = newColorGradient;
+						break;
+					case "Wipe":
+						parms[0] = newColorGradient;
+						break;
+				}
+
+				elem.EffectNode.Effect.ParameterValues = parms;
+
+				TimelineControl.grid.RenderElement(elem);
+			}
+			sequenceModified();
+			if (strayElement) MessageBox.Show("One or more effects were selected that do not support color gradients.\nAll effects that do were updated.");
+		}
+
+		private void ApplyCurveToEffects(String LibraryReferenceName, Curve curve)
+		{
+			bool strayElement = false;
+
+			foreach (Element elem in TimelineControl.SelectedElements)
+			{
+				Curve newCurve = new Curve(curve);
+				newCurve.LibraryReferenceName = LibraryReferenceName;
+				newCurve.IsCurrentLibraryCurve = false;
+
+				string effectName = elem.EffectNode.Effect.EffectName;
+				object[] parms = new object[elem.EffectNode.Effect.ParameterValues.Count()];
+				Array.Copy(elem.EffectNode.Effect.ParameterValues, parms, parms.Count());
+
+				switch (effectName)
+				{
+					case "Alternating":
+					case "Candle Flicker":
+					case "Custom Value":
+					case "LipSync":
+					case "Nutcracker":
+					case "Set Level":
+					case "Twinkle":
+					case "Launcher":
+					case "RDS":
+						strayElement = true;
+						break;
+					case "Pulse":
+						parms[0] = newCurve;
+						break;
+					case "Chase":
+						parms[5] = newCurve;
+						break;
+					case "Spin":
+						parms[11] = newCurve;
+						break;
+					case "Wipe":
+						parms[2] = newCurve;
+						break;
+				}
+
+				elem.EffectNode.Effect.ParameterValues = parms;
+
+				TimelineControl.grid.RenderElement(elem);
+			}
+			sequenceModified();
+			if (strayElement) MessageBox.Show("One or more effects were selected that do not support curves.\nAll effects that do were updated.");
+		}
+
+		private void ApplyColorCollection(ColorCollection Collection, bool RandomOrder)
+		{
+			if (!Collection.Color.Any())
+				return;
+
+			bool strayElement = false;
+			Color thisColor, thisColor2 = Color.White;
+			int iPos = 0;
+
+			foreach (Element elem in TimelineControl.SelectedElements)
+			{
+				string effectName = elem.EffectNode.Effect.EffectName;
+				object[] parms = new object[elem.EffectNode.Effect.ParameterValues.Count()];
+				List<Color> validColors = new List<Color>();
+
+				Array.Copy(elem.EffectNode.Effect.ParameterValues, parms, parms.Count());
+				validColors.AddRange(elem.EffectNode.Effect.TargetNodes.SelectMany(x => ColorModule.getValidColorsForElementNode(x, true)));
+
+				if (RandomOrder)
+				{
+					int r1 = rnd.Next(Collection.Color.Count());
+					int r2 = rnd.Next(Collection.Color.Count());
+
+					int n = 0;
+					while (r1 == r2 && n <= 5)
+					{
+						r2 = rnd.Next(Collection.Color.Count());
+						n++;
+					}
+
+					thisColor = Collection.Color[r1];
+					thisColor2 = Collection.Color[r2];
+				}
+				else
+				{
+					if (iPos == Collection.Color.Count()) { iPos = 0; }
+					thisColor = Collection.Color[iPos];
+					iPos++;
+					if (effectName == "Alternating")
+					{
+						thisColor2 = Collection.Color[iPos];
+						iPos++;
+					}
+				}
+
+				if (validColors.Any() && !validColors.Contains(thisColor)) { thisColor = validColors[rnd.Next(validColors.Count())]; }
+
+				if (effectName == "Alternate")
+				{
+					if (validColors.Any() && !validColors.Contains(thisColor2)) { thisColor2 = validColors[rnd.Next(validColors.Count())]; }
+
+					int n2 = 0;
+					while (thisColor2 == thisColor && n2 <= 5)
+					{
+						thisColor2 = validColors[rnd.Next(validColors.Count())];
+						n2++;
+					}
+				}
+
+				switch (effectName)
+				{
+					case "Candle Flicker":
+					case "LipSync":
+					case "Nutcracker":
+					case "Launcher":
+					case "RDS":
+						strayElement = true;
+						break;
+					case "Custom Value":
+						//Disabled until we fix the custom value null reference errors - not related to this.
+						//parms[0] = 4; //Set it to a type of color value
+						//parms[5] = thisColor;
+						strayElement = true;
+						break;
+					case "Alternating":
+						parms[1] = thisColor;
+						parms[3] = thisColor2;
+						parms[8] = parms[9] = true;
+						break;
+					case "Set Level":
+						parms[1] = thisColor;
+						break;
+					case "Pulse":
+						parms[1] = new ColorGradient(thisColor);
+						break;
+					case "Chase":
+						parms[0] = 0; // StaticColor
+						parms[3] = thisColor;
+						break;
+					case "Spin":
+						parms[2] = 0; // StaticColor
+						parms[9] = thisColor;
+						break;
+					case "Twinkle":
+						parms[7] = 0; // StaticColor
+						parms[8] = thisColor;
+						break;
+					case "Wipe":
+						parms[0] = new ColorGradient(thisColor);
+						break;
+				}
+
+				elem.EffectNode.Effect.ParameterValues = parms;
+				TimelineControl.grid.RenderElement(elem);
+			}
+			sequenceModified();
+			if (strayElement) MessageBox.Show("One or more effects were selected that do not support curves.\nAll effects that do were updated.");
+		}
+
+		#endregion
+
 		#region Event Handlers
 
 		private void CurveLibrary_CurveChanged(object sender, EventArgs e)
@@ -1038,7 +1361,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		protected void DrawElement(object sender, DrawElementEventArgs e)
 		{
 				//Make sure we have enough of an effect to show up
-				if (e.Duration > TimeSpan.FromSeconds(.10))
+				if (e.Duration > TimeSpan.FromSeconds(.010))
 				{
 					var newEffects = new List<EffectNode>();
 					foreach (Row drawingRow in e.Rows)
@@ -1062,6 +1385,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 					SelectEffectNodes(newEffects);
 				}
 		}
+
 		protected void ElementDoubleClickedHandler(object sender, ElementEventArgs e)
 		{
 			TimedSequenceElement element = e.Element as TimedSequenceElement;
@@ -1132,62 +1456,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 						//Modified 7-9-2014 J. Bolding - Changed so that the multiple element addition is wrapped into one action by the undo/redo engine.
 						if (Control.ModifierKeys == Keys.Shift || Control.ModifierKeys == (Keys.Shift | Keys.Control))
 						{
-							var eDialog = new Form_AddMultipleEffects();
-							if (Control.ModifierKeys == (Keys.Shift | Keys.Control) && am_LastEffectCount > 0)
-							{
-								eDialog.EffectCount = am_LastEffectCount;
-								eDialog.StartTime = am_LastStartTime;
-								eDialog.Duration = am_LastDuration;
-								eDialog.DurationBetween = am_LastDurationBetween;
-							}
-							else
-							{
-								eDialog.EffectCount = 2;
-								eDialog.StartTime = e.GridTime;
-								eDialog.Duration = TimeSpan.FromSeconds(2);
-								eDialog.DurationBetween = TimeSpan.FromSeconds(2);
-							}
-							eDialog.EffectName = effectDesriptor.EffectName;
-							eDialog.SequenceLength = SequenceLength;
-							eDialog.ShowDialog();
-
-							if (eDialog.DialogResult == DialogResult.OK)
-							{
-								am_LastEffectCount = eDialog.EffectCount;
-								am_LastStartTime = eDialog.StartTime;
-								am_LastDuration = eDialog.Duration;
-								am_LastDurationBetween = eDialog.DurationBetween;
-
-								TimeSpan NextStartTime = eDialog.StartTime;
-								var newEffects = new List<EffectNode>();
-								for (int i = 0; i < eDialog.EffectCount; i++)
-								{
-									if (NextStartTime + eDialog.Duration > SequenceLength)
-									{
-										//if something went wrong in the forms calculations
-										break;
-									}
-									else
-									{
-										var newEffect = ApplicationServices.Get<IEffectModuleInstance>((Guid)menuItem.Tag);
-										try
-										{
-											newEffects.Add(CreateEffectNode(newEffect, e.Row, NextStartTime, eDialog.Duration));
-											NextStartTime = NextStartTime + eDialog.Duration + eDialog.DurationBetween;
-										}
-										catch (Exception ex)
-										{
-											string msg = "TimedSequenceEditor AddMultipleElements: error adding effect of type " + newEffect.Descriptor.TypeId + " to row " +
-														 ((e.Row == null) ? "<null>" : e.Row.Name);
-											Logging.ErrorException(msg, ex);
-										}
-									}
-								}
-								AddEffectNodes(newEffects);
-								sequenceModified();
-								var act = new EffectsAddedUndoAction(this, newEffects);
-								_undoMgr.AddUndoAction(act);
-							}
+							//add multiple here
+							AddMultipleEffects(e.GridTime,effectDesriptor.EffectName,(Guid)menuItem.Tag,e.Row);
 						}
 						else
 							addNewEffectById((Guid)menuItem.Tag, e.Row, e.GridTime, TimeSpan.FromSeconds(2));
@@ -1208,7 +1478,6 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 				if (TimelineControl.SelectedElements.Count() > 1)
 				{
-
 					ToolStripMenuItem itemAlignment = new ToolStripMenuItem("Alignment");
 					ToolStripMenuItem itemAlignStart = new ToolStripMenuItem("Align Start Times (shift)");
 					itemAlignStart.ToolTipText = "Holding shift will align the start times, while holding duration.";
@@ -1271,8 +1540,6 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 			}
 
-
-
 			//Add Copy/Cut/paste section
 			contextMenuStrip.Items.Add("-");
 			contextMenuStrip.Items.Add(toolStripMenuItem_Copy);
@@ -1280,15 +1547,282 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			contextMenuStrip.Items.Add(toolStripMenuItem_Paste);
 			if (TimelineControl.SelectedElements.Any())
 			{
-				//Add Edit delete
+				//Add Edit/Delete/Collections
 				contextMenuStrip.Items.Add("-");
 				contextMenuStrip.Items.Add(toolStripMenuItem_EditEffect);
 				contextMenuStrip.Items.Add(toolStripMenuItem_deleteElements);
+				contextMenuStrip.Items.Add("-");
+
+				AddContextCollectionsMenu();
+
 			}
 
 			e.AutomaticallyHandleSelection = false;
 
 			contextMenuStrip.Show(MousePosition);
+		}
+
+		private void AddContextCollectionsMenu()
+		{
+			ToolStripMenuItem itemCollections = new ToolStripMenuItem("Collections");
+			contextMenuStrip.Items.Add(itemCollections);
+
+			if (TimelineControl.SelectedElements.Count() > 1 && _ColorCollections.Any())
+			{
+				ToolStripMenuItem itemColorCollections = new ToolStripMenuItem("Colors");
+				ToolStripMenuItem itemRandomColors = new ToolStripMenuItem("Random");
+				ToolStripMenuItem itemSequentialColors = new ToolStripMenuItem("Sequential");
+
+				itemCollections.DropDown.Items.Add(itemColorCollections);
+				itemColorCollections.DropDown.Items.Add(itemRandomColors);
+				itemColorCollections.DropDown.Items.Add(itemSequentialColors);
+
+				foreach (ColorCollection Collection in _ColorCollections)
+				{
+					if (Collection.Color.Any())
+					{
+						ToolStripMenuItem menuRandomColorItem = new ToolStripMenuItem(Collection.Name);
+						menuRandomColorItem.ToolTipText = Collection.Description;
+						menuRandomColorItem.Click += (mySender, myE) => ApplyColorCollection(Collection, true);
+						itemRandomColors.DropDown.Items.Add(menuRandomColorItem);
+						
+						ToolStripMenuItem menuSequentialColorItem = new ToolStripMenuItem(Collection.Name);
+						menuSequentialColorItem.ToolTipText = Collection.Description;
+						menuSequentialColorItem.Click += (mySender, myE) => ApplyColorCollection(Collection, false);
+						itemSequentialColors.DropDown.Items.Add(menuSequentialColorItem);	
+					}
+				}
+			}
+
+			if (_curveLibrary.Any())
+			{
+				ToolStripMenuItem itemCurveLibrary = new ToolStripMenuItem("Curves");
+				itemCollections.DropDown.Items.Add(itemCurveLibrary);
+				foreach (KeyValuePair<string, Curve> curve in _curveLibrary)
+				{
+					ToolStripMenuItem itemCurve = new ToolStripMenuItem(curve.Key);
+					itemCurve.Click += (mySender, myE) => ApplyCurveToEffects(curve.Key, curve.Value);
+					itemCurveLibrary.DropDown.Items.Add(itemCurve);
+				}
+			}
+
+			if (_colorGradientLibrary.Any())
+			{
+				ToolStripMenuItem itemColorGradientLibrary = new ToolStripMenuItem("Color Gradient");
+				itemCollections.DropDown.Items.Add(itemColorGradientLibrary);
+				foreach (KeyValuePair<string, ColorGradient> colorGradient in _colorGradientLibrary)
+				{
+					ToolStripMenuItem itemColorGradient = new ToolStripMenuItem(colorGradient.Key);
+					itemColorGradient.Click += (mySender, myE) => ApplyColorGradientToEffects(colorGradient.Key, colorGradient.Value);
+					itemColorGradientLibrary.DropDown.Items.Add(itemColorGradient);
+				}
+			}
+		}
+
+		private void toolStripButton_DrawMode_Click(object sender, EventArgs e)
+		{
+			TimelineControl.grid.EnableDrawMode = true;
+			toolStripButton_DrawMode.Checked = true;
+			toolStripButton_SelectionMode.Checked = false;
+		}
+
+		private void toolStripButton_SelectionMode_Click(object sender, EventArgs e)
+		{
+			TimelineControl.grid.EnableDrawMode = false;
+			toolStripButton_SelectionMode.Checked = true;
+			toolStripButton_DrawMode.Checked = false;
+		}
+
+
+		private void toolStripMenuItem_ResizeIndicator_CheckStateChanged(object sender, EventArgs e)
+		{
+			TimelineControl.grid.ResizeIndicator_Enabled = (toolStripMenuItem_ResizeIndicator.Checked ? true : false);
+		}
+
+		private void toolStripMenuItem_RIColor_Blue_Click(object sender, EventArgs e)
+		{
+			TimelineControl.grid.ResizeIndicator_Color = "Blue";
+		}
+
+		private void toolStripMenuItem_RIColor_Yellow_Click(object sender, EventArgs e)
+		{
+			TimelineControl.grid.ResizeIndicator_Color = "Yellow";
+		}
+
+		private void toolStripMenuItem_RIColor_Green_Click(object sender, EventArgs e)
+		{
+			TimelineControl.grid.ResizeIndicator_Color = "Green";
+		}
+
+		private void toolStripMenuItem_RIColor_White_Click(object sender, EventArgs e)
+		{
+			TimelineControl.grid.ResizeIndicator_Color = "White";
+		}
+
+		private void toolStripMenuItem_RIColor_Red_Click(object sender, EventArgs e)
+		{
+			TimelineControl.grid.ResizeIndicator_Color = "Red";
+		}
+
+		private void toolStripButton_DragBoxFilter_CheckedChanged(object sender, EventArgs e)
+		{
+			TimelineControl.grid.DragBoxFilterEnabled = toolStripButton_DragBoxFilter.Checked;
+		}
+
+		private void ColorCollectionsToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			ColorCollectionLibrary_Form RCCF = new ColorCollectionLibrary_Form(new List<ColorCollection>(_ColorCollections));
+			if (RCCF.ShowDialog() == DialogResult.OK)
+			{
+				_ColorCollections = RCCF.ColorCollections;
+				SaveColorCollections();
+			}
+			else
+			{
+				LoadColorCollections();
+			}
+		}
+
+		private void AddMultipleEffects(TimeSpan StartTime, String EffectName, Guid EffectID, Row Row)
+		{
+			var eDialog = new Form_AddMultipleEffects();
+			if (Control.ModifierKeys == (Keys.Shift | Keys.Control) && am_LastEffectCount > 0)
+			{
+				eDialog.EffectCount = am_LastEffectCount;
+				eDialog.StartTime = am_LastStartTime;
+				eDialog.Duration = am_LastDuration;
+				eDialog.DurationBetween = am_LastDurationBetween;
+			}
+			else
+			{
+				eDialog.EffectCount = 2;
+				eDialog.StartTime = StartTime;
+				eDialog.Duration = TimeSpan.FromSeconds(2);
+				eDialog.DurationBetween = TimeSpan.FromSeconds(2);
+			}
+			eDialog.EffectName = EffectName;
+			eDialog.SequenceLength = eDialog.EndTime = SequenceLength;
+			eDialog.MarkCollections = _sequence.MarkCollections;
+			eDialog.ShowDialog();
+
+			if (eDialog.DialogResult == DialogResult.OK)
+			{
+				am_LastEffectCount = eDialog.EffectCount;
+				am_LastStartTime = eDialog.StartTime;
+				am_LastDuration = eDialog.Duration;
+				am_LastDurationBetween = eDialog.DurationBetween;
+
+				var newEffects = new List<EffectNode>();
+
+				if (eDialog.AlignToBeatMarks)
+				{
+					newEffects = AddEffectsToBeatMarks(eDialog.CheckedMarks, eDialog.EffectCount, EffectID, eDialog.StartTime, eDialog.Duration, Row, eDialog.FillDuration, eDialog.SkipEOBeat);
+				}
+				else
+				{
+					TimeSpan NextStartTime = eDialog.StartTime;
+					for (int i = 0; i < eDialog.EffectCount; i++)
+					{
+						if (NextStartTime + eDialog.Duration > SequenceLength)
+						{
+							//if something went wrong in the forms calculations
+							break;
+						}
+						else
+						{
+							var newEffect = ApplicationServices.Get<IEffectModuleInstance>(EffectID);
+							try
+							{
+								newEffects.Add(CreateEffectNode(newEffect, Row, NextStartTime, eDialog.Duration));
+								NextStartTime = NextStartTime + eDialog.Duration + eDialog.DurationBetween;
+							}
+							catch (Exception ex)
+							{
+								string msg = "TimedSequenceEditor AddMultipleElements: error adding effect of type " + newEffect.Descriptor.TypeId + " to row " +
+											 ((Row == null) ? "<null>" : Row.Name);
+								Logging.ErrorException(msg, ex);
+							}
+						}
+					}
+					AddEffectNodes(newEffects);
+					sequenceModified();
+					var act = new EffectsAddedUndoAction(this, newEffects);
+					_undoMgr.AddUndoAction(act);
+				}
+				if (newEffects.Count > 0)
+				{
+					if (eDialog.SelectEffects || eDialog.EditEffects) SelectEffectNodes(newEffects);
+					if (eDialog.EditEffects && TimelineControl.SelectedElements.Any())
+					{
+						EditElements(TimelineControl.SelectedElements.Cast<TimedSequenceElement>());
+					}
+
+				}
+			}
+		}
+		private List<EffectNode> AddEffectsToBeatMarks(ListView.CheckedListViewItemCollection CheckedMarks, int EffectCount, Guid EffectGuid, TimeSpan StartTime, TimeSpan Duration, Row Row, Boolean FillDuration, Boolean SkipEOBeat)
+		{
+			List<TimeSpan> Times = new List<TimeSpan>();
+			bool SkipThisBeat = false;
+
+			foreach (ListViewItem ListItem in CheckedMarks)
+			{
+				foreach (MarkCollection MCItem in _sequence.MarkCollections)
+				{
+					if (MCItem.Name == ListItem.Text)
+					{
+						foreach (TimeSpan Mark in MCItem.Marks)
+						{
+							if (Mark >= StartTime) Times.Add(Mark);
+						}
+					}
+				}
+			}
+
+			Times.Sort();
+
+			var newEffects = new List<EffectNode>();
+
+			if (Times.Count > 0)
+			{
+				foreach (TimeSpan Mark in Times)
+				{
+					if (newEffects.Count < EffectCount)
+					{
+						if (!SkipEOBeat || (SkipEOBeat && !SkipThisBeat))
+						{
+							var newEffect = ApplicationServices.Get<IEffectModuleInstance>(EffectGuid);
+							try
+							{
+								if (FillDuration)
+								{
+									if (Times.IndexOf(Mark) == Times.Count - 1) //The dialog hanles this, but just to make sure
+										break; //We're done -- There are no more marks to fill, don't create it
+									Duration = Times[Times.IndexOf(Mark) + 1] - Mark;
+									if (Duration < TimeSpan.FromSeconds(.01)) Duration = TimeSpan.FromSeconds(.01);
+								}
+								newEffects.Add(CreateEffectNode(newEffect, Row, Mark, Duration));
+							}
+							catch (Exception ex)
+							{
+								string msg = "TimedSequenceEditor AddMultipleElements: error adding effect of type " + newEffect.Descriptor.TypeId + " to row " +
+											 ((Row == null) ? "<null>" : Row.Name);
+								Logging.ErrorException(msg, ex);
+							}
+						}
+						SkipThisBeat = (SkipThisBeat ? false : true);
+					}
+					else
+						break; //We're done creating, we've matched counts
+				}
+
+				AddEffectNodes(newEffects);
+				sequenceModified();
+				var act = new EffectsAddedUndoAction(this, newEffects);
+				_undoMgr.AddUndoAction(act);
+			}
+
+			return newEffects;
 		}
 
 		private void DistributeSelectedEffectsEqually()
@@ -1892,7 +2426,6 @@ namespace VixenModules.Editor.TimedSequenceEditor
 					toolStripButton_Play.Enabled = playToolStripMenuItem.Enabled = false;
 					toolStripButton_Pause.Enabled = pauseToolStripMenuItem.Enabled = false;
 					toolStripButton_Stop.Enabled = stopToolStripMenuItem.Enabled = false;
-					//toolStripEffects.Enabled = false;
 					EffectsForm.Enabled = false;
 					return;
 				}
@@ -1910,22 +2443,13 @@ namespace VixenModules.Editor.TimedSequenceEditor
 						toolStripButton_Pause.Enabled = pauseToolStripMenuItem.Enabled = true;
 					}
 					toolStripButton_Stop.Enabled = stopToolStripMenuItem.Enabled = true;
-					//toolStripEffects.Enabled = false;
 					EffectsForm.Enabled = false;
 				}
 				else // Stopped
 				{
-					//We are looping...this keeps the Play button and EffectsForm from blinking between loops, the other buttons should already be in proper state
-					//if (toolStripButton_Loop.Checked && stoppedByUser == false)
-					//{
-					//	//We dont need a pause button between loops, it only gives the user the right to think they should be able to use it if its on
-					//	toolStripButton_Pause.Enabled = pauseToolStripMenuItem.Enabled = false;
-					//	return;
-					//}
 					toolStripButton_Play.Enabled = playToolStripMenuItem.Enabled = true;
 					toolStripButton_Pause.Enabled = pauseToolStripMenuItem.Enabled = false;
 					toolStripButton_Stop.Enabled = stopToolStripMenuItem.Enabled = false;
-					//toolStripEffects.Enabled = true;
 					EffectsForm.Enabled = true;
 				}
 			}
@@ -2003,6 +2527,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		///<param name="nodes"></param>
 		private void SelectEffectNodes(IEnumerable<EffectNode> nodes)
 		{
+			TimelineControl.grid.ClearSelectedElements();
+
 			foreach (EffectNode element in nodes)
 			{
 				TimedSequenceElement tse = (TimedSequenceElement)_effectNodeToElement[element];
@@ -2311,6 +2837,188 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			TimeSpan duration = TimeSpan.FromSeconds(2.0); // TODO: need a default value here. I suggest a per-effect default.
 			TimeSpan startTime = Util.Min(e.Time, (_sequence.Length - duration)); // Ensure the element is inside the grid.
 			addNewEffectById(effectGuid, e.Row, startTime, duration);
+		}
+
+
+		private void timelineControl_ColorDropped(object sender, ToolDropEventArgs e)
+		{
+			List<Element> elementList = new List<Element>();
+
+			if (e.Element.Selected)
+				elementList = TimelineControl.SelectedElements.ToList();
+			else
+				elementList.Add(e.Element);
+
+			Color color = (Color)e.Data.GetData(typeof(Color));
+			foreach (Element elem in elementList)
+			{
+				object[] parms = elem.EffectNode.Effect.ParameterValues;
+				switch (elem.EffectNode.Effect.EffectName)
+				{
+					case "Alternating":
+						if (e.MouseButton != MouseButtons.Right)
+						{
+							parms[1] = color;
+							parms[8] = true;
+						}
+						else
+						{
+							parms[3] = color;
+							parms[9] = true;
+						}
+						break;
+					case "Set Level":
+						parms[1] = color;
+						break;
+					case "Pulse":
+						parms[1] = new ColorGradient(color);
+						break;
+					case "Chase":
+						parms[0] = 0; // StaticColor
+						parms[3] = color;
+						break;
+					case "Spin":
+						parms[2] = 0; // StaticColor
+						parms[9] = color;
+						break;
+					case "Twinkle":
+						parms[7] = 0; // StaticColor
+						parms[8] = color;
+						break;
+					case "Wipe":
+						parms[0] = new ColorGradient(color);
+						break;
+				}
+				//this would be a good place to build a list of target elements, and the new parameters
+				//list could be passed to a ModifyElements method to do the work in "one step"
+				elem.EffectNode.Effect.ParameterValues = parms;
+				TimelineControl.grid.RenderElement(elem);
+			}
+			sequenceModified();
+		}
+
+		private void timelineControl_CurveDropped(object sender, ToolDropEventArgs e)
+		{
+			List<Element> elementList = new List<Element>();
+
+			if (e.Element.Selected)
+				elementList = TimelineControl.SelectedElements.ToList();
+			else
+				elementList.Add(e.Element);
+
+			Curve droppedCurve = _curveLibrary.GetCurve(e.Data.GetData(DataFormats.StringFormat).ToString());
+			foreach (Element elem in elementList)
+			{
+				Curve curve = new Curve(droppedCurve);
+
+				if (toolPaletteForm.UnlinkCurves)
+				{
+					curve.LibraryReferenceName = string.Empty;
+					curve.UnlinkFromLibraryCurve();
+				}
+				else
+				{
+					curve.LibraryReferenceName = e.Data.GetData(DataFormats.StringFormat).ToString();
+				}
+
+				curve.IsCurrentLibraryCurve = false;
+
+				object[] parms = elem.EffectNode.Effect.ParameterValues;
+				switch (elem.EffectNode.Effect.EffectName)
+				{
+					case "Alternating":
+						if (e.MouseButton != MouseButtons.Right)
+						{
+							parms[12] = curve;
+						}
+						else
+						{
+							parms[13] = curve;
+						}
+						break;
+					case "Pulse":
+						parms[0] = curve;
+						break;
+					case "Chase":
+						parms[5] = curve;
+						break;
+					case "Spin":
+						parms[11] = curve;
+						break;
+					case "Wipe":
+						parms[2] = curve;
+						break;
+				}
+				elem.EffectNode.Effect.ParameterValues = parms;
+				TimelineControl.grid.RenderElement(elem);
+			}
+			sequenceModified();
+		}
+
+		private void timelineControl_GradientDropped(object sender, ToolDropEventArgs e)
+		{
+			List<Element> elementList = new List<Element>();
+
+			if (e.Element.Selected)
+				elementList = TimelineControl.SelectedElements.ToList();
+			else
+				elementList.Add(e.Element);
+
+			ColorGradient droppedGradient = _colorGradientLibrary.GetColorGradient(e.Data.GetData(DataFormats.StringFormat).ToString());
+			foreach (Element elem in elementList)
+			{
+				ColorGradient gradient = new ColorGradient(droppedGradient);
+
+				if (toolPaletteForm.UnlinkGradients)
+				{
+					gradient.LibraryReferenceName = string.Empty;
+					gradient.UnlinkFromLibrary();
+				}
+				else
+				{
+					gradient.LibraryReferenceName = e.Data.GetData(DataFormats.StringFormat).ToString();
+				}
+
+				gradient.IsCurrentLibraryGradient = false;
+
+				object[] parms = elem.EffectNode.Effect.ParameterValues;
+				switch (elem.EffectNode.Effect.EffectName)
+				{
+					case "Alternating":
+						if (e.MouseButton != MouseButtons.Right)
+						{
+							parms[8] = false;
+							parms[10] = gradient;
+						}
+						else
+						{
+							parms[9] = false;
+							parms[11] = gradient;
+						}
+						break;
+					case "Pulse":
+						parms[1] = gradient;
+						break;
+					case "Chase":
+						parms[0] = toolPaletteForm.GradientHandling;
+						parms[4] = gradient;
+						break;
+					case "Spin":
+						parms[2] = toolPaletteForm.GradientHandling;
+						parms[10] = gradient;
+						break;
+					case "Twinkle":
+						parms[7] = toolPaletteForm.GradientHandling;
+						parms[9] = gradient;
+						break;
+					case "Wipe":
+						parms[0] = gradient;
+						break;
+				}
+				elem.EffectNode.Effect.ParameterValues = parms;
+				TimelineControl.grid.RenderElement(elem);
+			}
+			sequenceModified();
 		}
 
 		#endregion
@@ -3218,8 +3926,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/DockLeftPortion", Name), (int)dockPanel.DockLeftPortion);
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/DockRightPortion", Name), (int)dockPanel.DockLeftPortion);
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/AutoSaveEnabled", Name), autoSaveToolStripMenuItem.Checked);
-			//xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/DrawModeSelected", Name), toolStripButton_DrawMode.Checked);
-			//xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/SelectionModeSelected", Name), toolStripButton_SelectionMode.Checked);
+			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/DrawModeSelected", Name), toolStripButton_DrawMode.Checked);
+			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/SelectionModeSelected", Name), toolStripButton_SelectionMode.Checked);
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/SnapToSelected", Name), toolStripButton_SnapTo.Checked);
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/WindowHeight", Name), Size.Height);
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/WindowWidth", Name), Size.Width);
@@ -3229,6 +3937,13 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/SnapStrength", Name), TimelineControl.grid.SnapStrength);
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ResizeIndicatorEnabled", Name), TimelineControl.grid.ResizeIndicator_Enabled);
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ResizeIndicatorColor", Name), TimelineControl.grid.ResizeIndicator_Color);
+			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteTop", Name), toolPaletteForm.Top);
+			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteLeft", Name), toolPaletteForm.Left);
+			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteWidth", Name), toolPaletteForm.Width);
+			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteHeight", Name), toolPaletteForm.Height);
+			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteVisible", Name), toolPaletteForm.Visible);
+			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteUnlinkCurves", Name), toolPaletteForm.UnlinkCurves);
+			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteUnlinkGradients", Name), toolPaletteForm.UnlinkGradients);
 			//These are only saved in options
 			//xml.PutPreference(string.Format("{0}/AutoSaveInterval", Name), _autoSaveTimer.Interval);
 
@@ -3753,51 +4468,27 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
         }
 
-		private void toolStripButton_DrawMode_Click(object sender, EventArgs e)
+		private void toolPaletteToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-				TimelineControl.grid.EnableDrawMode = true;
-				toolStripButton_DrawMode.Checked = true;
-				toolStripButton_SelectionMode.Checked = false;
+			if (toolPaletteForm.IsDisposed)
+			{
+				XMLProfileSettings xml = new XMLProfileSettings();
+
+				toolPaletteForm = new ToolPalette();
+				toolPaletteForm.Top = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteTop", Name), 150);
+				toolPaletteForm.Left = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteLeft", Name), 150);
+				toolPaletteForm.Width = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteWidth", Name), 373);
+				toolPaletteForm.Height = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteHeight", Name), 264);
+				toolPaletteForm.Owner = this;
+			
+			}
+			toolPaletteForm.Show();
+			toolPaletteForm.StartColorDrag += ToolPalette_ColorDrag;
+			toolPaletteForm.StartCurveDrag += ToolPalette_CurveDrag;
+			toolPaletteForm.StartGradientDrag += ToolPalette_GradientDrag;
+			toolPaletteForm.SaveToolPaletteLocation += ToolPalette_SaveLocation;
+
 		}
-
-		private void toolStripButton_SelectionMode_Click(object sender, EventArgs e)
-		{
-			TimelineControl.grid.EnableDrawMode = false;
-			toolStripButton_SelectionMode.Checked = true;
-			toolStripButton_DrawMode.Checked = false;
-		}
-
-
-		private void toolStripMenuItem_ResizeIndicator_CheckStateChanged(object sender, EventArgs e)
-		{
-			TimelineControl.grid.ResizeIndicator_Enabled = (toolStripMenuItem_ResizeIndicator.Checked ? true : false);
-		}
-
-		private void toolStripMenuItem_RIColor_Blue_Click(object sender, EventArgs e)
-		{
-			TimelineControl.grid.ResizeIndicator_Color = "Blue";
-		}
-
-		private void toolStripMenuItem_RIColor_Yellow_Click(object sender, EventArgs e)
-		{
-			TimelineControl.grid.ResizeIndicator_Color = "Yellow";
-		}
-
-		private void toolStripMenuItem_RIColor_Green_Click(object sender, EventArgs e)
-		{
-			TimelineControl.grid.ResizeIndicator_Color = "Green";
-		}
-
-		private void toolStripMenuItem_RIColor_White_Click(object sender, EventArgs e)
-		{
-			TimelineControl.grid.ResizeIndicator_Color = "White";
-		}
-
-		private void toolStripMenuItem_RIColor_Red_Click(object sender, EventArgs e)
-		{
-			TimelineControl.grid.ResizeIndicator_Color = "Red";
-		}
-
     }
 
 	[Serializable]
