@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Windows.Forms;
 using Vixen.Module;
 using Vixen.Module.Controller;
@@ -23,7 +24,10 @@ namespace VixenApplication
         private int _oldUpdateInterval;
         private OutputController _outputController = null;
         Guid _controllerTypeId = new Guid("{F79764D7-5153-41C6-913C-2321BC2E1819}");
-        private const string EXPORT_CONTROLLER_NAME = "ExportGateway";
+		List<OutputController> _nonExportControllers = null;
+		List<OutputController> _stoppedControllers = null;
+		private const string EXPORT_CONTROLLER_NAME = "ExportGateway";
+
 
         private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
 
@@ -50,9 +54,16 @@ namespace VixenApplication
                 VixenSystem.OutputControllers.ToList().Find(x => x.ModuleId.Equals(_controllerTypeId));
         }
 
-        private List<OutputController> FindNonExportControllers()
+        private List<OutputController> NonExportControllers
         {
-            return VixenSystem.OutputControllers.ToList().FindAll(x => x.ModuleId != _controllerTypeId);
+			get
+			{
+				if (_nonExportControllers == null)
+				{
+					_nonExportControllers = VixenSystem.OutputControllers.ToList().FindAll(x => x.ModuleId != _controllerTypeId);
+				}
+				return _nonExportControllers;
+			}
         }
 
         private void AutoConfigExportController()
@@ -65,7 +76,6 @@ namespace VixenApplication
                 _outputController = (OutputController)controllerFactory.CreateDevice(_controllerTypeId, EXPORT_CONTROLLER_NAME);
                 VixenSystem.OutputControllers.Add(_outputController);
             }
-
             PopulateControllerCommands();
         }
 
@@ -74,22 +84,22 @@ namespace VixenApplication
             int totalOutputCount = 0;
             int currentOutput = 0;
             CommandOutput workCommand;
-
+			
             if (ExportController != null)
             {
-                List<OutputController> ocList = FindNonExportControllers();
+				List<OutputController> ocList = NonExportControllers;
                 ocList.ForEach(x => totalOutputCount  += x.OutputCount);
 
-                ExportController.OutputCount = totalOutputCount;
+				ExportController.OutputCount = totalOutputCount;
+				foreach (OutputController controller in ocList)
+				{
+					foreach (CommandOutput output in controller.Outputs)
+					{
+						workCommand = ExportController.Outputs[currentOutput++];
+						workCommand.Source = output.Source;
+					}
+				}
 
-                foreach (OutputController controller in ocList)
-                {
-                    foreach (CommandOutput output in controller.Outputs)
-                    {
-                        workCommand = ExportController.Outputs[currentOutput++];
-                        workCommand.Source = output.Source;
-                    }
-                }
             }
 
         }     
@@ -114,21 +124,67 @@ namespace VixenApplication
                 _context.Stop();
             }
         }
+	    
+		private List<OutputController> StoppedControllers
+		{
+			get
+			{
+				if (_stoppedControllers == null)
+				{
+					_stoppedControllers = new List<OutputController>();
+				}
 
+				return _stoppedControllers;
+			}
+		}
+
+	    public void StopRunningControllers()
+		{
+			StoppedControllers.Clear();
+			foreach (OutputController oc in NonExportControllers)
+			{
+				if (oc.IsRunning)
+				{
+					oc.Stop();
+					StoppedControllers.Add(oc);
+				}
+			}
+
+		}
+
+	    public void RestartStoppedControllers()
+	    {
+			foreach (OutputController oc in _stoppedControllers)
+			{
+				oc.Start();
+			}
+
+			StoppedControllers.Clear();
+	    }
+
+		public void SlowUpdateInterval()
+		{
+			//Slow down the update interval until we get everything ready.  
+			_oldUpdateInterval = Vixen.Sys.VixenSystem.DefaultUpdateInterval;
+			Vixen.Sys.VixenSystem.DefaultUpdateInterval = 9999;
+
+		}
+
+		private void ResetUpdateInterval()
+		{
+			Vixen.Sys.VixenSystem.DefaultUpdateInterval = _oldUpdateInterval;
+		}
 
         public void DoExport(ISequence sequence)
         {
-            PopulateControllerCommands();
 
             if (sequence != null)
             {
-
-                _oldUpdateInterval = Vixen.Sys.VixenSystem.DefaultUpdateInterval;
-                Vixen.Sys.VixenSystem.DefaultUpdateInterval = 500;
+				this.SlowUpdateInterval();
+				PopulateControllerCommands();
 
                 string[] timingSources;
                 TimingProviders timingProviders = new TimingProviders(sequence);
-
                 timingSources = timingProviders.GetAvailableTimingSources("Export");
 
                 if (timingSources.Length > 0)
@@ -147,7 +203,7 @@ namespace VixenApplication
                 }
 
                 _context.Sequence.ClearMedia();
-                
+				                
                 _context.Play(TimeSpan.Zero, TimeSpan.MaxValue);
 
                 _context.SequenceEnded += context_SequenceEnded;
@@ -156,7 +212,7 @@ namespace VixenApplication
 
         void context_SequenceEnded(object sender, EventArgs e)
         {
-            _oldUpdateInterval = Vixen.Sys.VixenSystem.DefaultUpdateInterval;
+			this.ResetUpdateInterval();
         }
 
         public double SequenceLenghth
@@ -207,7 +263,7 @@ namespace VixenApplication
             {
                 int index = 0;
                 List<ControllerExportInfo> retVal = new List<ControllerExportInfo>();
-                FindNonExportControllers().ForEach(x => retVal.Add(new ControllerExportInfo(x, index++)));
+                NonExportControllers.ForEach(x => retVal.Add(new ControllerExportInfo(x, index++)));
                 return retVal;
             }
         }

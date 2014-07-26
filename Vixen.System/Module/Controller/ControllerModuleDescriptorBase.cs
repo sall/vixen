@@ -57,5 +57,7 @@ namespace Vixen.Module.Controller
 		{
 			return Equals(other is IControllerModuleDescriptor);
 		}
+
+		public virtual bool IsUserConfigurable { get { return true; } }
 	}
 }

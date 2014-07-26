@@ -87,6 +87,7 @@ namespace VixenApplication
         {
             bool retVal = false;
             openFileDialog.InitialDirectory = SequenceService.SequenceDirectory;
+			openFileDialog.Filter = "Timed Sequence Files (.tim)|*.tim|All Files (*.*)|*.*";
             DialogResult dr = openFileDialog.ShowDialog();
             if (dr == DialogResult.OK)
             {
@@ -115,15 +116,13 @@ namespace VixenApplication
                 networkListView.Items.Add(item);
                 
                 startChan += info.Channels;
-
-
             }
 
         }
 
         private void ExportForm_Load(object sender, EventArgs e)
         {
-
+			_exportOps.StopRunningControllers();
             outputFormatComboBox.Items.Clear();
             outputFormatComboBox.Items.AddRange(_exportOps.FormatTypes);
 
@@ -270,6 +269,11 @@ namespace VixenApplication
             _exportOps.CancelExport();
             _exportOps.ClearContextEndHandler(context_SequenceEnded);
         }
+
+		private void ExportForm_FormClosed(object sender, FormClosedEventArgs e)
+		{
+			_exportOps.RestartStoppedControllers();
+		}
 
     }
 }

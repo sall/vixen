@@ -226,7 +226,6 @@ namespace VixenModules.Output.Export
             set
             {
                 _exporterData = (ExportData)value;
-                initModule();
             }
         }
 
@@ -275,11 +274,6 @@ namespace VixenModules.Output.Export
                 string ext = Path.GetExtension(_outFileName).ToUpper();
                 OutputType = ext.TrimStart(new char[] {'.'});
             }
-        }
-
-        private void initModule()
-        {
-
         }
 
     }

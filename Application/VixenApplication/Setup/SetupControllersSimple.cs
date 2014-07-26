@@ -45,9 +45,13 @@ namespace VixenApplication.Setup
 			buttonStartController.Text = "";
 
 			comboBoxNewControllerType.BeginUpdate();
-			foreach (KeyValuePair<Guid, string> kvp in ApplicationServices.GetAvailableModules<IControllerModuleInstance>()) {
-				ComboBoxItem item = new ComboBoxItem(kvp.Value, kvp.Key);
-				comboBoxNewControllerType.Items.Add(item);
+			foreach (KeyValuePair<Guid, string> kvp in ApplicationServices.GetAvailableModules<IControllerModuleInstance>()) 
+			{
+				if (ApplicationServices.GetModuleDescriptor<IControllerModuleDescriptor>(kvp.Key).IsUserConfigurable)
+				{
+					ComboBoxItem item = new ComboBoxItem(kvp.Value, kvp.Key);
+					comboBoxNewControllerType.Items.Add(item);
+				}
 			}			
 			comboBoxNewControllerType.EndUpdate();
 			if (comboBoxNewControllerType.Items.Count > 0)

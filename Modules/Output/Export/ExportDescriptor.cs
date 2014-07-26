@@ -68,6 +68,11 @@ namespace VixenModules.Output.Export
         {
             get { return "1.0"; }
         }
+
+        public override bool IsUserConfigurable
+        {
+            get { return false; }
+        }
     }
 }
 

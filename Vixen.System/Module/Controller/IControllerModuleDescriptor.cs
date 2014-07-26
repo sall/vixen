@@ -4,5 +4,6 @@ namespace Vixen.Module.Controller
 {
 	public interface IControllerModuleDescriptor : IOutputModuleDescriptor
 	{
+        bool IsUserConfigurable { get; }
 	}
 }
