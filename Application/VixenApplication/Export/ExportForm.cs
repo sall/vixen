@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Vixen.Module.Timing;
 using Vixen.Services;
@@ -31,6 +32,9 @@ namespace VixenApplication
             InitializeComponent();
             _exportDir = Path.Combine(Paths.DataRootPath, "Export");
             _exportOps = new Export();
+			_exportOps.StopRunningControllers();
+
+			//_exportOps.SlowUpdateInterval();
             exportProgressBar.Visible = false;
             currentTimeLabel.Visible = false;
 
@@ -49,27 +53,20 @@ namespace VixenApplication
                 while (_doProgressUpdate)
                 {
                     Thread.Sleep(25);
-                    if (_timing.Position.TotalMilliseconds < RENDER_TIME_DELTA)
-                    {
-                        currentTimeLabel.Text = "Rendering Elements";
-                    }
-                    else
-                    {
-                        currentTimeLabel.Text = string.Format("{0:D2}:{1:D2}.{2:D3}",
-                                                                _timing.Position.Minutes,
-                                                                _timing.Position.Seconds,
-                                                                _timing.Position.Milliseconds);
+                    currentTimeLabel.Text = string.Format("{0:D2}:{1:D2}.{2:D3}",
+                                                            _timing.Position.Minutes,
+                                                            _timing.Position.Seconds,
+                                                            _timing.Position.Milliseconds);
 
-                        percentComplete =
-                            (_timing.Position.TotalMilliseconds /
-                            _exportOps.SequenceLenghth) * 100;
+                    percentComplete =
+                        (_timing.Position.TotalMilliseconds /
+                        _exportOps.SequenceLenghth) * 100;
 
-                        backgroundWorker1.ReportProgress((int)percentComplete);                    
-                    }
+                    backgroundWorker1.ReportProgress((int)percentComplete);                    
                 }
                 this.UseWaitCursor = false;
                 backgroundWorker1.ReportProgress(0);
-                MessageBox.Show("File saved to " + _outFileName);
+               // MessageBox.Show("File saved to " + _outFileName);
             }
         }
 
@@ -123,7 +120,7 @@ namespace VixenApplication
         private void ExportForm_Load(object sender, EventArgs e)
         {
 			_exportOps.StopRunningControllers();
-            outputFormatComboBox.Items.Clear();
+			outputFormatComboBox.Items.Clear();
             outputFormatComboBox.Items.AddRange(_exportOps.FormatTypes);
 
             outputFormatComboBox.SelectedIndex = 0;
@@ -185,7 +182,7 @@ namespace VixenApplication
             
 
             loadSequence();
-
+			renderElements();
             setWorkingState(true);
             _exportOps.DoExport(Sequence);
             _timing = _exportOps.SequenceTiming;
@@ -208,20 +205,37 @@ namespace VixenApplication
             stopButton.Enabled = true;
         }
 
-        private string setToolbarStatus(string progressText, bool showLiveProgress)
-        {
-            string prevVal = progressLabel.Text;
-            progressLabel.Text = progressText;
-            exportProgressBar.Visible = showLiveProgress;
-            currentTimeLabel.Visible = showLiveProgress;
+		private void renderElements()
+		{
+			setWorkingState(true);
+			stopButton.Enabled = false;
+			setToolbarStatus(getAbbreviatedSequenceName("Rendering ", " Elements"), false);
+			Thread thread = new Thread(new ThreadStart(renderSequenceThread));
+			thread.SetApartmentState(ApartmentState.STA);
+			thread.Start();
+			thread.Join();
+			stopButton.Enabled = true;
+		}
 
-            return prevVal;
-        }
+		private void renderSequenceThread()
+		{
+			Parallel.ForEach(Sequence.SequenceData.EffectData.Cast<IEffectNode>(), effectNode => effectNode.Effect.PreRender());                
+		}
 
         private void loadSequenceThread()
         {
             Sequence = SequenceService.Instance.Load(sequenceNameField.Text);
         }
+
+		private string setToolbarStatus(string progressText, bool showLiveProgress)
+		{
+			string prevVal = progressLabel.Text;
+			progressLabel.Text = progressText;
+			exportProgressBar.Visible = showLiveProgress;
+			currentTimeLabel.Visible = showLiveProgress;
+
+			return prevVal;
+		}
 
         private string getAbbreviatedSequenceName(string prefix, string suffix)
         {
@@ -272,6 +286,7 @@ namespace VixenApplication
 
 		private void ExportForm_FormClosed(object sender, FormClosedEventArgs e)
 		{
+			_exportOps.ClearContextEndHandler(context_SequenceEnded); 
 			_exportOps.RestartStoppedControllers();
 		}
 

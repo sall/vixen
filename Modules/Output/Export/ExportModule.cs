@@ -30,7 +30,6 @@ namespace VixenModules.Output.Export
         private double _nextUpdateMS;
         private ITiming _timer;
         private TimeSpan ts1MS;
-        private Dictionary<long,ICommand[]> _commandCache;
         private static EventWaitHandle runWH;
         private static EventWaitHandle saveWH;
         private int _updateInterval;
@@ -38,6 +37,7 @@ namespace VixenModules.Output.Export
         private Dictionary<string,string> _exportFileTypes;
         private bool _doStartupDelay;
         private ISequenceContext _sequenceContext = null;
+		private int _origUpdateInterval;
 
         private static Byte globalCount = 0;
         private Byte myCount = 0;
@@ -51,7 +51,6 @@ namespace VixenModules.Output.Export
             _exporterCommandHandler = new ExportCommandHandler();
             _eventData = new List<byte>();
             DataPolicyFactory = new ExportDataPolicyFactory();
-            _commandCache = new Dictionary<long, ICommand[]>();
             _writers = new Dictionary<string, IExportWriter>();
             _exportFileTypes = new Dictionary<string, string>();
             _doStartupDelay = true;
@@ -82,6 +81,8 @@ namespace VixenModules.Output.Export
 
             _output = _writers.FirstOrDefault().Value;
 
+			_origUpdateInterval = Vixen.Sys.VixenSystem.DefaultUpdateInterval;
+
             globalCount++;
             myCount = globalCount;
 
@@ -110,7 +111,7 @@ namespace VixenModules.Output.Export
 
         void Contexts_ContextReleased(object sender, ContextEventArgs e)
         {
-
+			VixenSystem.DefaultUpdateInterval = _origUpdateInterval;
             IContext sequenceContext = e.Context as IContext;
             if (sequenceContext != null)
             {
@@ -119,33 +120,16 @@ namespace VixenModules.Output.Export
 
             }
 
+			_sequenceContext = null;
         }
 
         void sequenceContext_ContextEnded(object sender, EventArgs e)
         {
+			VixenSystem.DefaultUpdateInterval = _origUpdateInterval;
+			_exportStarted = false;
             _doStartupDelay = true;
             if (_output != null)
             {
-                _exportStarted = false;
-                saveWH.WaitOne();
-                foreach (ICommand[] cmds in _commandCache.Values)
-                {
-                    _eventData.Clear();
-
-                    for (int i = 0; i < cmds.Length; i++)
-                    {
-                        _exporterCommandHandler.Reset();
-                        ICommand command = cmds[i];
-                        if (command != null)
-                        {
-                            command.Dispatch(_exporterCommandHandler);
-                        }
-                        _eventData.Add(_exporterCommandHandler.Value);
-                    }
-                    _output.WriteNextPeriodData(_eventData);
-
-                }
-
                 _output.CloseSession();
 
                 _sequenceContext = null;
@@ -163,13 +147,20 @@ namespace VixenModules.Output.Export
 
             if (_sequenceContext.Sequence.SelectedTimingProvider.ProviderType.Equals("Export"))
             {
-                _output.SeqPeriodTime = (ushort)UpdateInterval;
-                _output.OpenSession(_outFileName, this.OutputCount);
+				try
+				{
+					_output.SeqPeriodTime = (ushort)UpdateInterval;
+					_output.OpenSession(_outFileName, this.OutputCount);
 
-                _nextUpdateMS = 0;
-                _commandCache.Clear();
+					_nextUpdateMS = 0;
 
-                _exportStarted = true;
+					_exportStarted = true;
+
+				}
+				catch (Exception ex)
+				{
+					_sequenceContext.Stop();
+				}
 
             }
 
@@ -180,7 +171,7 @@ namespace VixenModules.Output.Export
         public override void UpdateState(int chainIndex, ICommand[] outputStates)
         {
             runWH.WaitOne();
-            if (_exportStarted)
+            if ((_exportStarted) && (_output != null))
             {
                 saveWH.Reset();
                 double currentMS = _timer.Position.TotalMilliseconds;
@@ -190,10 +181,23 @@ namespace VixenModules.Output.Export
                     return;
                 }
 
-                _commandCache[Convert.ToInt32(currentMS)] = (ICommand[])outputStates.Clone();
-                if (_doStartupDelay == true)
+				_eventData.Clear();
+
+				for (int i = 0; i < outputStates.Length; i++)
+				{
+					_exporterCommandHandler.Reset();
+					ICommand command = outputStates[i];
+					if (command != null)
+					{
+						command.Dispatch(_exporterCommandHandler);
+					}
+					_eventData.Add(_exporterCommandHandler.Value);
+				}
+				_output.WriteNextPeriodData(_eventData);
+                
+				if (_doStartupDelay == true)
                 {
-                    Vixen.Sys.VixenSystem.DefaultUpdateInterval = 0;
+                    Vixen.Sys.VixenSystem.DefaultUpdateInterval = 1;
                     _doStartupDelay = false;
                 }
 

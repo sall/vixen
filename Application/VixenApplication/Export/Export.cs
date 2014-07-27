@@ -21,11 +21,9 @@ namespace VixenApplication
     public class Export
     {
         private ISequenceContext _context = null;
-        private int _oldUpdateInterval;
         private OutputController _outputController = null;
         Guid _controllerTypeId = new Guid("{F79764D7-5153-41C6-913C-2321BC2E1819}");
 		List<OutputController> _nonExportControllers = null;
-		List<OutputController> _stoppedControllers = null;
 		private const string EXPORT_CONTROLLER_NAME = "ExportGateway";
 
 
@@ -125,62 +123,23 @@ namespace VixenApplication
             }
         }
 	    
-		private List<OutputController> StoppedControllers
-		{
-			get
-			{
-				if (_stoppedControllers == null)
-				{
-					_stoppedControllers = new List<OutputController>();
-				}
-
-				return _stoppedControllers;
-			}
-		}
-
 	    public void StopRunningControllers()
 		{
-			StoppedControllers.Clear();
-			foreach (OutputController oc in NonExportControllers)
-			{
-				if (oc.IsRunning)
-				{
-					oc.Stop();
-					StoppedControllers.Add(oc);
-				}
-			}
-
+			VixenSystem.OutputDeviceManagement.StopAll();
+			VixenSystem.OutputDeviceManagement.StartOnly(ExportController);
 		}
 
 	    public void RestartStoppedControllers()
 	    {
-			foreach (OutputController oc in _stoppedControllers)
-			{
-				oc.Start();
-			}
-
-			StoppedControllers.Clear();
+			VixenSystem.OutputDeviceManagement.StartAll();
+			ExportController.Stop();
 	    }
-
-		public void SlowUpdateInterval()
-		{
-			//Slow down the update interval until we get everything ready.  
-			_oldUpdateInterval = Vixen.Sys.VixenSystem.DefaultUpdateInterval;
-			Vixen.Sys.VixenSystem.DefaultUpdateInterval = 9999;
-
-		}
-
-		private void ResetUpdateInterval()
-		{
-			Vixen.Sys.VixenSystem.DefaultUpdateInterval = _oldUpdateInterval;
-		}
 
         public void DoExport(ISequence sequence)
         {
 
             if (sequence != null)
             {
-				this.SlowUpdateInterval();
 				PopulateControllerCommands();
 
                 string[] timingSources;
@@ -203,16 +162,21 @@ namespace VixenApplication
                 }
 
                 _context.Sequence.ClearMedia();
-				                
+				
                 _context.Play(TimeSpan.Zero, TimeSpan.MaxValue);
 
-                _context.SequenceEnded += context_SequenceEnded;
+                _context.ContextEnded += context_ContextEnded;
             }
         }
 
-        void context_SequenceEnded(object sender, EventArgs e)
+        void context_ContextEnded(object sender, EventArgs e)
         {
-			this.ResetUpdateInterval();
+			if (_context != null)
+			{
+				_context.ContextEnded -= context_ContextEnded;
+				VixenSystem.Contexts.ReleaseContext(_context);
+				_context = null;
+			}
         }
 
         public double SequenceLenghth
