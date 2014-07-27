@@ -99,7 +99,7 @@ namespace VixenApplication
 
         private void UpdateNetworkList()
         {
-            List<ControllerExportInfo> exportInfo = _exportOps.ControllerExportInfo;
+            List<ControllerExportInfo> exportInfo = _exportOps.ControllerExportData;
 
             networkListView.Items.Clear();
             int startChan = 1;
@@ -164,22 +164,13 @@ namespace VixenApplication
 
             checkExportdir();
 
-            _controllerModule = (IExportController)_exportOps.ExportController.ControllerModuleInstance;
-            if (_controllerModule == null)
-            {
-                MessageBox.Show("Unable to find suitable export Controller", "Error");
-                return;
-            }
-
             _outFileName = _exportDir +
                 Path.DirectorySeparatorChar +
                 Path.GetFileNameWithoutExtension(openFileDialog.FileName) + "." +
-                _controllerModule.ExportFileTypes[outputFormatComboBox.SelectedItem.ToString()];
+                _exportOps.ExportFileTypes[outputFormatComboBox.SelectedItem.ToString()];
 
-            _controllerModule.OutFileName = _outFileName;
-            _controllerModule.UpdateInterval = Convert.ToInt32(resolutionComboBox.Text);
-
-            
+			_exportOps.OutFileName = _outFileName;
+			_exportOps.UpdateInterval = Convert.ToInt32(resolutionComboBox.Text);            
 
             loadSequence();
 			renderElements();

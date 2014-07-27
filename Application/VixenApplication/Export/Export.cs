@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
+using System.Xml;
 using Vixen.Module;
 using Vixen.Module.Controller;
 using Vixen.Module.Timing;
@@ -25,6 +26,7 @@ namespace VixenApplication
         Guid _controllerTypeId = new Guid("{F79764D7-5153-41C6-913C-2321BC2E1819}");
 		List<OutputController> _nonExportControllers = null;
 		private const string EXPORT_CONTROLLER_NAME = "ExportGateway";
+		private IExportController _controllerModuleInstance = null;
 
 
         private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
@@ -45,6 +47,40 @@ namespace VixenApplication
                 return retVal;
             }
         }
+
+		public string OutFileName
+		{
+			get
+			{
+				return _controllerModuleInstance.OutFileName;
+			}
+
+			set
+			{
+				_controllerModuleInstance.OutFileName = value;
+			}
+		}
+
+		public int UpdateInterval 
+		{
+			get
+			{
+				return _controllerModuleInstance.UpdateInterval;
+			}
+
+			set
+			{
+				_controllerModuleInstance.UpdateInterval = value;
+			}
+		}
+
+		public Dictionary<string, string> ExportFileTypes
+		{
+			get
+			{
+				return _controllerModuleInstance.ExportFileTypes;
+			}
+		}
 
         private OutputController FindExportControler()
         {
@@ -109,6 +145,7 @@ namespace VixenApplication
                 if (_outputController == null)
                 {
                     AutoConfigExportController();
+					_controllerModuleInstance = (IExportController)_outputController.ControllerModuleInstance;
                 }
 
                 return _outputController;
@@ -135,6 +172,48 @@ namespace VixenApplication
 			ExportController.Stop();
 	    }
 
+		private void WriteControllerInfo(ISequence sequence)
+		{
+			int chanStart = 1;
+
+			string xmlOutName =
+				Path.GetDirectoryName(OutFileName) +
+				Path.DirectorySeparatorChar +
+				Path.GetFileNameWithoutExtension(OutFileName) +
+				"_Network.xml";
+			
+			XmlWriterSettings settings = new XmlWriterSettings();
+			settings.Indent = true;
+			settings.IndentChars = "\t";
+
+			using (XmlWriter writer = XmlWriter.Create(xmlOutName,settings))
+			{
+				writer.WriteStartDocument();
+				writer.WriteStartElement("Vixen3_Export");
+				writer.WriteElementString("Resolution", UpdateInterval.ToString());
+				writer.WriteElementString("OutFile", Path.GetFileName(OutFileName));
+				writer.WriteElementString("Duration", sequence.Length.ToString());
+
+				writer.WriteStartElement("Network");
+				foreach (ControllerExportInfo exportInfo in ControllerExportData)
+				{
+					writer.WriteStartElement("Controller");
+					writer.WriteElementString("Index", exportInfo.Index.ToString()); 
+					writer.WriteElementString("Name", exportInfo.Name);
+					writer.WriteElementString("StartChan", chanStart.ToString());
+					writer.WriteElementString("Channels", exportInfo.Channels.ToString());
+					writer.WriteEndElement();
+
+					chanStart += exportInfo.Channels;
+				}
+				writer.WriteEndElement();
+
+				writer.WriteEndElement();
+				writer.WriteEndDocument();
+			}
+
+		}
+
         public void DoExport(ISequence sequence)
         {
 
@@ -152,7 +231,6 @@ namespace VixenApplication
                     sequence.SelectedTimingProvider = exportTimingProvider;
                 }
 
-
                 _context = VixenSystem.Contexts.CreateSequenceContext(new ContextFeatures(ContextCaching.NoCaching), sequence);
                 if (_context == null)
                 {
@@ -161,7 +239,9 @@ namespace VixenApplication
                     return;
                 }
 
-                _context.Sequence.ClearMedia();
+				WriteControllerInfo(_context.Sequence);
+
+				_context.Sequence.ClearMedia();
 				
                 _context.Play(TimeSpan.Zero, TimeSpan.MaxValue);
 
@@ -221,7 +301,7 @@ namespace VixenApplication
             }
         }
 
-        public List<ControllerExportInfo> ControllerExportInfo
+        public List<ControllerExportInfo> ControllerExportData
         {
             get
             {
