@@ -34,7 +34,6 @@ namespace VixenApplication
             _exportOps = new Export();
 			_exportOps.StopRunningControllers();
 
-			//_exportOps.SlowUpdateInterval();
             exportProgressBar.Visible = false;
             currentTimeLabel.Visible = false;
 

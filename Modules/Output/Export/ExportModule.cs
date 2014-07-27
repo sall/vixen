@@ -37,6 +37,7 @@ namespace VixenModules.Output.Export
         private Dictionary<string,string> _exportFileTypes;
         private bool _doStartupDelay;
         private ISequenceContext _sequenceContext = null;
+		private int _sequenceLength;
 		private int _origUpdateInterval;
 
         private static Byte globalCount = 0;
@@ -54,6 +55,7 @@ namespace VixenModules.Output.Export
             _writers = new Dictionary<string, IExportWriter>();
             _exportFileTypes = new Dictionary<string, string>();
             _doStartupDelay = true;
+			_sequenceLength = 0;
 
             ts1MS = new TimeSpan(0, 0, 0, 0, 1);
 
@@ -145,8 +147,13 @@ namespace VixenModules.Output.Export
 
             _timer = _sequenceContext.Sequence.GetTiming();
 
-            if (_sequenceContext.Sequence.SelectedTimingProvider.ProviderType.Equals("Export"))
+			if (_sequenceContext.Sequence.SelectedTimingProvider.ProviderType.Equals("Export"))
             {
+				_sequenceLength = Convert.ToInt32(_sequenceContext.Sequence.Length.TotalMilliseconds);
+				if ((_sequenceLength % UpdateInterval) != 0)
+				{
+					_sequenceLength = (_sequenceLength - (_sequenceLength % UpdateInterval)) + UpdateInterval;
+				}
 				try
 				{
 					_output.SeqPeriodTime = (ushort)UpdateInterval;
@@ -176,7 +183,7 @@ namespace VixenModules.Output.Export
                 saveWH.Reset();
                 double currentMS = _timer.Position.TotalMilliseconds;
 
-                if (currentMS < _nextUpdateMS )
+                if ((currentMS < _nextUpdateMS ) || (currentMS >= _sequenceLength))
                 {
                     return;
                 }
@@ -197,7 +204,7 @@ namespace VixenModules.Output.Export
                 
 				if (_doStartupDelay == true)
                 {
-                    Vixen.Sys.VixenSystem.DefaultUpdateInterval = 1;
+					Vixen.Sys.VixenSystem.DefaultUpdateInterval = 10;
                     _doStartupDelay = false;
                 }
 
