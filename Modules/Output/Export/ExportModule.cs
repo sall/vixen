@@ -188,7 +188,10 @@ namespace VixenModules.Output.Export
                     return;
                 }
 
-				_eventData.Clear();
+                _nextUpdateMS += UpdateInterval;
+                _timer.Position = TimeSpan.FromMilliseconds(_nextUpdateMS); 
+                
+                _eventData.Clear();
 
 				for (int i = 0; i < outputStates.Length; i++)
 				{
@@ -204,15 +207,10 @@ namespace VixenModules.Output.Export
                 
 				if (_doStartupDelay == true)
                 {
-					Vixen.Sys.VixenSystem.DefaultUpdateInterval = 25;
+					Vixen.Sys.VixenSystem.DefaultUpdateInterval = 15;
                     _doStartupDelay = false;
                 }
-
-                _nextUpdateMS += UpdateInterval;
-
-
-                _timer.Position = TimeSpan.FromMilliseconds(_nextUpdateMS);
-                
+                Thread.Yield();
 
             }
             saveWH.Set();
