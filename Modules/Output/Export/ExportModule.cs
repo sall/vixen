@@ -204,7 +204,7 @@ namespace VixenModules.Output.Export
                 
 				if (_doStartupDelay == true)
                 {
-					Vixen.Sys.VixenSystem.DefaultUpdateInterval = 10;
+					Vixen.Sys.VixenSystem.DefaultUpdateInterval = 25;
                     _doStartupDelay = false;
                 }
 

@@ -26,6 +26,7 @@ namespace VixenApplication
         private ITiming _timing;
         private bool _doProgressUpdate;
         private const int RENDER_TIME_DELTA = 250;
+        private string _sequenceFileName = "";
 
         public ExportForm()
         {
@@ -90,7 +91,7 @@ namespace VixenApplication
                 if (File.Exists(openFileDialog.FileName))
                 {
                     retVal = true;
-                    sequenceNameField.Text = openFileDialog.FileName;
+                    _sequenceFileName = openFileDialog.FileName;
                 }
             }
             return retVal;
@@ -153,10 +154,11 @@ namespace VixenApplication
             this.UseWaitCursor = true;
 
             //Get Sequence Names
-            if (string.IsNullOrWhiteSpace(sequenceNameField.Text))
+            if (string.IsNullOrWhiteSpace(_sequenceFileName))
             {
                 if (!getTargetSequences())
                 {
+                    this.UseWaitCursor = false;
                     return;
                 }
             }
@@ -214,7 +216,7 @@ namespace VixenApplication
 
         private void loadSequenceThread()
         {
-            Sequence = SequenceService.Instance.Load(sequenceNameField.Text);
+            Sequence = SequenceService.Instance.Load(_sequenceFileName);
         }
 
 		private string setToolbarStatus(string progressText, bool showLiveProgress)
@@ -230,21 +232,20 @@ namespace VixenApplication
         private string getAbbreviatedSequenceName(string prefix, string suffix)
         {
             return prefix  +
-                Path.GetFileNameWithoutExtension(sequenceNameField.Text) +
+                Path.GetFileNameWithoutExtension(_sequenceFileName) +
                 suffix;
         }
 
         private void setWorkingState(bool isWorking)
         {
             string newStatus = "";
-
             startButton.Enabled = !isWorking;
             stopButton.Enabled = isWorking;
-            networkListView.Enabled = !isWorking;
+            //networkListView.Enabled = !isWorking;
+			networkListView.Enabled = false;
             outputFormatComboBox.Enabled = !isWorking;
             resolutionComboBox.Enabled = !isWorking;
             _doProgressUpdate = isWorking;
-            progressLabel.Visible = isWorking;
             exportProgressBar.Visible = isWorking;
             currentTimeLabel.Visible = isWorking;
 
@@ -255,7 +256,7 @@ namespace VixenApplication
             }
             else
             {
-                sequenceNameField.Text = "";
+                _sequenceFileName = "";
                 backgroundWorker1.CancelAsync();
             }
 
@@ -278,6 +279,16 @@ namespace VixenApplication
 		{
 			_exportOps.ClearContextEndHandler(context_SequenceEnded); 
 			_exportOps.RestartStoppedControllers();
+		}
+
+		private void stopButton_MouseEnter(object sender, EventArgs e)
+		{
+			this.UseWaitCursor = false;
+		}
+
+		private void stopButton_MouseLeave(object sender, EventArgs e)
+		{
+			this.UseWaitCursor = _doProgressUpdate;
 		}
 
     }
