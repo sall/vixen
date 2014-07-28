@@ -17,8 +17,7 @@ namespace VixenModules.Output.Export
     {
 
         private Int32 _seqNumChannels = 0; 
-        private FileStream _outfs = null;
-        private BinaryWriter _dataOut = null;
+        private StreamWriter _dataOut = null;
 
         public CSVExporter()
         {
@@ -42,13 +41,11 @@ namespace VixenModules.Output.Export
         {
             try
             {
-                _outfs = File.Create(fileName, numChannels * 2, FileOptions.None);
-                _dataOut = new BinaryWriter(_outfs);
+                _dataOut = new StreamWriter(fileName);
                 _seqNumChannels = numChannels;
             }
             catch (Exception e)
             {
-                _outfs = null;
                 _dataOut = null;
                 throw e;
             }
@@ -60,18 +57,17 @@ namespace VixenModules.Output.Export
             {
                 try
                 {
-                    _dataOut.Write(periodData[0]); 
+                    _dataOut.Write(periodData[0].ToString()); 
                     for (int j = 0; j < _seqNumChannels; j++)
                     {
                         _dataOut.Write(',');
-                        _dataOut.Write(periodData[j]);
+                        _dataOut.Write(periodData[j].ToString());
                     }
                     _dataOut.Write(System.Environment.NewLine);
                 }
                 catch (Exception e)
                 {
                     _dataOut = null;
-                    _outfs = null;
                     throw e;
                 }
             }
@@ -84,20 +80,14 @@ namespace VixenModules.Output.Export
             {
                 try
                 {
-                    _dataOut.Seek(0, SeekOrigin.Begin);
-                    WriteFileHeader();
                     _dataOut.Flush();
                     _dataOut.Close();
                     _dataOut = null;
-                    _outfs.Close();
-                    _outfs.Close();
-                    _outfs = null;
 
                 }
                 catch (Exception e)
                 {
                     _dataOut = null;
-                    _outfs = null;
                     throw e;
                 }
             }
