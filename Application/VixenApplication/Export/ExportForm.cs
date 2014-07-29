@@ -66,7 +66,8 @@ namespace VixenApplication
                 }
                 this.UseWaitCursor = false;
                 backgroundWorker1.ReportProgress(0);
-               // MessageBox.Show("File saved to " + _outFileName);
+
+                ShowDestinationMB();
             }
         }
 
@@ -78,6 +79,20 @@ namespace VixenApplication
             }
             catch (Exception e) { }
             
+        }
+
+        public void ShowDestinationMB()
+        {
+            if (this.InvokeRequired)
+            {
+                this.BeginInvoke(new Action(this.ShowDestinationMB));
+                return;
+            }
+
+            startButton.Enabled = false;
+            MessageBox.Show("File saved to " + _outFileName);
+            startButton.Enabled = true;
+
         }
 
         private bool getTargetSequences()
