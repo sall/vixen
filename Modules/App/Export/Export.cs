@@ -17,7 +17,7 @@ using Vixen.Sys;
 using Vixen.Sys.Output;
 using NLog;
 
-namespace VixenApplication
+namespace VixenModules.App.Export
 {
     public class Export
     {

@@ -13,7 +13,7 @@ using Vixen.Sys;
 
 namespace VixenModules.Output.Export
 {
-    public class FPPExporter : IExportWriter
+    public class FSEQWriter : IExportWriter
     {
         private const Byte _vMinor = 0;
         private const Byte _vMajor = 0;
@@ -34,7 +34,7 @@ namespace VixenModules.Output.Export
         //step size is number of channels in output
         //num steps is number of 25,50,100ms intervals
 
-        public FPPExporter()
+        public FSEQWriter()
         {
             SeqPeriodTime = 50;  //Default to 50ms
         }
@@ -105,7 +105,7 @@ namespace VixenModules.Output.Export
 
         }
 
-        public void OpenSession(string fileName, Int32 numChannels)
+        public void OpenSession(string fileName, Int32 numPeriods, Int32 numChannels)
         {
             try
             {

@@ -157,7 +157,7 @@ namespace VixenModules.Output.Export
 				try
 				{
 					_output.SeqPeriodTime = (ushort)UpdateInterval;
-					_output.OpenSession(_outFileName, this.OutputCount);
+                    _output.OpenSession(_outFileName, (_sequenceLength / UpdateInterval), this.OutputCount);
 
 					_nextUpdateMS = 0;
 

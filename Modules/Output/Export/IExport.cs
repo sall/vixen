@@ -10,8 +10,18 @@ namespace VixenModules.Output.Export
         UInt16 SeqPeriodTime { get; set; }
         void WriteFileHeader();
         void WriteFileFooter();
-        void OpenSession(string fileName, Int32 numChannels);
+        void OpenSession(string fileName, Int32 numPeriods, Int32 numChannels);
         void WriteNextPeriodData(List<Byte> periodData);
+        void CloseSession();
+        string FileType { get; }
+        string FileTypeDescr { get; }
+    }
+
+    public interface IExportReader
+    {
+        UInt16 SeqPeriodTime { get; }
+        void OpenSession(string fileName);
+        List<Byte> ReadNextPeriodData();
         void CloseSession();
         string FileType { get; }
         string FileTypeDescr { get; }

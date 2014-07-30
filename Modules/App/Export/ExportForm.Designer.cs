@@ -1,4 +1,4 @@
-﻿namespace VixenApplication
+﻿namespace VixenModules.App.Export
 {
     partial class ExportForm
     {

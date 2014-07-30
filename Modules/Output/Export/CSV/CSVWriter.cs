@@ -13,13 +13,16 @@ using Vixen.Sys;
 
 namespace VixenModules.Output.Export
 {
-    public class CSVExporter : IExportWriter
+    public class CSVWriter : IExportWriter
     {
 
-        private Int32 _seqNumChannels = 0; 
-        private StreamWriter _dataOut = null;
+        private Int32 _seqNumChannels = 0;
+        private Int32 _seqNumPeriods = 0;
 
-        public CSVExporter()
+        private FileStream _outfs = null;
+        private BinaryWriter _dataOut = null;
+
+        public CSVWriter()
         {
             SeqPeriodTime = 50;  //Default to 50ms
         }
@@ -37,12 +40,21 @@ namespace VixenModules.Output.Export
 
         }
 
-        public void OpenSession(string fileName, Int32 numChannels)
+        public void OpenSession(string fileName, Int32 numPeriods, Int32 numChannels)
         {
+            _seqNumChannels = numChannels;
+            _seqNumPeriods = numPeriods;
+
             try
             {
-                _dataOut = new StreamWriter(fileName);
-                _seqNumChannels = numChannels;
+                _outfs = File.Create(fileName, numChannels * 2, FileOptions.None);
+                _dataOut = new BinaryWriter(_outfs);
+
+                for (int j = 0; j < numPeriods; j++)
+                {
+                    WriteNextPeriodData(Enumerable.Repeat<Byte>(0, numChannels).ToList());
+                }
+                _outfs.Seek(0, SeekOrigin.Begin);
             }
             catch (Exception e)
             {
@@ -51,19 +63,24 @@ namespace VixenModules.Output.Export
             }
         }
 
+        public void ResetStreamPtr()
+        {
+            _dataOut.Seek(0, SeekOrigin.Begin);
+        }
+
         public void WriteNextPeriodData(List<Byte> periodData)
         {
             if (_dataOut != null)
             {
                 try
                 {
-                    _dataOut.Write(periodData[0].ToString()); 
+                    _dataOut.Write(periodData[0].ToString("000").ToCharArray()); 
                     for (int j = 0; j < _seqNumChannels; j++)
                     {
                         _dataOut.Write(',');
-                        _dataOut.Write(periodData[j].ToString());
+                        _dataOut.Write(periodData[j].ToString("000").ToCharArray());
                     }
-                    _dataOut.Write(System.Environment.NewLine);
+                    _dataOut.Write(System.Environment.NewLine.ToCharArray());
                 }
                 catch (Exception e)
                 {
@@ -71,8 +88,8 @@ namespace VixenModules.Output.Export
                     throw e;
                 }
             }
-
         }
+
 
         public void CloseSession()
         {
@@ -83,11 +100,15 @@ namespace VixenModules.Output.Export
                     _dataOut.Flush();
                     _dataOut.Close();
                     _dataOut = null;
+                    _outfs.Close();
+                    _outfs.Close();
+                    _outfs = null;
 
                 }
                 catch (Exception e)
                 {
                     _dataOut = null;
+                    _outfs = null;
                     throw e;
                 }
             }

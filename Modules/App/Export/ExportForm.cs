@@ -15,7 +15,7 @@ using Vixen.Sys;
 using Vixen.Sys.Output;
 using Vixen.Module.Controller;
 
-namespace VixenApplication
+namespace VixenModules.App.Export
 {
     public partial class ExportForm : Form
     {
