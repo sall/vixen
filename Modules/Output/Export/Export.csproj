@@ -48,7 +48,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CSV\CSVReader.cs" />
     <Compile Include="CSV\CSVWriter.cs" />
     <Compile Include="ExportCommandHandler.cs" />
     <Compile Include="ExportData.cs" />

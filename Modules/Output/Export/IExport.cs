@@ -17,13 +17,4 @@ namespace VixenModules.Output.Export
         string FileTypeDescr { get; }
     }
 
-    public interface IExportReader
-    {
-        UInt16 SeqPeriodTime { get; }
-        void OpenSession(string fileName);
-        List<Byte> ReadNextPeriodData();
-        void CloseSession();
-        string FileType { get; }
-        string FileTypeDescr { get; }
-    }
 }
