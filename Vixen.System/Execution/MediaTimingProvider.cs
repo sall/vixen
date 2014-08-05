@@ -17,12 +17,15 @@ namespace Vixen.Execution
 			return sequence.GetAllMedia().Where(x => x.TimingSource != null).Select(x => x.MediaFilePath).ToArray();
 		}
 
-		public ITiming GetTimingSource(ISequence sequence, string sourceName)
+        public ITiming GetTimingSource(ISequence sequence, string sourceName)
 		{
-			IMediaModuleInstance mediaModule =
-				sequence.GetAllMedia().FirstOrDefault(x => x.TimingSource != null && x.MediaFilePath == sourceName);
-			if (mediaModule != null) {
-				return mediaModule.TimingSource;
+            if (System.IO.File.Exists(sourceName))
+            {
+			    IMediaModuleInstance mediaModule =
+				    sequence.GetAllMedia().FirstOrDefault(x => x.TimingSource != null && x.MediaFilePath == sourceName);
+			    if (mediaModule != null) {
+				    return mediaModule.TimingSource;
+                }
 			}
 			return null;
 		}

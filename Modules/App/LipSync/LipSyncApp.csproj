@@ -52,6 +52,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LipSyncExportDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="LipSyncExportDialog.Designer.cs">
+      <DependentUpon>LipSyncExportDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="LipSyncMapColorCtrl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -152,6 +158,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="LipSyncExportDialog.resx">
+      <DependentUpon>LipSyncExportDialog.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="LipSyncMapColorCtrl.resx">
       <DependentUpon>LipSyncMapColorCtrl.cs</DependentUpon>
     </EmbeddedResource>

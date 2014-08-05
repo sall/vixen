@@ -130,6 +130,7 @@
     <Compile Include="Execution\ContextTargetType.cs" />
     <Compile Include="Execution\DataSource\IMutableDataSource.cs" />
     <Compile Include="Execution\DataSource\SequenceDataPump.cs" />
+    <Compile Include="Execution\ExportTimingProvider.cs" />
     <Compile Include="Execution\IElementStateBuilder.cs" />
     <Compile Include="Execution\IContext.cs" />
     <Compile Include="Execution\IContextCurrentEffects.cs" />
@@ -235,6 +236,7 @@
     <Compile Include="IO\Xml\XElementFileReader.cs" />
     <Compile Include="IO\Xml\XElementFileWriter.cs" />
     <Compile Include="IO\Xml\XmlRootAttributeVersion.cs" />
+    <Compile Include="Module\Controller\IExportController.cs" />
     <Compile Include="Module\IModuleConsumer.cs" />
     <Compile Include="Module\IModuleDataRetriever.cs" />
     <Compile Include="Module\ModuleInstanceDataRetriever.cs" />

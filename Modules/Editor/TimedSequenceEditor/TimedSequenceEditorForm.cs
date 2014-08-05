@@ -3640,7 +3640,6 @@ namespace VixenModules.Editor.TimedSequenceEditor
             });
 
         }
-
     }
 
 	[Serializable]

@@ -333,5 +333,14 @@ namespace Vixen.Sys.Output
 				return (priorController != null) ? priorController._ControllerChainModule : _ControllerModule;
 			}
 		}
+
+        public IControllerModuleInstance ControllerModuleInstance
+        {
+            get
+            {
+                return _ControllerChainModule;
+            }
+            
+        }
 	}
 }
