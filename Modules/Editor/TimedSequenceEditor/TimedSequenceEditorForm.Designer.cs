@@ -120,6 +120,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
 			this.effectWindowToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.markWindowToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.toolWindowToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.toolStripMenuItem_associateAudio = new System.Windows.Forms.ToolStripMenuItem();
 			this.toolStripMenuItem_removeAudio = new System.Windows.Forms.ToolStripMenuItem();
@@ -136,7 +137,6 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			this.papagayoImportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.textConverterToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.toolStripSeparator14 = new System.Windows.Forms.ToolStripSeparator();
-			this.toolPaletteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.timerPlaying = new System.Windows.Forms.Timer(this.components);
 			this.statusStrip = new System.Windows.Forms.StatusStrip();
 			this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
@@ -884,7 +884,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
             this.toolStripMenuItem_zoomRowsOut,
             this.toolStripMenuItem1,
             this.effectWindowToolStripMenuItem,
-            this.markWindowToolStripMenuItem});
+            this.markWindowToolStripMenuItem,
+            this.toolWindowToolStripMenuItem});
 			this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
 			this.viewToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
 			this.viewToolStripMenuItem.Text = "View";
@@ -946,6 +947,13 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			this.markWindowToolStripMenuItem.Text = "Mark Window";
 			this.markWindowToolStripMenuItem.Click += new System.EventHandler(this.markWindowToolStripMenuItem_Click);
 			// 
+			// toolWindowToolStripMenuItem
+			// 
+			this.toolWindowToolStripMenuItem.Name = "toolWindowToolStripMenuItem";
+			this.toolWindowToolStripMenuItem.Size = new System.Drawing.Size(234, 22);
+			this.toolWindowToolStripMenuItem.Text = "Tool Window";
+			this.toolWindowToolStripMenuItem.Click += new System.EventHandler(this.toolWindowToolStripMenuItem_Click);
+			// 
 			// toolsToolStripMenuItem
 			// 
 			this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -956,8 +964,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
             this.curveEditorToolStripMenuItem,
             this.colorGradientEditorToolStripMenuItem,
             this.ColorCollectionsToolStripMenuItem,
-            this.lipSyncMappingsToolStripMenuItem,
-            this.toolPaletteToolStripMenuItem});
+            this.lipSyncMappingsToolStripMenuItem});
 			this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
 			this.toolsToolStripMenuItem.Size = new System.Drawing.Size(48, 20);
 			this.toolsToolStripMenuItem.Text = "Tools";
@@ -1071,13 +1078,6 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			// 
 			this.toolStripSeparator14.Name = "toolStripSeparator14";
 			this.toolStripSeparator14.Size = new System.Drawing.Size(172, 6);
-			// 
-			// toolPaletteToolStripMenuItem
-			// 
-			this.toolPaletteToolStripMenuItem.Name = "toolPaletteToolStripMenuItem";
-			this.toolPaletteToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
-			this.toolPaletteToolStripMenuItem.Text = "Tool Palette";
-			this.toolPaletteToolStripMenuItem.Click += new System.EventHandler(this.toolPaletteToolStripMenuItem_Click);
 			// 
 			// timerPlaying
 			// 
@@ -1484,6 +1484,6 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		private System.Windows.Forms.ToolStripButton toolStripButton_DragBoxFilter;
 		private System.Windows.Forms.ToolStripDropDownButton toolStripDropDownButton_DragBoxFilter;
 		private System.Windows.Forms.ToolStripMenuItem ColorCollectionsToolStripMenuItem;
-		private System.Windows.Forms.ToolStripMenuItem toolPaletteToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem toolWindowToolStripMenuItem;
 	}
 }

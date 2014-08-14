@@ -108,8 +108,6 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		//Used for color collections
 		private static Random rnd = new Random();
 
-		private ToolPalette toolPaletteForm = new ToolPalette();
-
 		#endregion
 
 		#region Constructor / Initialization
@@ -172,7 +170,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			}
 
 			Execution.ExecutionStateChanged += OnExecutionStateChanged;
-			_autoSaveTimer.Tick += AutoSaveEventProcessor;	
+			_autoSaveTimer.Tick += AutoSaveEventProcessor;
 		}
 
 		private IDockContent DockingPanels_GetContentFromPersistString(string persistString)
@@ -183,6 +181,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				return GridForm;
 			else if (persistString == typeof(Form_Marks).ToString())
 				return MarksForm;
+			else if (persistString == typeof(Form_ToolPalette).ToString())
+				return ToolsForm;
 			else
 			{
 				throw new NotImplementedException("Unable to find docking window type.");
@@ -197,6 +197,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			ColorCollectionsPath =
 				Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vixen",
 							   "ColorCollections.xml");
+
 			if (File.Exists(settingsPath))
 			{
 				dockPanel.LoadFromXml(settingsPath, new DeserializeDockContent(DockingPanels_GetContentFromPersistString));
@@ -206,6 +207,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				GridForm.Show(dockPanel);
 				MarksForm.Show(dockPanel, DockState.DockLeft);
 				EffectsForm.Show(dockPanel, DockState.DockLeft);
+				ToolsForm.Show(dockPanel,DockState.DockBottom);
 			}
 
 			XMLProfileSettings xml = new XMLProfileSettings();
@@ -223,18 +225,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			TimelineControl.grid.ResizeIndicator_Color = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ResizeIndicatorColor", Name), "Red");
 			toolStripButton_DrawMode.Checked = TimelineControl.grid.EnableDrawMode = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/DrawModeSelected", Name), false);
 			toolStripButton_SelectionMode.Checked = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/SelectionModeSelected", Name), true);
-			toolPaletteForm.Top = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteTop", Name), 150);
-			toolPaletteForm.Left = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteLeft", Name), 150);
-			toolPaletteForm.Width = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteWidth", Name), 373);
-			toolPaletteForm.Height = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteHeight", Name), 264);
-			toolPaletteForm.UnlinkCurves = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteUnlinkCurves", Name), false);
-			toolPaletteForm.UnlinkGradients = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteUnlinkGradients", Name), false);
-			toolPaletteForm.Owner = this;
-
-			if (xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteVisible", Name), false).Equals(true))
-			{
-				toolPaletteForm.Show();
-			}
+			ToolsForm.LinkCurves = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteLinkCurves", Name), false);
+			ToolsForm.LinkGradients = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteLinkGradients", Name), false);
 
 			foreach (ToolStripItem toolStripItem in toolStripDropDownButton_SnapToStrength.DropDownItems)
 			{
@@ -289,9 +281,15 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			TimelineControl.MarkMoved += timelineControl_MarkMoved;
 			TimelineControl.DeleteMark += timelineControl_DeleteMark;
 
+			EffectsForm.EscapeDrawMode += EscapeDrawMode;
+
 			MarksForm.MarkCollectionChecked += MarkCollection_Checked;
 			MarksForm.EditMarkCollection += MarkCollection_Edit;
 			MarksForm.ChangedMarkCollection += MarkCollection_Changed;
+
+			ToolsForm.StartColorDrag += ToolPalette_ColorDrag;
+			ToolsForm.StartCurveDrag += ToolPalette_CurveDrag;
+			ToolsForm.StartGradientDrag += ToolPalette_GradientDrag;
 
 			TimelineControl.SelectionChanged += TimelineControlOnSelectionChanged;
 			TimelineControl.grid.MouseDown += TimelineControl_MouseDown;
@@ -303,11 +301,6 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			TimelineControl.TimePerPixelChanged += TimelineControl_TimePerPixelChanged;
 			TimelineControl.grid.SelectedElementsCloneDelegate = CloneElements;
 			TimelineControl.grid.StartDrawMode += DrawElement;
-			EffectsForm.EscapeDrawMode += EscapeDrawMode;
-			toolPaletteForm.StartColorDrag += ToolPalette_ColorDrag;
-			toolPaletteForm.StartCurveDrag += ToolPalette_CurveDrag;
-			toolPaletteForm.StartGradientDrag += ToolPalette_GradientDrag;
-			toolPaletteForm.SaveToolPaletteLocation += ToolPalette_SaveLocation;
 
 			_virtualEffectLibrary =
 				ApplicationServices.Get<IAppModuleInstance>(VirtualEffectLibraryDescriptor.Guid) as
@@ -389,10 +382,18 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			TimelineControl.MarkMoved -= timelineControl_MarkMoved;
 			TimelineControl.DeleteMark -= timelineControl_DeleteMark;
 
+			EffectsForm.EscapeDrawMode -= EscapeDrawMode;
+			EffectsForm.Dispose();
+
 			MarksForm.EditMarkCollection -= MarkCollection_Edit;
 			MarksForm.MarkCollectionChecked -= MarkCollection_Checked;
 			MarksForm.ChangedMarkCollection -= MarkCollection_Changed;
 			MarksForm.Dispose();
+
+			ToolsForm.StartColorDrag -= ToolPalette_ColorDrag;
+			ToolsForm.StartCurveDrag -= ToolPalette_CurveDrag;
+			ToolsForm.StartGradientDrag -= ToolPalette_GradientDrag;
+			ToolsForm.Dispose();
 
 			TimelineControl.SelectionChanged -= TimelineControlOnSelectionChanged;
 			TimelineControl.grid.MouseDown -= TimelineControl_MouseDown;
@@ -402,10 +403,6 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			TimelineControl.ContextSelected -= timelineControl_ContextSelected;
 			TimelineControl.TimePerPixelChanged -= TimelineControl_TimePerPixelChanged;
 			TimelineControl.DataDropped -= timelineControl_DataDropped;
-			toolPaletteForm.StartColorDrag -= ToolPalette_ColorDrag;
-			toolPaletteForm.StartCurveDrag -= ToolPalette_CurveDrag;
-			toolPaletteForm.StartGradientDrag -= ToolPalette_GradientDrag;
-			toolPaletteForm.SaveToolPaletteLocation -= ToolPalette_SaveLocation;
 
 			Execution.ExecutionStateChanged -= OnExecutionStateChanged;
 			_autoSaveTimer.Stop();
@@ -421,6 +418,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				_colorGradientLibrary.GradientChanged -= ColorGradientLibrary_CurveChanged;
 			}
 
+			//GRRR - make the color collections a library at some point
+
 			foreach (ToolStripItem toolStripItem in toolStripDropDownButton_SnapToStrength.DropDownItems)
 			{
 				var toolStripMenuItem = toolStripItem as ToolStripMenuItem;
@@ -430,26 +429,25 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				}
 			}
 
-			EffectsForm.Dispose();
-			
-			//;
 			if (disposing && (components != null))
 			{
 				components.Dispose();
 				TimelineControl.Dispose();
 				GridForm.Dispose();
-
 			}
+
 			if (_effectNodeToElement != null)
 			{
 				_effectNodeToElement.Clear();
 				_effectNodeToElement = null;
 			}
+
 			if (_elementNodeToRows != null)
 			{
 				_elementNodeToRows.Clear();
 				_elementNodeToRows = null;
 			}
+
 			if (_sequence != null)
 			{
 				_sequence.Dispose();
@@ -462,14 +460,6 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			GC.Collect();
 		}
 
-		private void ToolPalette_SaveLocation(object sender, EventArgs e)
-		{
-			var xml = new XMLProfileSettings();
-			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteTop", Name), toolPaletteForm.Top);
-			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteLeft", Name), toolPaletteForm.Left);
-			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteWidth", Name), toolPaletteForm.Width);
-			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteHeight", Name), toolPaletteForm.Height);
-		}
 		private void ToolPalette_ColorDrag(object sender, EventArgs e)
 		{
 			TimelineControl.grid.isColorDrop = true;
@@ -515,6 +505,23 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				{
 					_marksForm = new Form_Marks(TimelineControl);
 					return _marksForm;
+				}
+			}
+		}
+
+		private Form_ToolPalette _toolPaletteForm = null;
+		public Form_ToolPalette ToolsForm
+		{
+			get
+			{
+				if (_toolPaletteForm != null && !_toolPaletteForm.IsDisposed)
+				{
+					return _toolPaletteForm;
+				}
+				else
+				{
+					_toolPaletteForm = new Form_ToolPalette(TimelineControl);
+					return _toolPaletteForm;
 				}
 			}
 		}
@@ -740,6 +747,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 					_sequence.Length = _defaultSequenceTime;
 
 				SequenceLength = _sequence.Length;
+				setTitleBarText();
 
 				// update our program context with this sequence
 				OpenSequenceContext(sequence);
@@ -753,9 +761,10 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				TimelineControl.grid.SuppressInvalidate = true; //Hold off invalidating the grid while we bulk load.
 				TimelineControl.grid.SupressRendering = true; //Hold off rendering while we load elements. 
 				// This takes quite a bit of time so queue it up
-				taskQueue.Enqueue(Task.Factory.StartNew(() => addElementsForEffectNodes(_sequence.SequenceData.EffectData)));
 				taskQueue.Enqueue(Task.Factory.StartNew(PopulateAudioDropdown));
 				taskQueue.Enqueue(Task.Factory.StartNew(PopulateMarkSnapTimes));
+				taskQueue.Enqueue(Task.Factory.StartNew(() => addElementsForEffectNodes(_sequence.SequenceData.EffectData)));
+				
 
 				// Now that it is queued up, let 'er rip and start background rendering when complete.
 				Task.Factory.ContinueWhenAll(taskQueue.ToArray(), completedTasks =>
@@ -984,7 +993,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				//Set sequence name in title bar based on the module name and current sequence name JU 8/1/2012
 				//Made this more generic to support importing 12 FEB 2013 - JEMA
 				Text = String.Format("{0} - [{1}{2}]", ((OwnerModule.Descriptor) as EditorModuleDescriptorBase).TypeName,
-									 _sequence.Name, IsModified ? " *" : "");
+					String.IsNullOrEmpty(_sequence.Name)?"Untitled":_sequence.Name, IsModified ? " *" : "");
 			}
 		}
 
@@ -2856,15 +2865,15 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				switch (elem.EffectNode.Effect.EffectName)
 				{
 					case "Alternating":
-						if (e.MouseButton != MouseButtons.Right)
-						{
-							parms[1] = color;
-							parms[8] = true;
-						}
-						else
+						if (e.MouseButton == MouseButtons.Right || Control.ModifierKeys.HasFlag(Keys.Control))
 						{
 							parms[3] = color;
 							parms[9] = true;
+						}
+						else
+						{
+							parms[1] = color;
+							parms[8] = true;
 						}
 						break;
 					case "Set Level":
@@ -2889,6 +2898,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 						parms[0] = new ColorGradient(color);
 						break;
 				}
+				//TODO:
 				//this would be a good place to build a list of target elements, and the new parameters
 				//list could be passed to a ModifyElements method to do the work in "one step"
 				elem.EffectNode.Effect.ParameterValues = parms;
@@ -2911,14 +2921,14 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			{
 				Curve curve = new Curve(droppedCurve);
 
-				if (toolPaletteForm.UnlinkCurves)
+				if (ToolsForm.LinkCurves)
 				{
-					curve.LibraryReferenceName = string.Empty;
-					curve.UnlinkFromLibraryCurve();
+					curve.LibraryReferenceName = e.Data.GetData(DataFormats.StringFormat).ToString();
 				}
 				else
 				{
-					curve.LibraryReferenceName = e.Data.GetData(DataFormats.StringFormat).ToString();
+					curve.LibraryReferenceName = string.Empty;
+					curve.UnlinkFromLibraryCurve();
 				}
 
 				curve.IsCurrentLibraryCurve = false;
@@ -2927,13 +2937,13 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				switch (elem.EffectNode.Effect.EffectName)
 				{
 					case "Alternating":
-						if (e.MouseButton != MouseButtons.Right)
+						if (e.MouseButton == MouseButtons.Right || Control.ModifierKeys.HasFlag(Keys.Control))
 						{
-							parms[12] = curve;
+							parms[13] = curve;
 						}
 						else
 						{
-							parms[13] = curve;
+							parms[12] = curve;
 						}
 						break;
 					case "Pulse":
@@ -2969,14 +2979,14 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			{
 				ColorGradient gradient = new ColorGradient(droppedGradient);
 
-				if (toolPaletteForm.UnlinkGradients)
+				if (ToolsForm.LinkGradients)
 				{
-					gradient.LibraryReferenceName = string.Empty;
-					gradient.UnlinkFromLibrary();
+					gradient.LibraryReferenceName = e.Data.GetData(DataFormats.StringFormat).ToString();
 				}
 				else
 				{
-					gradient.LibraryReferenceName = e.Data.GetData(DataFormats.StringFormat).ToString();
+					gradient.LibraryReferenceName = string.Empty;
+					gradient.UnlinkFromLibrary();
 				}
 
 				gradient.IsCurrentLibraryGradient = false;
@@ -2985,30 +2995,30 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				switch (elem.EffectNode.Effect.EffectName)
 				{
 					case "Alternating":
-						if (e.MouseButton != MouseButtons.Right)
-						{
-							parms[8] = false;
-							parms[10] = gradient;
-						}
-						else
+						if (e.MouseButton == MouseButtons.Right || Control.ModifierKeys.HasFlag(Keys.Control))
 						{
 							parms[9] = false;
 							parms[11] = gradient;
+						}
+						else
+						{
+							parms[8] = false;
+							parms[10] = gradient;
 						}
 						break;
 					case "Pulse":
 						parms[1] = gradient;
 						break;
 					case "Chase":
-						parms[0] = toolPaletteForm.GradientHandling;
+						parms[0] = ToolsForm.GradientHandling;
 						parms[4] = gradient;
 						break;
 					case "Spin":
-						parms[2] = toolPaletteForm.GradientHandling;
+						parms[2] = ToolsForm.GradientHandling;
 						parms[10] = gradient;
 						break;
 					case "Twinkle":
-						parms[7] = toolPaletteForm.GradientHandling;
+						parms[7] = ToolsForm.GradientHandling;
 						parms[9] = gradient;
 						break;
 					case "Wipe":
@@ -3638,6 +3648,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				DockState dockState = EffectsForm.DockState;
 				if (dockState == DockState.Unknown) dockState = DockState.DockLeft;
 				EffectsForm.Show(dockPanel, dockState);
+
 			}
 			else
 			{
@@ -3653,10 +3664,31 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				dockState = DockState.DockLeft;
 				if (dockState == DockState.Unknown) dockState = DockState.DockLeft;
 				MarksForm.Show(dockPanel, dockState);
+				//We have to re-subscribe to the event handlers
+				EffectsForm.EscapeDrawMode += EscapeDrawMode;
 			}
 			else
 			{
 				MarksForm.Close();
+			}
+		}
+
+		private void toolWindowToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			if (ToolsForm.DockState == DockState.Unknown)
+			{
+				DockState dockState = ToolsForm.DockState;
+				dockState = DockState.DockBottom;
+				if (dockState == DockState.Unknown) dockState = DockState.DockBottom;
+				ToolsForm.Show(dockPanel, dockState);
+				//We have to re-subscribe to the event handlers
+				ToolsForm.StartColorDrag += ToolPalette_ColorDrag;
+				ToolsForm.StartCurveDrag += ToolPalette_CurveDrag;
+				ToolsForm.StartGradientDrag += ToolPalette_GradientDrag;
+			}
+			else
+			{
+				ToolsForm.Close();
 			}
 		}
 
@@ -3851,16 +3883,10 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			_undoMgr.AddUndoAction(action);
 		}
 
-		public void SwapTimes(Dictionary<Element, ElementTimeInfo> changedElements)
+		public void SwapPlaces(Dictionary<Element, ElementTimeInfo> changedElements)
 		{
-			foreach (KeyValuePair<Element, ElementTimeInfo> e in changedElements)
-			{
-				// Key is reference to actual element. Value is class with its times before move.
-				// Swap the element's times with the saved times from before the move, so we can restore them later in redo.
-				ElementTimeInfo.SwapTimes(e.Key, e.Value);
-				TimelineControl.grid.RenderElement(e.Key);
+			TimelineControl.grid.SwapElementPlacement(changedElements);
 			}
-		}
 
 		#endregion
 
@@ -3937,13 +3963,11 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/SnapStrength", Name), TimelineControl.grid.SnapStrength);
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ResizeIndicatorEnabled", Name), TimelineControl.grid.ResizeIndicator_Enabled);
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ResizeIndicatorColor", Name), TimelineControl.grid.ResizeIndicator_Color);
-			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteTop", Name), toolPaletteForm.Top);
-			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteLeft", Name), toolPaletteForm.Left);
-			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteWidth", Name), toolPaletteForm.Width);
-			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteHeight", Name), toolPaletteForm.Height);
-			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteVisible", Name), toolPaletteForm.Visible);
-			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteUnlinkCurves", Name), toolPaletteForm.UnlinkCurves);
-			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteUnlinkGradients", Name), toolPaletteForm.UnlinkGradients);
+			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteLinkCurves", Name), ToolsForm.LinkCurves);
+			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteLinkGradients", Name), ToolsForm.LinkGradients);
+
+			ToolsForm.Close();
+
 			//These are only saved in options
 			//xml.PutPreference(string.Format("{0}/AutoSaveInterval", Name), _autoSaveTimer.Interval);
 
@@ -4184,6 +4208,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		{
 			effectWindowToolStripMenuItem.Checked = (EffectsForm.DockState != DockState.Unknown);
 			markWindowToolStripMenuItem.Checked = (MarksForm.DockState != DockState.Unknown);
+			toolWindowToolStripMenuItem.Checked = (ToolsForm.DockState != DockState.Unknown);
 		}
 
 		private void timerPostponePlay_Tick(object sender, EventArgs e)
@@ -4467,28 +4492,6 @@ namespace VixenModules.Editor.TimedSequenceEditor
             });
 
         }
-
-		private void toolPaletteToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			if (toolPaletteForm.IsDisposed)
-			{
-				XMLProfileSettings xml = new XMLProfileSettings();
-
-				toolPaletteForm = new ToolPalette();
-				toolPaletteForm.Top = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteTop", Name), 150);
-				toolPaletteForm.Left = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteLeft", Name), 150);
-				toolPaletteForm.Width = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteWidth", Name), 373);
-				toolPaletteForm.Height = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteHeight", Name), 264);
-				toolPaletteForm.Owner = this;
-			
-			}
-			toolPaletteForm.Show();
-			toolPaletteForm.StartColorDrag += ToolPalette_ColorDrag;
-			toolPaletteForm.StartCurveDrag += ToolPalette_CurveDrag;
-			toolPaletteForm.StartGradientDrag += ToolPalette_GradientDrag;
-			toolPaletteForm.SaveToolPaletteLocation += ToolPalette_SaveLocation;
-
-		}
     }
 
 	[Serializable]

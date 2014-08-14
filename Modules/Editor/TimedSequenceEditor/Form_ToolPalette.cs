@@ -19,18 +19,19 @@ using VixenModules.App.Curves;
 using Vixen.Services;
 using Vixen.Module.App;
 using Vixen.Sys;
+using WeifenLuo.WinFormsUI.Docking;
+using Vixen.Module.Effect;
 
 
 namespace VixenModules.Editor.TimedSequenceEditor
 {
-	public partial class ToolPalette : Form
+	public partial class Form_ToolPalette : DockContent
 	{
 		#region Public EventHandlers
 
 		public EventHandler StartColorDrag;
 		public EventHandler StartCurveDrag;
 		public EventHandler StartGradientDrag;
-		public EventHandler SaveToolPaletteLocation;
 
 		#endregion
 
@@ -38,17 +39,19 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		public int GradientHandling	{ get { return comboBoxGradientHandling.SelectedIndex + 1; } }
 		
-		public bool UnlinkCurves
+		public bool LinkCurves
 		{ 
-			get { return checkBoxUnlinkCurves.Checked; }
-			set { checkBoxUnlinkCurves.Checked = value; }
+			get { return checkBoxLinkCurves.Checked; }
+			set { checkBoxLinkCurves.Checked = value; }
 		}
 		
-		public bool UnlinkGradients
+		public bool LinkGradients
 		{
-			get { return checkBoxUnlinkGradients.Checked; }
-			set { checkBoxUnlinkGradients.Checked = value; }
+			get { return checkBoxLinkGradients.Checked; }
+			set { checkBoxLinkGradients.Checked = value; }
 		}
+
+		public TimelineControl TimelineControl { get; set; }
 
 		#endregion
 
@@ -67,9 +70,10 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		#region Initialization
 
-		public ToolPalette()
+		public Form_ToolPalette(TimelineControl timelineControl)
 		{
 			InitializeComponent();
+			TimelineControl = timelineControl;
 			Icon = Resources.Icon_Vixen3;	
 		}
 
@@ -106,20 +110,46 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				tabGradients.Hide();
 			}
 
-			labelHelp.Text = "The Tool Palette organizes your Favorite Colors, Curves, and Color Gradients all into one convienient place.\n\n" +
-								"Simply Drag and Drop any of the items to effects in the sequence. This provides you with a fast and simple\n" +
-								"method of changing effects. For Alternating effects, use the Right mouse button to apply Color/Curve/Gradient 2.\n\n" +
+			Populate_Effects();
+
+			labelHelp.Text = "The Tool Palette organizes your Favorite Colors, Curves, Color Gradients, and Effects all into one convienient place.\n\n" +
+								"Simply Drag and Drop any of the items to effects in the sequence.\n" +
+								"For Alternating effects, use the Control Key or Right mouse button to apply Color/Curve/Gradient 2.\n\n" +
 								"Dropping an item to a selected effect, will apply the item to all selected effects. If the effect is not selected\n" +
 								"it will be the only one the drop applies to.\n\n" +
-								"The Unlink Curves and Color Gradient options prevent the effect they are dropped on from binding to the library,\n" +
-								"allowing those effects to have an individual Curve or Color Gradient, that can be edited without changing other\n" +
-								"effects.\n\n" +
 								"For further documentaion on the Tool Palette, please visit the link at the top of this page.";
 		}
 
 		#endregion
 
 		#region Private Methods
+
+		#region Effects
+
+		private void Populate_Effects()
+		{
+			listViewEffects.BeginUpdate();
+			listViewEffects.Items.Clear();
+			listViewEffects.LargeImageList = new ImageList();
+			listViewEffects.LargeImageList.ColorDepth = ColorDepth.Depth32Bit;
+			listViewEffects.LargeImageList.ImageSize = new Size(48, 48);
+
+			foreach (
+				IEffectModuleDescriptor effectDesriptor in ApplicationServices.GetModuleDescriptors<IEffectModuleInstance>().Cast<IEffectModuleDescriptor>())
+			{
+				listViewEffects.LargeImageList.Images.Add(effectDesriptor.EffectName, effectDesriptor.GetRepresentativeImage(48, 48));
+
+				ListViewItem effectItem = new ListViewItem();
+				effectItem.Tag = effectDesriptor.TypeId;
+				effectItem.Text = effectDesriptor.EffectName;
+				effectItem.ImageKey = effectDesriptor.EffectName;
+
+				listViewEffects.Items.Add(effectItem);
+			}
+			listViewEffects.EndUpdate();
+		}
+		
+		#endregion
 
 		#region Colors
 
@@ -528,15 +558,27 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		private void ToolPalette_FormClosing(object sender, FormClosingEventArgs e)
 		{
 			//As this came about late in development, Im leaving the original Save call, just commented out for now.
-			if (e.CloseReason != CloseReason.UserClosing) return;
-			e.Cancel = true;
-			Hide();
+			//if (e.CloseReason != CloseReason.UserClosing) return;
+			//e.Cancel = true;
+			//Hide();
 			//SaveToolPaletteLocation(this, e);
 		}
 
 		#endregion
 
 		#region Drag/Drop
+
+		#region Effects
+
+		private void listViewEffects_ItemDrag(object sender, ItemDragEventArgs e)
+		{
+			if (listViewEffects.SelectedItems == null)
+				return;
+			DataObject data = new DataObject(DataFormats.Serializable, listViewEffects.SelectedItems[0].Tag);
+			listViewEffects.DoDragDrop(data, DragDropEffects.Copy);
+		}
+
+		#endregion
 
 		#region Colors
 
