@@ -106,8 +106,13 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
         private void backgroundWorker1_Saving(object sender, DoWorkEventArgs e)
         {
-            currentTimeLabel.Text = string.Format("{0}%", _exportOps.SavePosition);
-            backgroundWorker1.ReportProgress((int)_exportOps.SavePosition);    
+            try
+            {
+                currentTimeLabel.Text = string.Format("{0}%", _exportOps.SavePosition);
+                backgroundWorker1.ReportProgress((int)_exportOps.SavePosition);
+            }
+            catch (Exception ex) { }
+            
         }
 
         private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs args)
@@ -127,6 +132,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
         {
             outputFormatComboBox.Items.Clear();
             outputFormatComboBox.Items.AddRange(_exportOps.FormatTypes);
+            outputFormatComboBox.Sorted = true;
 
             outputFormatComboBox.SelectedIndex = 0;
             resolutionComboBox.SelectedIndex = 1;
