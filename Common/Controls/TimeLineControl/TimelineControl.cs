@@ -309,27 +309,20 @@ namespace Common.Controls.Timeline
 					VisibleTimeStart = TotalTime - VisibleTimeSpan;
 			}
 			grid.EndDraw();
-			grid.ResetAllElements();
-		}
+			}
 
 		public void ZoomRows(double scale)
 		{
 			if (scale <= 0.0)
 				return;
-			bool heightChanged = false;
 			grid.BeginDraw();
 
 			foreach (Row r in Rows)
 			{
 				if (r.Height * scale > grid.Height) continue; //Don't scale a row beyond the grid height. How big do you need it?
 				r.Height = (int)(r.Height * scale);
-				heightChanged = true;
 			}
 
-			if (heightChanged) //Only reset if we actually changed a row height.
-			{
-				grid.ResetAllElements();
-			}
 			grid.EndDraw();
 		}
 
@@ -540,6 +533,24 @@ namespace Common.Controls.Timeline
 			remove { if (grid != null) grid.DataDropped -= value; }
 		}
 
+		public event EventHandler<ToolDropEventArgs> ColorDropped
+		{
+			add { grid.ColorDropped += value; }
+			remove { if (grid != null) grid.ColorDropped -= value; }
+		}
+
+		public event EventHandler<ToolDropEventArgs> CurveDropped
+		{
+			add { grid.CurveDropped += value; }
+			remove { if (grid != null) grid.CurveDropped -= value; }
+		}
+
+		public event EventHandler<ToolDropEventArgs> GradientDropped
+		{
+			add { grid.GradientDropped += value; }
+			remove { if (grid != null) grid.GradientDropped -= value; }
+		}
+
 		public event EventHandler<ElementsChangedTimesEventArgs> ElementsMovedNew
 		{
 			add { grid.ElementsMovedNew += value; }
@@ -631,7 +642,7 @@ namespace Common.Controls.Timeline
 
 		private void RowHeightResizedHandler(object sender, EventArgs e)
 		{
-			grid.ResetRowElements(new List<Row> { (Row)sender });
+			Invalidate();
 		}
 
 		protected override void OnMouseWheel(MouseEventArgs e)

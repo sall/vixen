@@ -89,6 +89,36 @@
     <Compile Include="AutomaticMusicDetection.Designer.cs">
       <DependentUpon>AutomaticMusicDetection.cs</DependentUpon>
     </Compile>
+    <Compile Include="BulkEffectMoveForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="BulkEffectMoveForm.Designer.cs">
+      <DependentUpon>BulkEffectMoveForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="EffectDistributionDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="EffectDistributionDialog.Designer.cs">
+      <DependentUpon>EffectDistributionDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="BeatMarkExportDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="BeatMarkExportDialog.Designer.cs">
+      <DependentUpon>BeatMarkExportDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ExportDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ExportDialog.Designer.cs">
+      <DependentUpon>ExportDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form_AddMultipleEffects.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_AddMultipleEffects.Designer.cs">
+      <DependentUpon>Form_AddMultipleEffects.cs</DependentUpon>
+    </Compile>
     <Compile Include="Form_Marks.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -115,6 +145,7 @@
       <DependentUpon>Form_Grid.cs</DependentUpon>
     </Compile>
     <Compile Include="IntentRasterizer.cs" />
+    <Compile Include="PapagayoDoc.cs" />
     <Compile Include="MarkManager.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -138,6 +169,12 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="ColorCollectionLibrary_Form.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ColorCollectionLibrary_Form.Designer.cs">
+      <DependentUpon>ColorCollectionLibrary_Form.cs</DependentUpon>
+    </Compile>
     <Compile Include="TimedSequenceEditor.cs" />
     <Compile Include="TimedSequenceEditorDescriptor.cs" />
     <Compile Include="TimedSequenceEditorEffectEditor.cs">
@@ -159,11 +196,15 @@
     </Compile>
     <Compile Include="TimedSequenceElement.cs" />
     <Compile Include="TimedSequenceRowLabel.cs" />
+    <Compile Include="Form_ToolPalette.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_ToolPalette.Designer.cs">
+      <DependentUpon>Form_ToolPalette.cs</DependentUpon>
+    </Compile>
     <Compile Include="Undo.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Resources\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Content Include="Resources\magnet.png" />
   </ItemGroup>
@@ -173,6 +214,21 @@
     </EmbeddedResource>
     <EmbeddedResource Include="AutomaticMusicDetection.resx">
       <DependentUpon>AutomaticMusicDetection.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="BulkEffectMoveForm.resx">
+      <DependentUpon>BulkEffectMoveForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EffectDistributionDialog.resx">
+      <DependentUpon>EffectDistributionDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="BeatMarkExportDialog.resx">
+      <DependentUpon>BeatMarkExportDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ExportDialog.resx">
+      <DependentUpon>ExportDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_AddMultipleEffects.resx">
+      <DependentUpon>Form_AddMultipleEffects.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Form_Marks.resx">
       <DependentUpon>Form_Marks.cs</DependentUpon>
@@ -195,6 +251,9 @@
     <EmbeddedResource Include="ParameterEditor.resx">
       <DependentUpon>ParameterEditor.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="ColorCollectionLibrary_Form.resx">
+      <DependentUpon>ColorCollectionLibrary_Form.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="TimedSequenceEditorEffectEditor.resx">
       <DependentUpon>TimedSequenceEditorEffectEditor.cs</DependentUpon>
     </EmbeddedResource>
@@ -204,6 +263,9 @@
     <EmbeddedResource Include="TimedSequenceEditorResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>TimedSequenceEditorResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_ToolPalette.resx">
+      <DependentUpon>Form_ToolPalette.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -231,14 +293,39 @@
       <Name>Resources</Name>
       <Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\..\App\ColorGradients\ColorGradients.csproj">
+      <Project>{1b189b36-02af-4a57-9e1b-6dc833212725}</Project>
+      <Name>ColorGradients</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\App\Curves\Curves.csproj">
+      <Project>{f0ba7127-61b4-453a-802b-abcb5a0d3d54}</Project>
+      <Name>Curves</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\App\LipSync\LipSyncApp.csproj">
+      <Project>{e3689e21-2204-48b9-8370-d45ee4a23451}</Project>
+      <Name>LipSyncApp</Name>
+      <Private>False</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\App\VirtualEffect\VirtualEffect.csproj">
       <Project>{02072E53-7A01-423C-914E-BF785BA4F5CB}</Project>
       <Name>VirtualEffect</Name>
       <Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\..\Effect\LipSync\LipSync.csproj">
+      <Project>{6de9a846-ac25-40b6-b8b2-b306ec9f2569}</Project>
+      <Name>LipSync</Name>
+      <Private>False</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\Media\Audio\Audio.csproj">
       <Project>{4243BA4C-6371-4DD1-8A1D-675BED5322AF}</Project>
       <Name>Audio</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Property\Color\Color.csproj">
+      <Project>{73068a83-b3b7-4a2c-923d-71c7886cd5e3}</Project>
+      <Name>Color</Name>
       <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\Sequence\Timed\Timed.csproj">

@@ -20,13 +20,12 @@ namespace Vixen.Module.Effect
 		private ElementNode[] _targetNodes;
 		private TimeSpan _timeSpan;
 		private DefaultValueArrayMember _parameterValues;
-		private ElementIntents _elementIntents;
-		private static long prerendCnt = 0;
+		protected ElementIntents _elementIntents;
 		private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
 
 		protected EffectModuleInstanceBase()
 		{
-			TargetNodes = new ElementNode[0];
+			_targetNodes = new ElementNode[0]; //set member directly on creation to prevent target node changed events from occuring.
 			TimeSpan = TimeSpan.Zero;
 			IsDirty = true;
 			_parameterValues = new DefaultValueArrayMember(this);
@@ -43,11 +42,14 @@ namespace Vixen.Module.Effect
 				if (value != _targetNodes) {
 					_targetNodes = value;
 					_EnsureTargetNodeProperties();
+					CalculateAffectedElements();
 					TargetNodesChanged();
 					IsDirty = true;
 				}
 			}
 		}
+
+		public IEnumerable<Guid> EffectedElementIds { get; set; }
 
 		public TimeSpan TimeSpan
 		{
@@ -73,14 +75,8 @@ namespace Vixen.Module.Effect
 
 		public void PreRender(CancellationTokenSource cancellationToken = null)
 		{
-			var sw = System.Diagnostics.Stopwatch.StartNew();
 			_PreRender();
 			IsDirty = false;
-			//if ( ++prerendCnt % 100 == 0 || sw.ElapsedMilliseconds >= 100
-			//	|| this.GetType().Name.Contains("Alternating"))
-			//	Logging.Debug(" {0}, {1}ms, eff:{2}:{3}, node:{4}",
-			//				prerendCnt, sw.ElapsedMilliseconds, this.GetType().Name, 
-			//				(int)_timeSpan.TotalMilliseconds, TargetNodes[0].Name); 
 		}
 
 		public EffectIntents Render()
@@ -110,7 +106,7 @@ namespace Vixen.Module.Effect
 
 		protected abstract EffectIntents _Render();
 
-		public string EffectName
+		public virtual string EffectName
 		{
 			get { return ((IEffectModuleDescriptor) Descriptor).EffectName; }
 		}
@@ -151,7 +147,7 @@ namespace Vixen.Module.Effect
 				}
 			}
 		}
-		public ElementIntents GetElementIntents(TimeSpan effectRelativeTime)
+		public virtual ElementIntents GetElementIntents(TimeSpan effectRelativeTime)
 		{
 			_elementIntents.Clear();
 
@@ -167,6 +163,12 @@ namespace Vixen.Module.Effect
 				IIntentNode[] elementIntents = effectIntents.GetElementIntentsAtTime(elementId, effectRelativeTime);
 				_elementIntents.AddIntentNodeToElement(elementId, elementIntents);
 			}
+		}
+
+		private void CalculateAffectedElements()
+		{
+			EffectedElementIds =
+				TargetNodes.SelectMany(y => y.GetElementEnumerator()).Select(z => z.Id);
 		}
 
 		private void _EnsureTargetNodeProperties()

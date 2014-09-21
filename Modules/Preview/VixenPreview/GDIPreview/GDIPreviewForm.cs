@@ -46,14 +46,9 @@ namespace VixenModules.Preview.VixenPreview
 		{
 			if (!gdiControl.IsUpdating)
 			{
-				Vixen.Sys.Managers.ElementManager elements = VixenSystem.Elements;
+				IEnumerable<Element> elementArray = VixenSystem.Elements.Where(e => e.State.Any());
 
-				Element[] elementArray = elements.Where(
-						e => e.State.Any(i => ((i as IIntentState<LightingValue>) != null) ? ((i as IIntentState<LightingValue>).GetValue().Intensity > 0) :
-							((i as IIntentState<RGBValue>) != null) && ((i as IIntentState<RGBValue>).GetValue().Intensity > 0))
-					).ToArray();
-
-				if (elementArray.Length == 0)
+				if (!elementArray.Any())
 				{
 					if (needsUpdate)
 					{
@@ -69,29 +64,29 @@ namespace VixenModules.Preview.VixenPreview
 
 				needsUpdate = true;
 
-				CancellationTokenSource tokenSource = new CancellationTokenSource();
 				gdiControl.BeginUpdate();
 
 				try
 				{
-					elementArray.AsParallel().WithCancellation(tokenSource.Token).ForAll(element =>
+					var po = new ParallelOptions
 					{
-						if (element != null)
+						MaxDegreeOfParallelism = Environment.ProcessorCount
+					};
+
+					Parallel.ForEach(elementArray, po, element => 
+					{
+						ElementNode node = VixenSystem.Elements.GetElementNodeForElement(element);
+						if (node != null)
 						{
-							ElementNode node = VixenSystem.Elements.GetElementNodeForElement(element);
-							if (node != null)
+							List<PreviewPixel> pixels;
+							if (NodeToPixel.TryGetValue(node, out pixels))
 							{
-								List<PreviewPixel> pixels;
-								if (NodeToPixel.TryGetValue(node, out pixels))
+								foreach (PreviewPixel pixel in pixels)
 								{
-									foreach (PreviewPixel pixel in pixels)
-									{
-										pixel.Draw(gdiControl.FastPixel, element.State);
-									}
+									pixel.Draw(gdiControl.FastPixel, element.State);
 								}
 							}
 						}
-
 					});
 				} catch (Exception e)
 				{

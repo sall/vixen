@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Drawing;
-using System.Diagnostics;
 using VixenModules.Effect.Nutcracker;
 using System.Threading.Tasks;
 using System.Threading;
@@ -22,11 +21,11 @@ namespace VixenModules.Effect.Nutcracker
 		private int _renderPeriod;
 		private List<List<Color>> _pixels = new List<List<Color>>();
 		private List<List<Color>> _tempbuf = new List<List<Color>>();
-		private double pi2 = Math.PI*2;
-		private int[] FireBuffer, WaveBuffer0, WaveBuffer1, WaveBuffer2 = new int[1];
+		private const double pi2 = Math.PI*2;
+		//private int[] FireBuffer, WaveBuffer0, WaveBuffer1, WaveBuffer2 = new int[1];
+		private int[] FireBuffer = new int[1];
 		private Random random = new Random();
 		private List<Color> FirePalette = new List<Color>();
-		private Stopwatch timer = new Stopwatch();
 
 		public enum Effects
 		{
@@ -306,12 +305,10 @@ namespace VixenModules.Effect.Nutcracker
 			_bufferWi = Pixels.Count();
 			_bufferHt = Pixels[0].Count();
 
-			Array.Resize(ref FireBuffer, bufferWidth*bufferHeight);
-			Array.Resize(ref WaveBuffer0, bufferWidth*bufferHeight);
-			Array.Resize(ref WaveBuffer1, bufferWidth*bufferHeight);
-			Array.Resize(ref WaveBuffer2, bufferWidth*bufferHeight);
-
-			InitFirePalette();
+			
+			//Array.Resize(ref WaveBuffer0, bufferWidth*bufferHeight);
+			//Array.Resize(ref WaveBuffer1, bufferWidth*bufferHeight);
+			//Array.Resize(ref WaveBuffer2, bufferWidth*bufferHeight);
 
 			State = 0;
 		}
@@ -610,7 +607,7 @@ namespace VixenModules.Effect.Nutcracker
 
 		public void RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount)
 		{
-			int SpeedFactor = 200;
+			const int SpeedFactor = 200;
 			int x, y;
 			Color color;
 			HSV hsv2 = new HSV();
@@ -660,39 +657,45 @@ namespace VixenModules.Effect.Nutcracker
 			return -1;
 		}
 
-		private void SetWaveBuffer1(int x, int y, int value)
-		{
-			if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt) {
-				WaveBuffer1[y*BufferWi + x] = value;
-			}
-		}
+		//private void SetWaveBuffer1(int x, int y, int value)
+		//{
+		//	if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt) {
+		//		WaveBuffer1[y*BufferWi + x] = value;
+		//	}
+		//}
 
-		private void SetWaveBuffer2(int x, int y, int value)
-		{
-			if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt) {
-				WaveBuffer2[y*BufferWi + x] = value;
-			}
-		}
+		//private void SetWaveBuffer2(int x, int y, int value)
+		//{
+		//	if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt) {
+		//		WaveBuffer2[y*BufferWi + x] = value;
+		//	}
+		//}
 
-		private int GetWaveBuffer1(int x, int y)
-		{
-			if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt) {
-				return WaveBuffer1[y*BufferWi + x];
-			}
-			return -1;
-		}
+		//private int GetWaveBuffer1(int x, int y)
+		//{
+		//	if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt) {
+		//		return WaveBuffer1[y*BufferWi + x];
+		//	}
+		//	return -1;
+		//}
 
-		private int GetWaveBuffer2(int x, int y)
-		{
-			if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt) {
-				return WaveBuffer2[y*BufferWi + x];
-			}
-			return -1;
-		}
+		//private int GetWaveBuffer2(int x, int y)
+		//{
+		//	if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt) {
+		//		return WaveBuffer2[y*BufferWi + x];
+		//	}
+		//	return -1;
+		//}
 
 		// 10 <= HeightPct <= 100
 		private void RenderFire(int HeightPct)
 		{
+			if (FireBuffer.Count() != BufferWi*BufferHt)
+			{
+				Array.Resize(ref FireBuffer, BufferWi * BufferHt);
+				InitFirePalette();
+			}
+
 			int x, y, i, r, v1, v2, v3, v4, n, new_index;
 			if (State == 0) {
 				for (i = 0; i < FireBuffer.Count(); i++) {
@@ -983,14 +986,13 @@ namespace VixenModules.Effect.Nutcracker
 			int idxFlakes = 0;
 			int i = 0;
 			int mod100;
-			int x25, x75, y25, y75, stateChunk, denom;
+			int x25, x75, y25, y75;
 			const int maxFlakes = 1000;
 			int startX;
 			int startY; //, ColorIdx;
 			float v;
 			HSV hsv = new HSV();
-			Color rgbcolor;
-			int colorcnt = GetColorCount();
+			int colorCount = GetColorCount();
 
 			// This does not work with 1 string, so use a try/catch block to prevent errors
 			try {
@@ -1001,12 +1003,8 @@ namespace VixenModules.Effect.Nutcracker
 						fireworkBursts[i]._bActive = false;
 					}
 				}
-				denom = (101 - Number_Explosions)*100;
-				if (denom < 1) denom = 1;
-				stateChunk = (int) State/denom;
-				if (stateChunk < 1) stateChunk = 1;
-
-				mod100 = (int) (State%(101 - Number_Explosions)*10);
+				
+				mod100 = (int) (State%(101 - Number_Explosions)*20);
 				if (mod100 == 0) {
 					x25 = (int) (BufferWi*0.25);
 					x75 = (int) (BufferWi*0.75);
@@ -1014,14 +1012,14 @@ namespace VixenModules.Effect.Nutcracker
 					y75 = (int) (BufferHt*0.75);
 					startX = x25 + (rand()%(x75 - x25));
 					startY = y25 + (rand()%(y75 - y25));
-					// turn off all bursts
 
 					// Create new bursts
+					hsv = Palette.ActiveColors.Count>0?HSV.ColorToHSV(Palette.ActiveColors[rand() % colorCount]):HSV.ColorToHSV(Color.White);
 					for (i = 0; i < Count; i++) {
 						do {
 							idxFlakes = (idxFlakes + 1)%maxFlakes;
 						} while (fireworkBursts[idxFlakes]._bActive);
-						fireworkBursts[idxFlakes].Reset(startX, startY, true, Velocity);
+						fireworkBursts[idxFlakes].Reset(startX, startY, true, Velocity, hsv);
 					}
 				}
 				else {
@@ -1054,26 +1052,16 @@ namespace VixenModules.Effect.Nutcracker
 							else {
 								// otherwise it just got outside the valid X-pos, so switch it off
 								fireworkBursts[i]._bActive = false;
-								continue;
 							}
 						}
 					}
 				}
 
-				if (mod100 == 0) rgbcolor = Color.FromArgb(0, 255, 255);
-				else if (mod100 == 1) rgbcolor = Color.FromArgb(255, 0, 0);
-				else if (mod100 == 2) rgbcolor = Color.FromArgb(0, 255, 0);
-				else if (mod100 == 3) rgbcolor = Color.FromArgb(0, 0, 255);
-				else if (mod100 == 4) rgbcolor = Color.FromArgb(255, 255, 0);
-				else if (mod100 == 5) rgbcolor = Color.FromArgb(0, 255, 0);
-				else rgbcolor = Color.White;
-				hsv = HSV.ColorToHSV(rgbcolor);
-
 				for (i = 0; i < 1000; i++) {
-					if (fireworkBursts[i]._bActive == true) {
+					if (fireworkBursts[i]._bActive) {
 						v = (float) (((Fade*10.0) - fireworkBursts[i]._cycles)/(Fade*10.0));
 						if (v < 0) v = 0.0f;
-
+						hsv = fireworkBursts[i]._hsv;
 						hsv.Value = v;
 						SetPixel((int) fireworkBursts[i]._x, (int) fireworkBursts[i]._y, hsv);
 					}
@@ -1095,9 +1083,10 @@ namespace VixenModules.Effect.Nutcracker
 			public float angle;
 			public bool _bActive;
 			public int _cycles;
+			public HSV _hsv;
 			private static Random random = new Random();
 
-			public void Reset(int x, int y, bool active, float velocity)
+			public void Reset(int x, int y, bool active, float velocity, HSV hsv)
 			{
 				_x = x;
 				_y = y;
@@ -1107,6 +1096,7 @@ namespace VixenModules.Effect.Nutcracker
 				_dy = (float) (vel*Math.Sin(angle));
 				_bActive = active;
 				_cycles = 0;
+				_hsv = hsv;
 			}
 		}
 
@@ -1543,7 +1533,7 @@ namespace VixenModules.Effect.Nutcracker
 						int ylimit = (BufferHt + maxht) * 8 + 1;
 						int xcentered = Left * BufferWi / 50 - BufferWi / 2;
 
-
+                        graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SingleBitPerPixelGridFit;
 						TextRotation *= 90;
 						if (TextRotation > 0)
 							graphics.RotateTransform(TextRotation);
@@ -1854,39 +1844,32 @@ namespace VixenModules.Effect.Nutcracker
 
 		#region Movie
 
-		private List<FastPixel.FastPixel> moviePictures;
+		private List<string> _moviePicturesFileList;
 
-		public void LoadPictures(string DataFilePath)
+		private void LoadMoviePictureFileList(string dataFilePath)
 		{
-			moviePictures = new List<FastPixel.FastPixel>();
-			if (Data.Movie_DataPath.Length > 0) {
-				var imageFolder = System.IO.Path.Combine(NutcrackerDescriptor.ModulePath, DataFilePath);
-				List<string> sortedFiles = Directory.GetFiles(imageFolder).OrderBy(f => f).ToList();
-
-				foreach (string file in sortedFiles) {
-					Image image = Image.FromFile(file);
-					FastPixel.FastPixel imageFp = new FastPixel.FastPixel(new Bitmap(image));
-					moviePictures.Add(imageFp);
-				}
+			if (Data.Movie_DataPath.Length > 0)
+			{
+				var imageFolder = Path.Combine(NutcrackerDescriptor.ModulePath, dataFilePath);
+				_moviePicturesFileList = Directory.GetFiles(imageFolder).OrderBy(f => f).ToList();
 			}
-		}
-
+		} 
 
 		private double currentMovieImageNum = 0.0;
 
-		public void RenderMovie(int dir, string DataFilePath, int movieSpeed)
+		public void RenderMovie(int dir, string dataFilePath, int movieSpeed)
 		{
 			const int speedfactor = 4;
 
-			if (moviePictures == null || State == 0) {
-				LoadPictures(DataFilePath);
+			if (_moviePicturesFileList == null || State == 0) {
+				LoadMoviePictureFileList(dataFilePath);
 			}
 
-			int pictureCount = moviePictures.Count;
-
 			// If we don't have any pictures, do nothing!
-			if (pictureCount == 0)
+			if (_moviePicturesFileList == null || !_moviePicturesFileList.Any())
 				return;
+
+			int pictureCount = _moviePicturesFileList.Count;
 
 			if (movieSpeed > 0) {
 				currentMovieImageNum += ((movieSpeed*.01) + 1);
@@ -1898,52 +1881,54 @@ namespace VixenModules.Effect.Nutcracker
 				currentMovieImageNum++;
 			}
 
-			if (Convert.ToInt32(currentMovieImageNum) >= pictureCount || Convert.ToInt32(currentMovieImageNum) < 0)
-				currentMovieImageNum = 0;
+			int currentImage = Convert.ToInt32(currentMovieImageNum);
+			if (currentImage >= pictureCount || currentImage < 0)
+				currentMovieImageNum = currentImage= 0;
 
-			FastPixel.FastPixel currentMovieImage = moviePictures[Convert.ToInt32(currentMovieImageNum)];
-			if (currentMovieImage != null) {
-				int imgwidth = currentMovieImage.Width;
-				int imght = currentMovieImage.Height;
-				int yoffset = (BufferHt + imght)/2;
-				int xoffset = (imgwidth - BufferWi)/2;
-				int limit = (dir < 2) ? imgwidth + BufferWi : imght + BufferHt;
-				int movement = Convert.ToInt32((State%(limit*speedfactor))/speedfactor);
+			var currentMovieImage = new FastPixel.FastPixel(new Bitmap(Image.FromFile(_moviePicturesFileList[currentImage])));
 
-				// copy image to buffer
-				currentMovieImage.Lock();
-				Color fpColor = new Color();
-				for (int x = 0; x < imgwidth; x++) {
-					for (int y = 0; y < imght; y++) {
-						fpColor = currentMovieImage.GetPixel(x, y);
-						if (fpColor != Color.Transparent && fpColor != Color.Black) {
-							switch (dir) {
-								case 1:
-									// left
-									SetPixel(x + BufferWi - movement, yoffset - y, fpColor);
-									break;
-								case 2:
-									// right
-									SetPixel(x + movement - imgwidth, yoffset - y, fpColor);
-									break;
-								case 3:
-									// up
-									SetPixel(x - xoffset, movement - y, fpColor);
-									break;
-								case 4:
-									// down
-									SetPixel(x - xoffset, BufferHt + imght - y - movement, fpColor);
-									break;
-								default:
-									// no movement - centered
-									SetPixel(x - xoffset, yoffset - y, fpColor);
-									break;
-							}
+			int imgwidth = currentMovieImage.Width;
+			int imght = currentMovieImage.Height;
+			int yoffset = (BufferHt + imght)/2;
+			int xoffset = (imgwidth - BufferWi)/2;
+			int limit = (dir < 2) ? imgwidth + BufferWi : imght + BufferHt;
+			int movement = Convert.ToInt32((State%(limit*speedfactor))/speedfactor);
+
+			// copy image to buffer
+			currentMovieImage.Lock();
+			Color fpColor = new Color();
+			for (int x = 0; x < imgwidth; x++) {
+				for (int y = 0; y < imght; y++) {
+					fpColor = currentMovieImage.GetPixel(x, y);
+					if (fpColor != Color.Transparent && fpColor != Color.Black) {
+						switch (dir) {
+							case 1:
+								// left
+								SetPixel(x + BufferWi - movement, yoffset - y, fpColor);
+								break;
+							case 2:
+								// right
+								SetPixel(x + movement - imgwidth, yoffset - y, fpColor);
+								break;
+							case 3:
+								// up
+								SetPixel(x - xoffset, movement - y, fpColor);
+								break;
+							case 4:
+								// down
+								SetPixel(x - xoffset, BufferHt + imght - y - movement, fpColor);
+								break;
+							default:
+								// no movement - centered
+								SetPixel(x - xoffset, yoffset - y, fpColor);
+								break;
 						}
 					}
 				}
-				currentMovieImage.Unlock(false);
 			}
+			currentMovieImage.Unlock(false);
+			currentMovieImage.Dispose();
+			
 		}
 
 		#endregion // Movie

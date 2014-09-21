@@ -13,10 +13,12 @@ using Vixen.Sys;
 using System.IO;
 using VixenModules.Preview.VixenPreview.Shapes;
 using VixenModules.Property.Location;
+using System.Windows.Forms.Design;
 
 namespace VixenModules.Preview.VixenPreview {
-	public partial class VixenPreviewSetup3 : Form {
-		private VixenPreviewData _data;
+    public partial class VixenPreviewSetup3 : Form
+    {
+        private VixenPreviewData _data;
 		private VixenPreviewSetupDocument previewForm;
 		private VixenPreviewSetupElementsDocument elementsForm;
 		private VixenPreviewSetupPropertiesDocument propertiesForm;
@@ -49,9 +51,12 @@ namespace VixenModules.Preview.VixenPreview {
 			previewForm.Preview.OnSelectDisplayItem += OnSelectDisplayItem;
 			previewForm.Preview.OnDeSelectDisplayItem += OnDeSelectDisplayItem;
 
+            previewForm.Preview.OnChangeZoomLevel += VixenPreviewSetup3_ChangeZoomLevel;
+
 			elementsForm = new VixenPreviewSetupElementsDocument(previewForm.Preview);
 			propertiesForm = new VixenPreviewSetupPropertiesDocument();
-			previewForm.Show(dockPanel);
+
+			previewForm.Show(dockPanel, WeifenLuo.WinFormsUI.Docking.DockState.Document);
 			elementsForm.Show(dockPanel, WeifenLuo.WinFormsUI.Docking.DockState.DockLeft);
 			propertiesForm.Show(elementsForm.Pane, WeifenLuo.WinFormsUI.Docking.DockAlignment.Bottom, 0.5);
 
@@ -83,7 +88,9 @@ namespace VixenModules.Preview.VixenPreview {
 			if (dialogSelectBackground.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
 				// Copy the file to the Vixen folder
 				var imageFile = new System.IO.FileInfo(dialogSelectBackground.FileName);
-				var destFileName = Path.Combine(VixenPreviewDescriptor.ModulePath, imageFile.Name);
+				//var destFileName = Path.Combine(VixenPreviewDescriptor.ModulePath, imageFile.Name);
+                string imageFileName = Guid.NewGuid().ToString() + Path.GetExtension(dialogSelectBackground.FileName);
+                var destFileName = Path.Combine(VixenPreviewDescriptor.ModulePath, imageFileName);
 				var sourceFileName = imageFile.FullName;
 				if (sourceFileName != destFileName) {
 					File.Copy(sourceFileName, destFileName, true);
@@ -111,6 +118,11 @@ namespace VixenModules.Preview.VixenPreview {
 			reenableToolButtons();
 		}
 
+        private void VixenPreviewSetup3_ChangeZoomLevel(object sender, double zoomLevel) 
+        {
+            SetZoomTextAndTracker(zoomLevel);
+        }
+
 		private void reenableToolButtons()
 		{
 			buttonSelect.BackColor = Color.White;
@@ -135,51 +147,108 @@ namespace VixenModules.Preview.VixenPreview {
 			//buttonFlood.FlatAppearance.BorderColor = buttonSelect.BackColor;
 			buttonStar.BackColor = buttonSelect.BackColor;
 			buttonStar.FlatAppearance.BorderColor = buttonSelect.BackColor;
-			buttonMegaTree.BackColor = buttonSelect.BackColor;
+            buttonStarBurst.BackColor = buttonSelect.BackColor;
+            buttonStarBurst.FlatAppearance.BorderColor = buttonSelect.BackColor;
+            buttonMegaTree.BackColor = buttonSelect.BackColor;
 			buttonMegaTree.FlatAppearance.BorderColor = buttonSelect.BackColor;
 			buttonPixelGrid.BackColor = buttonSelect.BackColor;
 			buttonPixelGrid.FlatAppearance.BorderColor = buttonSelect.BackColor;
-		}
+            buttonIcicle.BackColor = buttonSelect.BackColor;
+            buttonIcicle.FlatAppearance.BorderColor = buttonSelect.BackColor;
+            buttonPolyLine.BackColor = buttonSelect.BackColor;
+            buttonPolyLine.FlatAppearance.BorderColor = buttonSelect.BackColor;
+            buttonMultiString.BackColor = buttonSelect.BackColor;
+            buttonMultiString.FlatAppearance.BorderColor = buttonSelect.BackColor;
+        }
 
 		private void toolbarButton_Click(object sender, EventArgs e) {
 			Button button = sender as Button;
 			reenableToolButtons();
 			// Select Button
-			if (button == buttonSelect)
-				previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.Select;
-			else if (button == buttonDrawPixel)
-				previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.Single;
-			else if (button == buttonLine)
-				previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.String;
-			else if (button == buttonSemiCircle)
-				previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.Arch;
-			else if (button == buttonRectangle)
-				previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.Rectangle;
-			else if (button == buttonEllipse)
-				previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.Ellipse;
-			else if (button == buttonTriangle)
-				previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.Triangle;
-			else if (button == buttonNet)
-				previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.Net;
-			//else if (button == buttonFlood)
-			//    previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.Flood;
-			else if (button == buttonCane)
-				previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.Cane;
-			else if (button == buttonStar)
-				previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.Star;
-			else if (button == buttonHelp)
-				Common.VixenHelp.VixenHelp.ShowHelp(Common.VixenHelp.VixenHelp.HelpStrings.Preview_Main);
-			else if (button == buttonMegaTree)
-				previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.MegaTree;
-			else if (button == buttonPixelGrid)
-				previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.PixelGrid;
-			//button.Enabled = false;
+            if (button == buttonSelect)
+                previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.Select;
+            else if (button == buttonDrawPixel)
+                previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.Single;
+            else if (button == buttonLine)
+                previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.String;
+            else if (button == buttonSemiCircle)
+                previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.Arch;
+            else if (button == buttonRectangle)
+                previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.Rectangle;
+            else if (button == buttonEllipse)
+                previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.Ellipse;
+            else if (button == buttonTriangle)
+                previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.Triangle;
+            else if (button == buttonNet)
+                previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.Net;
+            //else if (button == buttonFlood)
+            //    previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.Flood;
+            else if (button == buttonCane)
+                previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.Cane;
+            else if (button == buttonStar)
+                previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.Star;
+            else if (button == buttonStarBurst)
+                previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.StarBurst;
+            else if (button == buttonHelp)
+                Common.VixenHelp.VixenHelp.ShowHelp(Common.VixenHelp.VixenHelp.HelpStrings.Preview_Main);
+            else if (button == buttonMegaTree)
+                previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.MegaTree;
+            else if (button == buttonPixelGrid)
+                previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.PixelGrid;
+            else if (button == buttonIcicle)
+                previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.Icicle;
+            else if (button == buttonPolyLine)
+                previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.PolyLine;
+            else if (button == buttonMultiString)
+                previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.MultiString;
+            //button.Enabled = false;
 			button.BackColor = Color.Gainsboro;
 			button.FlatAppearance.BorderColor = Color.Gainsboro;
 			//buttonSelect.Focus();
 		}
 
-		private void trackBarBackgroundAlpha_ValueChanged(object sender, EventArgs e) {
+        private void toolbarAlignButton_Click(object sender, EventArgs e)
+        {
+            Button button = sender as Button;
+            if (button == buttonAlignBottom)
+            {
+                previewForm.Preview.AlignBottom();
+            }
+            else if (button == buttonAlignHorizMid)
+            {
+                previewForm.Preview.AlignHorizontal();
+            }
+            else if (button == buttonAlignLeft)
+            {
+                previewForm.Preview.AlignLeft();
+            }
+            else if (button == buttonAlignRight)
+            {
+                previewForm.Preview.AlignRight();
+            }
+            else if (button == buttonAlignTop)
+            {
+                previewForm.Preview.AlignTop();
+            }
+            else if (button == buttonAlignVertMid)
+            {
+                previewForm.Preview.AlignVertical();
+            }
+            else if (button == buttonDistributeHorizontal)
+            {
+                previewForm.Preview.DistributeHorizontal();
+            }
+            else if (button == buttonDistributeVertical)
+            {
+                previewForm.Preview.DistributeVertical();
+            }
+            else if (button == buttonMatchProperties)
+            {
+                previewForm.Preview.MatchProperties();
+            }
+        }
+
+        private void trackBarBackgroundAlpha_ValueChanged(object sender, EventArgs e) {
 			previewForm.Preview.BackgroundAlpha = trackBarBackgroundAlpha.Value;
 		}
 
@@ -241,8 +310,16 @@ namespace VixenModules.Preview.VixenPreview {
 			ResizePreviewForm resizeForm = new ResizePreviewForm(previewForm.Preview.Background.Width,
 																 previewForm.Preview.Background.Height);
 			if (resizeForm.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
-				previewForm.Preview.ResizeBackground(resizeForm.Width, resizeForm.Height);
-			}
+                if (resizeForm.Height > 10 && resizeForm.Width > 10)
+                {
+                    previewForm.Preview.ResizeBackground(resizeForm.Width, resizeForm.Height);
+                    previewForm.Refresh();
+                }
+                else
+                {
+                    MessageBox.Show("An invalid image size was specified!", "Invalid Size", MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
+                }
+            }
 		}
 
 		#region Templates
@@ -349,14 +426,26 @@ namespace VixenModules.Preview.VixenPreview {
 				Properties.Settings settings = new Properties.Settings();
 				settings.UseGDIRendering = !useDirect2DPreviewRenderingToolStripMenuItem.Checked;
 				settings.Save();
-				
-
 			}
 		}
 
 		private void saveLocationsToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			Data.SaveLocations = saveLocationsToolStripMenuItem.Checked;
-		}
+        }
+
+        private void trackerZoom_ValueChanged(Common.Controls.ControlsEx.ValueControls.ValueControl sender, Common.Controls.ControlsEx.ValueControls.ValueChangedEventArgs e)
+        {
+            double zoomLevel = Convert.ToDouble(Convert.ToDouble(trackerZoom.Value) / 100d);
+            previewForm.Preview.ZoomLevel = zoomLevel;
+        }
+
+        private void SetZoomTextAndTracker(double zoomLevel)
+        {
+            int zoomPercent = Convert.ToInt32(zoomLevel * 100);
+            labelZoomLevel.Text = zoomPercent + "%";
+            trackerZoom.Value = Convert.ToInt32(zoomPercent);
+            trackerZoom.Invalidate();
+        }
 	}
 }

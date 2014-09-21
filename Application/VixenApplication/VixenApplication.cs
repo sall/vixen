@@ -24,6 +24,7 @@ namespace VixenApplication
 		private bool stopping;
 		private bool _openExecution = true;
 		private bool _disableControllers = false;
+		private bool _devBuild = false;
 		private string _rootDataDirectory;
 		private CpuUsage _cpuUsage;
 
@@ -107,27 +108,28 @@ namespace VixenApplication
 		{
 			System.Reflection.Assembly assembly = System.Reflection.Assembly.LoadFile(VixenSystem.AssemblyFileName);
 			Version version = assembly.GetName().Version;
-			string result = string.Format("{0}.{1}.{2}", version.Major ,version.Minor ,version.Build)			;
+			string result = string.Format("{0}.{1}.{2}", version.Major, version.Minor, version.Build);
 
+			_devBuild = version.Major == 0;
 
-#if AUTOBUILD
-			labelVersion.Text = "Test Build " + version.Revision;
-			labelDebugVersion.Text = "(for upcoming release " + result + ")";
+			if (_devBuild) {
+				labelVersion.Text = "DevBuild";
+			} else {
+				labelVersion.Text = string.Format("{0}.{1}", version.Major, version.Minor);
+			}
+
+			labelDebugVersion.Text = string.Format("Build #{0}", version.Build);
 			labelDebugVersion.Visible = true;
-#else
-			labelVersion.Text = result;
-			labelDebugVersion.Visible = false;
-#endif
 		}
 
 		private void CheckForTestBuild()
 		{
-#if AUTOBUILD
-			MessageBox.Show(
-				"Please be aware that this is a development/test version. Some parts of the software may not work, " +
-				"and data loss is possible! Please backup your data before using this version of the software.",
-				"Development/Test Software", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-#endif
+			if (_devBuild) {
+				MessageBox.Show(
+					"Please be aware that this is a development version. Some parts of the software may not work, " +
+					"and data loss is possible! Please backup your data before using this version of the software.",
+					"Development/Test Software", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+			}
 		}
 
 		private void _ProcessArg(string arg)
@@ -154,9 +156,9 @@ namespace VixenApplication
 		private void ProcessProfiles()
 		{
 			XMLProfileSettings profile = new XMLProfileSettings();
-			string loadAction = profile.GetSetting("Profiles/LoadAction", "LoadSelected");
-			int profileCount = profile.GetSetting("Profiles/ProfileCount", 0);
-			int profileToLoad = profile.GetSetting("Profiles/ProfileToLoad", -1);
+			string loadAction = profile.GetSetting(XMLProfileSettings.SettingType.Profiles, "LoadAction", "LoadSelected");
+			int profileCount = profile.GetSetting(XMLProfileSettings.SettingType.Profiles, "ProfileCount", 0);
+			int profileToLoad = profile.GetSetting(XMLProfileSettings.SettingType.Profiles, "ProfileToLoad", -1);
 			// why ask if there is 0 or 1 profile?
 			if (loadAction == "Ask" && profileCount > 1) {
 				SelectProfile f = new SelectProfile();
@@ -173,7 +175,7 @@ namespace VixenApplication
 				}
 				else {
 					if (profileToLoad < profileCount) {
-						_rootDataDirectory = profile.GetSetting("Profiles/Profile" + profileToLoad.ToString() + "/DataFolder", string.Empty);
+						_rootDataDirectory = profile.GetSetting(XMLProfileSettings.SettingType.Profiles, "Profile" + profileToLoad.ToString() + "/DataFolder", string.Empty);
 						if (_rootDataDirectory != string.Empty) {
 							if (!System.IO.Directory.Exists(_rootDataDirectory))
 								System.IO.Directory.CreateDirectory(_rootDataDirectory);

@@ -18,7 +18,13 @@ namespace VixenModules.App.Curves
 		{
 			InitializeComponent();
 			Icon = Common.Resources.Properties.Resources.Icon_Vixen3;
+			DoubleClickMode = Mode.Ok;
 		}
+
+		/// <summary>
+		/// Change the effect of double clicking on a curve. Ok invokes the Ok button, Edit invokes the Edit button.
+		/// </summary>
+		public Mode DoubleClickMode { get; set; }
 
 		private void CurveLibrarySelector_Load(object sender, EventArgs e)
 		{
@@ -88,6 +94,44 @@ namespace VixenModules.App.Curves
 			}
 		}
 
+		private void buttonNewCurve_Click(object sender, EventArgs e)
+		{
+			Common.Controls.TextDialog dialog = new Common.Controls.TextDialog("Curve name?");
+
+			while (dialog.ShowDialog() == DialogResult.OK)
+			{
+				if (dialog.Response == string.Empty)
+				{
+					MessageBox.Show("Please enter a name.");
+					continue;
+				}
+
+				if (Library.Contains(dialog.Response))
+				{
+					DialogResult result = MessageBox.Show("There is already a curve with that name. Do you want to overwrite it?",
+														  "Overwrite curve?", MessageBoxButtons.YesNoCancel);
+					if (result == DialogResult.Yes)
+					{
+						Library.AddCurve(dialog.Response, new Curve());
+						Library.EditLibraryCurve(dialog.Response);
+						PopulateListWithCurves();
+						break;
+					}
+					else if (result == DialogResult.Cancel)
+					{
+						break;
+					}
+				}
+				else
+				{
+					Library.AddCurve(dialog.Response, new Curve());
+					Library.EditLibraryCurve(dialog.Response);
+					PopulateListWithCurves();
+					break;
+				}
+			}
+		}
+
 		private void buttonEditCurve_Click(object sender, EventArgs e)
 		{
 			if (listViewCurves.SelectedItems.Count != 1)
@@ -117,7 +161,15 @@ namespace VixenModules.App.Curves
 		private void listViewCurves_MouseDoubleClick(object sender, MouseEventArgs e)
 		{
 			if (listViewCurves.SelectedItems.Count == 1)
-				DialogResult = System.Windows.Forms.DialogResult.OK;
+			{
+				if (DoubleClickMode.Equals(Mode.Ok))
+				{
+					DialogResult = DialogResult.OK;
+				}
+				
+				buttonEditCurve.PerformClick();
+			}
+				
 		}
 
 		private CurveLibrary _library;
@@ -154,5 +206,12 @@ namespace VixenModules.App.Curves
 
 			base.Dispose(disposing);
 		}
+
+		public enum Mode
+		{
+			Ok,
+			Edit
+		}
+
 	}
 }

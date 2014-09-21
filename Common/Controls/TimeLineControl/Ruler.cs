@@ -24,6 +24,7 @@ namespace Common.Controls.Timeline
 			BackColor = Color.Gray;
 			recalculate();
 			StaticSnapPoints = new SortedDictionary<TimeSpan, List<SnapDetails>>();
+			SnapStrength = 2;
 			//SnapPriorityForElements = 5;
 		}
 
@@ -49,39 +50,11 @@ namespace Common.Controls.Timeline
 			get { return new Size(400, 40); }
 		}
 
-		public int StandardNudgeTime
-		{
-			get
-			{
-				Common.Controls.XMLProfileSettings xml = new Common.Controls.XMLProfileSettings();
-				int nudgeValue = xml.GetSetting("StandardNudge", 10);
-				xml = null;
-				return nudgeValue;
-			}
-			set
-			{
-				Common.Controls.XMLProfileSettings xml = new Common.Controls.XMLProfileSettings();
-				xml.PutSetting("StandardNudge", value);
-				xml = null;
-			}
-		}
+		public int StandardNudgeTime { get; set; }
 
-		public int SuperNudgeTime
-		{
-			get
-			{
-				Common.Controls.XMLProfileSettings xml = new Common.Controls.XMLProfileSettings();
-				int nudgeValue = xml.GetSetting("SuperNudge", 20);
-				xml = null;
-				return nudgeValue;
-			}
-			set 
-			{
-				Common.Controls.XMLProfileSettings xml = new Common.Controls.XMLProfileSettings();
-				xml.PutSetting("SuperNudge", value);
-				xml = null;
-			}
-		}
+		public int SuperNudgeTime { get; set; }
+
+		public int SnapStrength { get; set; }
 
 		#region Drawing
 
@@ -716,8 +689,8 @@ namespace Common.Controls.Timeline
 
 			// the start time and end times for specified points are 2 pixels
 			// per snap level away from the snap time.
-			result.SnapStart = snapTime - TimeSpan.FromTicks(TimePerPixel.Ticks * level * 2);
-			result.SnapEnd = snapTime + TimeSpan.FromTicks(TimePerPixel.Ticks * level * 2);
+			result.SnapStart = snapTime - TimeSpan.FromTicks(TimePerPixel.Ticks * level * SnapStrength);
+			result.SnapEnd = snapTime + TimeSpan.FromTicks(TimePerPixel.Ticks * level * SnapStrength);
 			return result;
 		}
 
@@ -749,16 +722,18 @@ namespace Common.Controls.Timeline
 			Pen p;
 
 			// iterate through all snap points, and if it's visible, draw it
-			foreach (KeyValuePair<TimeSpan, List<SnapDetails>> kvp in StaticSnapPoints)
+			foreach (KeyValuePair<TimeSpan, List<SnapDetails>> kvp in StaticSnapPoints.ToArray())
 			{
-				SnapDetails details = null;
-				foreach (SnapDetails d in kvp.Value)
+				if (kvp.Key >= VisibleTimeEnd) break;
+				
+				if (kvp.Key >= VisibleTimeStart)
 				{
-					if (details == null || (d.SnapLevel > details.SnapLevel && d.SnapColor != Color.Empty))
-						details = d;
-				}
-				if (kvp.Key >= VisibleTimeStart && kvp.Key < VisibleTimeEnd)
-				{
+					SnapDetails details = null;
+					foreach (SnapDetails d in kvp.Value)
+					{
+						if (details == null || (d.SnapLevel > details.SnapLevel && d.SnapColor != Color.Empty))
+							details = d;
+					}
 					p = new Pen(details.SnapColor);
 					Single x = timeToPixels(kvp.Key);
 					p.DashPattern = new float[] { details.SnapLevel, details.SnapLevel };
@@ -771,10 +746,9 @@ namespace Common.Controls.Timeline
 				}
 			}
 
-			if (m_button == System.Windows.Forms.MouseButtons.Left && m_mark != TimeSpan.Zero)
+			if (m_button == MouseButtons.Left && m_mark != TimeSpan.Zero)
 			{
-				p = new Pen(Brushes.Yellow);
-				p.DashPattern = new float[] { 2, 2 };
+				p = new Pen(Brushes.Yellow) {DashPattern = new float[] {2, 2}};
 				TimeSpan newMarkPosition = pixelsToTime(PointToClient(new Point(MousePosition.X, MousePosition.Y)).X) + VisibleTimeStart;
 				Single x = timeToPixels(newMarkPosition);
 				g.DrawLine(p, x, 0, x, Height);

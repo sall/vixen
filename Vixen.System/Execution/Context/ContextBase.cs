@@ -11,6 +11,7 @@ namespace Vixen.Execution.Context
 		private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
 		private ElementStateSourceCollection _elementStates;
 		private IContextCurrentEffects _currentEffects;
+		private HashSet<Guid> _affectedElements;
 		private IntentStateBuilder _elementStateBuilder;
 		private bool _disposed;
 
@@ -81,19 +82,14 @@ namespace Vixen.Execution.Context
 			return (_SequenceTiming != null) ? _SequenceTiming.Position : TimeSpan.Zero;
 		}
 
-		public long _lastUpdateMs = 0;
-
-		public IEnumerable<Guid> UpdateElementStates(TimeSpan currentTime)
+		public HashSet<Guid> UpdateElementStates(TimeSpan currentTime)
 		{
-			Guid[] affectedElements = null;
-
 			if (IsRunning && !IsPaused) {
-				_lastUpdateMs = (long)currentTime.TotalMilliseconds;
-				affectedElements = _UpdateCurrentEffectList(currentTime);
-				_RepopulateElementBuffer(currentTime, affectedElements);
+				_affectedElements = _UpdateCurrentEffectList(currentTime);
+				_RepopulateElementBuffer(currentTime, _affectedElements);
 			}
 
-			return affectedElements;
+			return _affectedElements;
 		}
 
 		public IStateSource<IIntentStates> GetState(Guid key)
@@ -101,7 +97,7 @@ namespace Vixen.Execution.Context
 			return _elementStates.GetState(key);
 		}
 
-		private Guid[] _UpdateCurrentEffectList(TimeSpan currentTime)
+		private HashSet<Guid> _UpdateCurrentEffectList(TimeSpan currentTime)
 		{
 			// We have an object that does this for us.
 			return _currentEffects.UpdateCurrentEffects(_DataSource, currentTime);

@@ -61,7 +61,24 @@ namespace VixenModules.Effect.Nutcracker
 				if (node != null)
 					RenderNode(node);
 			}
-			GC.Collect();
+		}
+
+		//Nutcracker is special right now as we only ever generate one intent per element, we can skip a lot of logic
+		//in the base class as if we are active, our intents are always in the relative time.
+		public override ElementIntents GetElementIntents(TimeSpan effectRelativeTime)
+		{
+			_elementIntents.Clear();
+			_AddLocalIntents();
+			return _elementIntents;
+		}
+
+		private void _AddLocalIntents()
+		{
+			EffectIntents effectIntents = Render();
+			foreach (KeyValuePair<Guid, IntentNodeCollection> keyValuePair in effectIntents)
+			{
+				_elementIntents.AddIntentNodeToElement(keyValuePair.Key, keyValuePair.Value.ToArray());
+			}
 		}
 
 		protected override EffectIntents _Render()
@@ -110,25 +127,21 @@ namespace VixenModules.Effect.Nutcracker
 		{
 			get
 			{
-				int childCount = 0;
+				List<ElementNode> nodes = new List<ElementNode>();
 
 				if (TargetNodes.FirstOrDefault() != null)
 				{
-					foreach (ElementNode node in TargetNodes.FirstOrDefault().Children)
+					foreach (var elementNode in TargetNodes)
 					{
-						if (!node.IsLeaf)
+						foreach (var leafNode in elementNode.GetLeafEnumerator())
 						{
-							childCount++;
+							nodes.AddRange(leafNode.Parents.ToList());
 						}
 					}
-					if (childCount == 0 && TargetNodes.FirstOrDefault().Children.Any() )
-					{
-						childCount = 1;
-					}
 				}
-
-                if (childCount == 0)
-                    childCount = 1;
+				int childCount = nodes.Distinct().Count();
+				if (childCount == 0)
+					childCount = 1;
 
 				return childCount;
 			}
