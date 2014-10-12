@@ -138,9 +138,9 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				//if( tRast > 10)
 				//	Logging.Debug(" oh: {0}, rend: {1}, rast: {2}, eff: {3}, node:{4}", tOh, tRend, tRast, effect.EffectName, effect.TargetNodes[0].Name);
 
-				if (effect.HasRasterizeOverlay)
+				if (effect.HasRasterOverlay)
 				{
-					effect.GenerateVisualRepresentation(g, new Rectangle(0, 0, (int)g.VisibleClipBounds.Width, (int)g.VisibleClipBounds.Height));
+					effect.GenerateRasterOverlay(g, new Rectangle(0, 0, (int)g.VisibleClipBounds.Width, (int)g.VisibleClipBounds.Height));
 				}
 			}
 		}

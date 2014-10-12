@@ -236,9 +236,9 @@ namespace VixenModules.Effect.LipSync
             get { return ((IEffectModuleDescriptor)Descriptor).EffectName + " - " + StaticPhoneme; }
         }
 
-		public override bool HasRasterizeOverlay { get { return true; } }
+		public override bool HasRasterOverlay { get { return true; } }
 
-        public override void GenerateVisualRepresentation(System.Drawing.Graphics g, System.Drawing.Rectangle clipRectangle)
+		public override void GenerateRasterOverlay(System.Drawing.Graphics g, System.Drawing.Rectangle clipRectangle)
         {
             try
             {
@@ -266,7 +266,7 @@ namespace VixenModules.Effect.LipSync
 					using (var backgroundBrush = new SolidBrush(Color.Green))
 					{
 						SizeF stringSize = g.MeasureString(DisplayValue, AdjustedFont, clipRectangle.Width - 4);
-						g.FillRectangle(backgroundBrush, new Rectangle(scaledImage.Width,0,(int)stringSize.Width + 4, (int)stringSize.Height + 4));
+						g.FillRectangle(backgroundBrush, new Rectangle(scaledImage.Width, 0, (int)stringSize.Width + 4, (int)clipRectangle.Height + 4));
 					}
 
 					using (var StringBrush = new SolidBrush(Color.Yellow))

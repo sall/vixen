@@ -3,6 +3,6 @@
 	public interface IEffectModuleInstance : IEffect, IModuleInstance
 	{
 		 bool ForceGenerateVisualRepresentation { get;   }
-		 bool HasRasterizeOverlay { get;  }
+		 bool HasRasterOverlay { get;  }
 	}
 }

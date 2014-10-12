@@ -41,6 +41,7 @@ namespace Vixen.Module.Effect
 		string EffectName { get; }
 		ParameterSignature Parameters { get; }
 		void GenerateVisualRepresentation(Graphics g, Rectangle clipRectangle);
+		void GenerateRasterOverlay(Graphics g, Rectangle clipRectangle);
 		ElementIntents GetElementIntents(TimeSpan currentTime);
 	}
 }
