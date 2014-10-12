@@ -4528,9 +4528,13 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
         private void lipSyncMappingsToolStripMenuItem_DropDownOpening(object sender, EventArgs e)
         {
+            this.explodeEffectToolStripMenuItem.Enabled =
+                (TimelineControl.SelectedElements.Any(effect => effect.EffectNode.Effect.GetType() == typeof(LipSync)));
+
             this.changeMapToolStripMenuItem.Enabled =
              (_library.Library.Count > 1) &&
              (TimelineControl.SelectedElements.Any(effect => effect.EffectNode.Effect.GetType() == typeof(LipSync)));
+
         }
 
 
@@ -4562,6 +4566,37 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
         }
 
+        private void explodeEffectToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ToolStripMenuItem toolStripSender = (ToolStripMenuItem)sender;
+
+            TimelineControl.SelectedElements.ToList().ForEach(delegate(Element element)
+            {
+                if (element.EffectNode.Effect.GetType() == typeof(LipSync))
+                {
+                    foreach (ElementNode targNode in element.EffectNode.Effect.TargetNodes)
+                    {
+                        doExplode(targNode.Children,
+                            element.EffectNode.Effect,
+                            element.StartTime,
+                            element.Duration);
+                    }
+
+                    RemoveEffectNodeAndElement(element.EffectNode);
+                }
+            });
+        }
+
+        private void doExplode(IEnumerable<ElementNode> elemNodes, IEffectModuleInstance effect, TimeSpan startTime, TimeSpan duration)
+        {
+            foreach(ElementNode elemNode in elemNodes)
+            {
+                IEffectModuleInstance newEffect = ApplicationServices.Get<IEffectModuleInstance>(effect.TypeId);
+                newEffect.ParameterValues = effect.ParameterValues;
+                addEffectInstance(newEffect, _elementNodeToRows[elemNode][0], startTime, duration);
+            }
+        }
+
 		private void helpDocumentationToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			System.Diagnostics.Process.Start("http://www.vixenlights.com/vixen-3-documentation/sequencer/");
@@ -4584,9 +4619,6 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				}
 			}
 		}
-
-
-
     }
 
 	[Serializable]

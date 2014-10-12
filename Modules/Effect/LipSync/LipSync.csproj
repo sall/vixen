@@ -23,7 +23,7 @@
     <CodeAnalysisRuleSet>ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-     <OutputPath>$(SolutionDir)\Release64\Modules\Effect\</OutputPath>
+    <OutputPath>$(SolutionDir)\Release64\Modules\Effect\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
@@ -61,9 +61,24 @@
       <Name>Vixen</Name>
       <Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\..\App\ColorGradients\ColorGradients.csproj">
+      <Project>{1b189b36-02af-4a57-9e1b-6dc833212725}</Project>
+      <Name>ColorGradients</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\App\Curves\Curves.csproj">
+      <Project>{f0ba7127-61b4-453a-802b-abcb5a0d3d54}</Project>
+      <Name>Curves</Name>
+      <Private>False</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\App\LipSync\LipSyncApp.csproj">
       <Project>{e3689e21-2204-48b9-8370-d45ee4a23451}</Project>
       <Name>LipSyncApp</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Pulse\Pulse.csproj">
+      <Project>{a815a79e-305d-4167-a0bc-ffa590bb4644}</Project>
+      <Name>Pulse</Name>
       <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\SetLevel\SetLevel.csproj">

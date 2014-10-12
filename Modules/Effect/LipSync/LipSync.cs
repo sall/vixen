@@ -17,14 +17,18 @@ using Vixen.Module.Effect;
 using Vixen.Services;
 using Vixen.Sys;
 using Vixen.Sys.Attribute;
+using VixenModules.App.Curves;
+using VixenModules.App.ColorGradients;
 using VixenModules.App.LipSyncApp;
 using VixenModules.Effect;
+using System.Drawing.Drawing2D;
 
 namespace VixenModules.Effect.LipSync
 {
 
     public class LipSync : EffectModuleInstanceBase
     {
+        private Curve _straightLine;
         private LipSyncData _data;
         private EffectIntents _elementData = null;
         static Dictionary<string, Bitmap> _phonemeBitmaps = null;
@@ -36,6 +40,10 @@ namespace VixenModules.Effect.LipSync
             _data = new LipSyncData();
             LoadResourceBitmaps();
             _library = ApplicationServices.Get<IAppModuleInstance>(LipSyncMapDescriptor.ModuleID) as LipSyncMapLibrary;
+            _straightLine = new Curve();
+            _straightLine.Points.Clear();
+            _straightLine.Points.Add(0, 100);
+            _straightLine.Points.Add(100, 100);
         }
 
         protected override void TargetNodesChanged()
@@ -84,15 +92,38 @@ namespace VixenModules.Effect.LipSync
                         {
                             if (mapData.PhonemeState(element.Name, _data.StaticPhoneme, item))
                             {
-                                var level = new SetLevel.SetLevel();
-                                level.TargetNodes = new ElementNode[] { element };
-                                level.Color = mapData.ConfiguredColor(element.Name, phoneme, item);
-                                level.IntensityLevel = mapData.ConfiguredIntensity(element.Name, phoneme, item);
-                                level.TimeSpan = TimeSpan;
-                                result = level.Render();
-                                _elementData.Add(result);
-                            }
+                                if ((_data.IsDefaultCurve()) && (_data.GradientOverride == null))
+                                {
+                                    var level = new SetLevel.SetLevel();
+                                    level.TargetNodes = new ElementNode[] { element };
+                                    level.Color = mapData.ConfiguredColor(element.Name, phoneme, item);
+                                    level.IntensityLevel = mapData.ConfiguredIntensity(element.Name, phoneme, item);
+                                    level.TimeSpan = TimeSpan;
+                                    result = level.Render();
+                                    _elementData.Add(result);
+                                }
+                                else
+                                {
+                                    var pulse = new Pulse.Pulse();
+                                    pulse.TargetNodes = new ElementNode[] { element };
+                                    pulse.TimeSpan = TimeSpan;
+                                    pulse.LevelCurve = new Curve();
+                                    pulse.LevelCurve.Points.Clear();
+                                    foreach (ZedGraph.PointPair p in _data.LevelCurve.Points)
+                                    {
+                                        double newY =
+                                            _data.LevelCurve.GetValue(p.X) *
+                                            mapData.ConfiguredIntensity(element.Name, phoneme, item);
+                                        pulse.LevelCurve.Points.Add(p.X, newY);
+                                    }
 
+                                    pulse.ColorGradient = GradientOverride ??
+                                        new ColorGradient(mapData.ConfiguredColor(element.Name, phoneme, item));
+
+                                    result = pulse.Render();
+                                    _elementData.Add(result);
+                                }
+                            }
                         }
                     });
 
@@ -142,6 +173,36 @@ namespace VixenModules.Effect.LipSync
             set
             {
                 _data.LyricData = value;
+                IsDirty = true;
+            }
+        }
+
+        [Value]
+        public Curve LevelCurve
+        {
+            get 
+            { 
+                return _data.LevelCurve;  
+            }
+
+            set
+            {
+                _data.LevelCurve = value;
+                IsDirty = true;
+            }
+        }
+
+        [Value]
+        public ColorGradient GradientOverride
+        {
+            get
+            {
+                return _data.GradientOverride;
+            }
+
+            set
+            {
+                _data.GradientOverride = value;
                 IsDirty = true;
             }
         }
