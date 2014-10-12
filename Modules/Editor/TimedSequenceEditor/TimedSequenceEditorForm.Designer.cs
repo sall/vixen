@@ -1053,7 +1053,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
             this.papagayoImportToolStripMenuItem});
             this.lipSyncMappingsToolStripMenuItem.Name = "lipSyncMappingsToolStripMenuItem";
             this.lipSyncMappingsToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
-            this.lipSyncMappingsToolStripMenuItem.Text = "LipSync";
+            this.lipSyncMappingsToolStripMenuItem.Text = "Lip Sync";
             this.lipSyncMappingsToolStripMenuItem.DropDownOpening += new System.EventHandler(this.lipSyncMappingsToolStripMenuItem_DropDownOpening);
             // 
             // defaultMapToolStripMenuItem

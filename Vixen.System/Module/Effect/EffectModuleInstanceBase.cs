@@ -246,6 +246,10 @@ namespace Vixen.Module.Effect
 			get { return false; }
 		}
 
+		public virtual bool HasRasterizeOverlay
+		{
+			get { return false; }
+		}
 		#endregion
 	}
 }

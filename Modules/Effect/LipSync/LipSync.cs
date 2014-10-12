@@ -236,7 +236,7 @@ namespace VixenModules.Effect.LipSync
             get { return ((IEffectModuleDescriptor)Descriptor).EffectName + " - " + StaticPhoneme; }
         }
 
-        public override bool ForceGenerateVisualRepresentation { get { return true; } }
+		public override bool HasRasterizeOverlay { get { return true; } }
 
         public override void GenerateVisualRepresentation(System.Drawing.Graphics g, System.Drawing.Rectangle clipRectangle)
         {
@@ -262,14 +262,17 @@ namespace VixenModules.Effect.LipSync
                     clipRectangle.X += scaledImage.Width;
                     clipRectangle.Width -= scaledImage.Width;
                     Font AdjustedFont = Vixen.Common.Graphics.GetAdjustedFont(g, DisplayValue, clipRectangle, "Vixen.Fonts.DigitalDream.ttf");
-                    using (var StringBrush = new SolidBrush(Color.Yellow))
-                    {
-                        using (var backgroundBrush = new SolidBrush(Color.Green))
-                        {
-                            g.FillRectangle(backgroundBrush, clipRectangle);
-                        }
-                        g.DrawString(DisplayValue, AdjustedFont, StringBrush, 4 + scaledImage.Width, 4);
-                    }
+                    
+					using (var backgroundBrush = new SolidBrush(Color.Green))
+					{
+						SizeF stringSize = g.MeasureString(DisplayValue, AdjustedFont, clipRectangle.Width - 4);
+						g.FillRectangle(backgroundBrush, new Rectangle(scaledImage.Width,0,(int)stringSize.Width + 4, (int)stringSize.Height + 4));
+					}
+
+					using (var StringBrush = new SolidBrush(Color.Yellow))
+					{
+						g.DrawString(DisplayValue, AdjustedFont, StringBrush, 4 + scaledImage.Width, 4);
+					}
                 }
                 
             }
