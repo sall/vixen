@@ -20,6 +20,8 @@ namespace VixenModules.App.ColorGradients
 		public ColorGradientEditor(ColorGradient gradient, bool discreteColors, IEnumerable<Color> validDiscreteColors)
 		{
 			InitializeComponent();
+			Icon = Common.Resources.Properties.Resources.Icon_Vixen3;
+
 			gradientEditPanel.GradientChanged += GradientChangedHandler;
 			Gradient = gradient;
 			_discreteColors = discreteColors;
@@ -109,7 +111,7 @@ namespace VixenModules.App.ColorGradients
 				buttonUnlink.Enabled = item.IsLibraryReference;
 				buttonEditLibraryItem.Enabled = item.IsLibraryReference;
 
-				Text = "Curve Editor";
+				Text = @"Color Gradient Editor";
 			}
 
 			gradientEditPanel.Invalidate();

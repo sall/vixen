@@ -148,7 +148,7 @@ namespace Vixen.Sys
 				foreach (IModuleDescriptor descriptor in remainingDescriptors) {
 					// All dependencies must be present in the collection of descriptors
 					// for the module to be eligible for loading.
-					if (descriptor.Dependencies != null && descriptor.Dependencies.Count() > 0 &&
+					if (descriptor.Dependencies != null && descriptor.Dependencies.Any() &&
 					    descriptor.Dependencies.Intersect(allDescriptors.Select(x => x.TypeId)).Count() !=
 					    descriptor.Dependencies.Length) {
 						allDescriptors.Remove(descriptor);
@@ -233,7 +233,7 @@ namespace Vixen.Sys
 					return new IModuleDescriptor[0];
 				}
 				catch (Exception ex) {
-					Logging.Error(string.Format("Could not load module assembly {0}.", filePath), ex);
+					Logging.ErrorException(string.Format("Could not load module assembly {0}.", filePath), ex);
 					return new IModuleDescriptor[0];
 				}
 
@@ -269,7 +269,7 @@ namespace Vixen.Sys
 						}
 					}
 					catch (Exception ex) {
-						Logging.Error(string.Format("Error loading module descriptor {0} from {1}.", moduleDescriptorType.Name, Path.GetFileName(filePath)), ex);
+						Logging.ErrorException(string.Format("Error loading module descriptor {0} from {1}.", moduleDescriptorType.Name, Path.GetFileName(filePath)), ex);
 					}
 				}
 			}
@@ -289,7 +289,7 @@ namespace Vixen.Sys
 				instance.Descriptor = GetDescriptorById(moduleTypeId);
 
 				try {
-					instance.StaticModuleData = _GetModuleStaticData(instance);
+					instance.StaticModuleData = GetModuleStaticData(instance);
 				}
 				catch (Exception ex) {
 					Logging.ErrorException("Error when assigning module static data.", ex);
@@ -492,11 +492,18 @@ namespace Vixen.Sys
 			return dataModel;
 		}
 
-		private static IModuleDataModel _GetModuleStaticData(IModuleInstance instance)
+		public static IModuleDataModel GetModuleStaticData(IModuleInstance instance)
 		{
 			// All instances of a given module type will share a single instance of that type's
 			// static data.  A change in one is reflected in all.
 			return VixenSystem.ModuleStore.TypeData.GetTypeData(instance);
+		}
+
+		public static IModuleDataModel GetModuleStaticData(Guid id)
+		{
+			// All instances of a given module type will share a single instance of that type's
+			// static data.  A change in one is reflected in all.
+			return VixenSystem.ModuleStore.TypeData.GetTypeData(id);
 		}
 	}
 }

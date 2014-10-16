@@ -1,0 +1,429 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{F7A80169-6310-4585-9D58-A6F6F5C5B380}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Common.Resources</RootNamespace>
+    <AssemblyName>Resources</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>$(SolutionDir)\Release64\Common\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <CodeAnalysisLogFile>D:\Vixen\Vixen\\Release\Common\Resources.dll.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+    <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>$(SolutionDir)\Release\Common\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <CodeAnalysisLogFile>D:\Vixen\Vixen\\Release\Common\Resources.dll.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+    <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Tools.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="accept.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="arrow_down.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="arrow_left.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="arrow_refresh.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="arrow_right.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="arrow_up.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="attributes_display.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="bullet_black.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="bullet_blue.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="bullet_green.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="bullet_orange.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="bullet_pink.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="bullet_purple.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="bullet_white.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="bullet_yellow.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cog.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cog_add.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cog_delete.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cog_edit.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cog_error.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cog_go.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="control_end.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="control_end_blue.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="control_fastforward.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="control_fastforward_blue.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="control_pause.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="control_pause_blue.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="control_play.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="control_play_blue.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="control_rewind.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="control_rewind_blue.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="control_start.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="control_start_blue.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="control_stop.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="control_stop_blue.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="delete.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="filter.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="filter_add.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="filter_delete.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="magnifier.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="magnifier_zoom_in.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="magnifier_zoom_out.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="zoom.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="zoom_actual.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="zoom_actual_equal.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="zoom_extend.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="zoom_fit.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="zoom_in.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="zoom_last.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="zoom_out.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="zoom_refresh.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="zoom_selection.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Vixen3.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="add.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="hourglass_link.png" />
+    <None Include="hourglass_go.png" />
+    <None Include="hourglass_delete.png" />
+    <None Include="hourglass_add.png" />
+    <None Include="hourglass.png" />
+    <None Include="lightning_go.png" />
+    <None Include="lightning_delete.png" />
+    <None Include="lightning_add.png" />
+    <None Include="lightning.png" />
+    <None Include="lightbulb_off.png" />
+    <None Include="lightbulb_delete.png" />
+    <None Include="lightbulb_add.png" />
+    <None Include="lightbulb.png" />
+    <None Include="pencil_ruler.png" />
+    <None Include="pencil_go.png" />
+    <None Include="pencil_delete.png" />
+    <None Include="pencil_add.png" />
+    <None Include="pencil.png" />
+    <None Include="toolbar_go.png" />
+    <None Include="toolbar_error.png" />
+    <None Include="toolbar_edit.png" />
+    <None Include="toolbar_delete.png" />
+    <None Include="toolbar_bookmark.png" />
+    <None Include="toolbar_add.png" />
+    <None Include="toolbar.png" />
+    <None Include="table_torn.png" />
+    <None Include="table_tab_search.png" />
+    <None Include="table_tab_resize.png" />
+    <None Include="table_tab.png" />
+    <None Include="table_sum.png" />
+    <None Include="table_split.png" />
+    <None Include="table_sort.png" />
+    <None Include="table_sheet.png" />
+    <None Include="table_select_row.png" />
+    <None Include="table_select_column.png" />
+    <None Include="table_select_big.png" />
+    <None Include="table_select_all.png" />
+    <None Include="table_select.png" />
+    <None Include="table_save.png" />
+    <None Include="table_row_insert.png" />
+    <None Include="table_row_delete.png" />
+    <None Include="table_replace.png" />
+    <None Include="table_relationship.png" />
+    <None Include="table_refresh.png" />
+    <None Include="table_paint_can.png" />
+    <None Include="table_multiple.png" />
+    <None Include="table_money.png" />
+    <None Include="table_link.png" />
+    <None Include="table_lightning.png" />
+    <None Include="table_key.png" />
+    <None Include="table_insert.png" />
+    <None Include="table_import.png" />
+    <None Include="table_heatmap2.png" />
+    <None Include="table_heatmap.png" />
+    <None Include="table_go.png" />
+    <None Include="table_gear.png" />
+    <None Include="table_export.png" />
+    <None Include="table_excel.png" />
+    <None Include="table_error.png" />
+    <None Include="table_edit.png" />
+    <None Include="table_delete.png" />
+    <None Include="table_chart.png" />
+    <None Include="table_add.png" />
+    <None Include="table.png" />
+    <None Include="tabbar.png" />
+    <None Include="tab_side.png" />
+    <None Include="tab_go.png" />
+    <None Include="tab_edit.png" />
+    <None Include="tab_delete.png" />
+    <None Include="tab_content_vertical.png" />
+    <None Include="tab_content.png" />
+    <None Include="tab_add.png" />
+    <None Include="tab.png" />
+    <None Include="messenger.png" />
+    <None Include="menubar.png" />
+    <None Include="menu_item.png" />
+    <None Include="menu.png" />
+    <None Include="magnet.png" />
+    <None Include="help.png" />
+    <None Include="bullet_toggle_plus_16px.png" />
+    <None Include="bullet_toggle_minus_16px.png" />
+    <None Include="bullet_toggle_plus.png" />
+    <None Include="bullet_toggle_minus.png" />
+    <None Include="timeline_marker.png" />
+    <None Include="music.png" />
+    <None Include="sound_none.png" />
+    <None Include="sound_mute.png" />
+    <None Include="sound_low.png" />
+    <None Include="sound_delete.png" />
+    <None Include="sound_add.png" />
+    <None Include="sound.png" />
+    <None Include="page_copy.png" />
+    <None Include="paste_plain.png" />
+    <None Include="page_white_paste.png" />
+    <None Include="page_white_copy.png" />
+    <None Include="document_move.png" />
+    <None Include="cut.png" />
+    <None Include="document_comment_above.png" />
+    <None Include="document_comment_behind.png" />
+    <None Include="document_comment_below.png" />
+    <None Include="document_comments.png" />
+    <None Include="document_copies.png" />
+    <None Include="document_editing.png" />
+    <None Include="document_empty.png" />
+    <None Include="document_green.png" />
+    <None Include="document_image.png" />
+    <None Include="document_image_hor.png" />
+    <None Include="document_image_ver.png" />
+    <None Include="document_index.png" />
+    <None Include="document_info.png" />
+    <None Include="document_insert.png" />
+    <None Include="document_inspect.png" />
+    <None Include="document_inspector.png" />
+    <None Include="document_layout.png" />
+    <None Include="document_margins.png" />
+    <None Include="document_next.png" />
+    <None Include="document_notes.png" />
+    <None Include="document_num.png" />
+    <None Include="document_red.png" />
+    <None Include="document_shred.png" />
+    <None Include="document_signature.png" />
+    <None Include="document_spacing.png" />
+    <None Include="document_yellow.png" />
+    <None Include="document_export.png" />
+    <None Include="document_font.png" />
+    <None Include="controlbar.png" />
+    <None Include="data_chooser.png" />
+    <None Include="data_field.png" />
+    <None Include="data_grid.png" />
+    <None Include="data_sort.png" />
+    <None Include="data_table.png" />
+    <None Include="control_play_red.png" />
+    <None Include="clipboard_empty.png" />
+    <None Include="clipboard_invoice.png" />
+    <None Include="clipboard_sign.png" />
+    <None Include="clipboard_sign_out.png" />
+    <None Include="clock_.png" />
+    <None Include="clock_15.png" />
+    <None Include="clock_45.png" />
+    <None Include="clock_delete.png" />
+    <None Include="clock_add.png" />
+    <None Include="clock_edit.png" />
+    <None Include="clock_error.png" />
+    <None Include="clock_go.png" />
+    <None Include="clock_history_frame.png" />
+    <None Include="clock_link.png" />
+    <None Include="clock_moon_phase.png" />
+    <None Include="clock_pause.png" />
+    <None Include="clock_play.png" />
+    <None Include="clock_red.png" />
+    <None Include="clock_select_remain.png" />
+    <None Include="clock_stop.png" />
+    <None Include="arrow_loop.png" />
+    <None Include="arrow_branch.png" />
+    <None Include="arrow_divide.png" />
+    <None Include="arrow_in.png" />
+    <None Include="arrow_inout.png" />
+    <None Include="arrow_join.png" />
+    <None Include="arrow_merge.png" />
+    <None Include="arrow_out.png" />
+    <None Include="arrow_refresh_small.png" />
+    <None Include="arrow_repeat.png" />
+    <None Include="arrow_repeat_once.png" />
+    <None Include="arrow_rotate_anticlockwise.png" />
+    <None Include="arrow_rotate_clockwise.png" />
+    <None Include="arrow_switch.png" />
+    <None Include="arrow_turn_left.png" />
+    <None Include="arrow_turn_right.png" />
+    <Content Include="cursor_arrow.png" />
+    <Content Include="folder.png" />
+    <Content Include="folder_add.png" />
+    <Content Include="folder_delete.png" />
+    <Content Include="folder_edit.png" />
+    <Content Include="folder_error.png" />
+    <Content Include="folder_explore.png" />
+    <Content Include="folder_go.png" />
+    <None Include="plus.png" />
+    <None Include="minus.png" />
+    <None Include="arrow_undo.png" />
+    <None Include="arrow_redo.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Resources\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

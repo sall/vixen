@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using Common.Controls.NameGeneration;
+using Common.Resources;
 using Vixen.Rule;
 using Vixen.Rule.Name;
 
@@ -36,6 +37,12 @@ namespace Common.Controls
 		public NameGenerator()
 		{
 			InitializeComponent();
+			Icon = Resources.Properties.Resources.Icon_Vixen3;
+			buttonMoveRuleUp.Image = Tools.GetIcon(Resources.Properties.Resources.arrow_up, 16);
+			buttonMoveRuleUp.Text = "";
+			buttonMoveRuleDown.Image = Tools.GetIcon(Resources.Properties.Resources.arrow_down, 16);
+			buttonMoveRuleDown.Text = "";
+
 			Generators = new List<INamingGenerator>();
 
 			listViewNames.Columns.Clear();
@@ -94,7 +101,7 @@ namespace Common.Controls
 			int i = 1;
 			foreach (INamingGenerator namingGenerator in Generators) {
 				ListViewItem item = new ListViewItem();
-				item.Text = "{" + i + "}: " + namingGenerator.Name;
+				item.Text = string.Format("{{0}}: {1}", i, namingGenerator.Name);
 				item.Tag = namingGenerator;
 				listViewGenerators.Items.Add(item);
 				i++;
@@ -238,7 +245,7 @@ namespace Common.Controls
 				else {
 					// if the sub-generator didn't make anything, add the name directly and treat this one as the final.
 					IEnumerable<string> subResult = GenerateNames(depth + 1, newFormat, currentNumber + result.Count, maxNumber);
-					if (subResult.Count() > 0)
+                    if (subResult.Any())
 						result.AddRange(subResult);
 					else
 						result.Add(newFormat);

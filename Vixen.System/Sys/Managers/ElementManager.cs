@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -9,25 +10,28 @@ namespace Vixen.Sys.Managers
 {
 	public class ElementManager : IEnumerable<Element>
 	{
-		private ElementUpdateTimeValue _elementUpdateTimeValue;
-		private Stopwatch _stopwatch;
+		private MillisecondsValue _elementUpdateTimeValue = new MillisecondsValue("   Elements update");
+		private Stopwatch _stopwatch = Stopwatch.StartNew();
 		private ElementDataFlowAdapterFactory _dataFlowAdapters;
 		private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
 
 		// a mapping of element  GUIDs to element instances. Used for quick reverse mapping at runtime.
-		private Dictionary<Guid, Element> _instances;
+		//This was a ConcurrentDictionary for a while, but grabing an instance enumerator can be costly as it makes a read only copy
+		//General locking on a Dictionary is sufficient here and more performant for iterating which is the highest traffic
+		private readonly Dictionary<Guid, Element> _instances;
 
 		// a mapping of elements back to their containing element nodes. Used in a few special cases, particularly for runtime, so we can
 		// quickly and easily find the node that a particular element references (eg. if we're previewing the rendered data on a virtual display,
 		// or anything else where we need to actually 'reverse' the rendering process).
-		private Dictionary<Element, ElementNode> _elementToElementNode;
+		private readonly ConcurrentDictionary<Element, ElementNode> _elementToElementNode;
 
 		public ElementManager()
 		{
 			_instances = new Dictionary<Guid, Element>();
-			_elementToElementNode = new Dictionary<Element, ElementNode>();
-			_SetupInstrumentation();
+			_elementToElementNode = new ConcurrentDictionary<Element, ElementNode>();
 			_dataFlowAdapters = new ElementDataFlowAdapterFactory();
+
+			VixenSystem.Instrumentation.AddValue(_elementUpdateTimeValue);
 		}
 
 		public ElementManager(IEnumerable<Element> elements)
@@ -67,23 +71,20 @@ namespace Vixen.Sys.Managers
 
 		public void RemoveElement(Element element)
 		{
-			lock (_instances) {
+			Element e;
+			ElementNode en;
+			lock (_instances)
+			{
 				_instances.Remove(element.Id);
 			}
 
 			_RemoveDataFlowParticipant(element);
-
-			if (_elementToElementNode.ContainsKey(element)) {
-				_elementToElementNode.Remove(element);
-			}
+			_elementToElementNode.TryRemove(element, out en);
+			
 		}
 
 		public Element GetElement(Guid id)
 		{
-			//if (_instances.ContainsKey(id)) {
-			//    return _instances[id];
-			//}
-			//return null;
 			Element element;
 			_instances.TryGetValue(id, out element);
 			return element;
@@ -108,20 +109,48 @@ namespace Vixen.Sys.Managers
 			ElementNode node;
 			_elementToElementNode.TryGetValue(element, out node);
 			return node;
-			//if (_elementToElementNode.ContainsKey(element))
-			//    return _elementToElementNode[element];
-
-			//return null;
 		}
 
 		public void Update()
 		{
-			lock (_instances) {
-				_stopwatch.Restart();
+			_stopwatch.Restart();
+			lock (_instances)
+			{
+				foreach (var x in _instances.Values) x.Update();				
+			}
+			_elementUpdateTimeValue.Set(_stopwatch.ElapsedMilliseconds);
+		}
 
-				_instances.Values.AsParallel().ForAll(x => x.Update());
+		/// <summary>
+		/// This performs updates on the predicted elements and arbitrarily clears the rest.
+		/// Saves the labor of doing Dictionary lookups in every context when we know it was not affected.
+		/// </summary>
+		/// <param name="elements"></param>
+		public void Update(HashSet<Guid> elements)
+		{
+			_stopwatch.Restart();
+			lock (_instances)
+			{
+				foreach (var x in _instances.Values)
+				{
+					if (elements.Contains(x.Id))
+					{
+						x.Update();
+					} else
+					{
+						//No sense in checking each context as we know our element is not affected on this update.
+						x.ClearStates();
+					}
+				}
+			}
+			_elementUpdateTimeValue.Set(_stopwatch.ElapsedMilliseconds);
+		}
 
-				_elementUpdateTimeValue.Set(_stopwatch.ElapsedMilliseconds);
+		public void ClearStates()
+		{
+			lock (_instances)
+			{
+				foreach (var x in _instances.Values) x.ClearStates();	
 			}
 		}
 
@@ -154,18 +183,11 @@ namespace Vixen.Sys.Managers
 			return name;
 		}
 
-		private void _SetupInstrumentation()
-		{
-			_elementUpdateTimeValue = new ElementUpdateTimeValue();
-			VixenSystem.Instrumentation.AddValue(_elementUpdateTimeValue);
-			_stopwatch = Stopwatch.StartNew();
-		}
-
 		public IEnumerator<Element> GetEnumerator()
 		{
 			lock (_instances) {
 				Element[] elements = _instances.Values.ToArray();
-				return ((IEnumerable<Element>) elements).GetEnumerator();
+				return ((IEnumerable<Element>)elements).GetEnumerator();
 			}
 		}
 

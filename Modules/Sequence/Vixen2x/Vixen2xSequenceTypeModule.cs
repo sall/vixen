@@ -1,4 +1,5 @@
-﻿using Vixen.Execution;
+﻿using Vixen.Cache.Sequence;
+using Vixen.Execution;
 using Vixen.IO;
 using Vixen.Module.SequenceType;
 using Vixen.Sys;
@@ -32,6 +33,11 @@ namespace VixenModules.Sequence.Vixen2x
 			return new TimedSequence();
 		}
 
+		public override ISequenceCache CreateSequenceCache()
+		{
+			throw new NotImplementedException();
+		}
+
 		public override IContentMigrator CreateMigrator()
 		{
 			return new SequenceMigrator();
@@ -60,8 +66,7 @@ namespace VixenModules.Sequence.Vixen2x
 					}
 				}
 			}
-			catch (Exception ex) {
-				int x = 0;
+			catch (Exception) {
 				return null;
 			}
 		}

@@ -32,7 +32,7 @@ namespace Vixen.Sys.Managers
 			OnNodesChanged();
 		}
 
-		private ElementNode RootNode
+		public ElementNode RootNode
 		{
 			get
 			{
@@ -83,15 +83,21 @@ namespace Vixen.Sys.Managers
 			return newNode;
 		}
 
-		public void RemoveNode(ElementNode node, ElementNode parent, bool cleanupIfFloating)
+		public void RemoveNode(ElementNode node, ElementNode parent, bool cleanup)
 		{
 			// if the given parent is null, it's most likely a root node (ie. with
 			// a parent of our private RootNode). Try to remove it from that instead.
 			if (parent == null) {
-				node.RemoveFromParent(RootNode, cleanupIfFloating);
+				node.RemoveFromParent(RootNode, cleanup);
 			}
 			else {
-				node.RemoveFromParent(parent, cleanupIfFloating);
+				node.RemoveFromParent(parent, cleanup);
+				//If the parent no longer has children, add a element back to it.
+				if (parent.IsLeaf && parent.Element == null)
+				{
+					parent.Element = new Element(parent.Name);
+					VixenSystem.Elements.AddElement(parent.Element);
+				}
 			}
 		}
 
@@ -110,7 +116,10 @@ namespace Vixen.Sys.Managers
 
 			// if an item is a group (or is becoming one), it can't have an output
 			// element anymore. Remove it.
-			parent.Element = null;
+			if (parent.Element != null) {
+				VixenSystem.Elements.RemoveElement(parent.Element);
+				parent.Element = null;
+			}
 
 			// if an index was specified, insert it in that position, otherwise just add it at the end
 			if (index < 0)
@@ -126,7 +135,7 @@ namespace Vixen.Sys.Managers
 				bool unique;
 				int counter = 2;
 				do {
-					name = originalName + "-" + counter++;
+					name = string.Format("{0} - {1}", originalName , counter++);
 					unique = _instances.Values.All(x => x.Name != name);
 				} while (!unique);
 			}

@@ -108,11 +108,6 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 			}
 			set
 			{
-				//int y = int.MaxValue;
-				//foreach (PreviewBaseShape shape in Strings)
-				//{
-				//    y = Math.Min(y, shape.Top);
-				//}
 				int delta = Top - value;
 				foreach (PreviewBaseShape shape in Strings) {
 					shape.Top -= delta;
@@ -133,11 +128,6 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 			}
 			set
 			{
-				//int x = int.MaxValue;
-				//foreach (PreviewBaseShape shape in Strings)
-				//{
-				//    x = Math.Min(x, shape.Left);
-				//}
 				int delta = Left - value;
 				foreach (PreviewBaseShape shape in Strings) {
 					shape.Left -= delta;
@@ -145,11 +135,47 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 			}
 		}
 
+        public override int Right
+        {
+            get
+            {
+                int x = 0;
+                foreach (PreviewBaseShape shape in Strings)
+                {
+                    x = Math.Min(x, shape.Right);
+                }
+                return x;
+            }
+        }
+
+        public override int Bottom
+        {
+            get
+            {
+                int x = int.MaxValue;
+                foreach (PreviewBaseShape shape in Strings)
+                {
+                    x = Math.Max(x, shape.Bottom);
+                }
+                return x;
+            }
+        }
+        
+        public override void Match(PreviewBaseShape matchShape)
+        {
+            PreviewCustom shape = (matchShape as PreviewCustom);
+            PixelSize = shape.PixelSize;
+            // TODO
+            Layout();
+        }
+
 		public override void Layout()
 		{
 			foreach (PreviewBaseShape shape in Strings) {
 				shape.Layout();
 			}
+
+			SetPixelZoom();
 		}
 
 		public override void Draw(FastPixel.FastPixel fp, bool editMode, List<ElementNode> highlightedElements, bool selected,
@@ -163,18 +189,19 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 
 		public override void MouseMove(int x, int y, int changeX, int changeY)
 		{
+            PreviewPoint point = PointToZoomPoint(new PreviewPoint(x, y));
 			// See if we're resizing
 			if (_selectedPoint != null) {
-				_selectedPoint.X = x;
-				_selectedPoint.Y = y;
+				_selectedPoint.X = point.X;
+                _selectedPoint.Y = point.Y;
 
 				double aspect = ((double) startWidth + (double) changeX)/(double) startWidth;
-				Resize(aspect);
-				foreach (PreviewBaseShape shape in Strings) {
-					shape.ResizeFromOriginal(aspect);
-				}
+				//Resize(aspect);
+                foreach (PreviewBaseShape shape in Strings)
+                {
+                    shape.ResizeFromOriginal(aspect);
+                }
 				MoveTo(topLeftStart.X, topLeftStart.Y);
-				//Layout();
 			}
 				// If we get here, we're moving
 			else {

@@ -64,7 +64,6 @@ namespace VixenModules.Output.E131
 
         private readonly SortedDictionary<string, string> nicNames = new SortedDictionary<string, string>();
 
-        private readonly SortedList<string, int> unicasts = new SortedList<string, int>();
 
         /// <summary>
         ///   Initializes a new instance of the <see cref = "SetupForm" /> class. 
@@ -124,7 +123,24 @@ namespace VixenModules.Output.E131
             set { this.eventRepeatCountTextBox.Text = value.ToString(); }
         }
 
-        public int PluginChannelCount
+		public int EventSuppressCount
+		{
+			get
+			{
+				int count;
+
+				if (!int.TryParse(this.eventSuppressCountTextBox.Text, out count))
+				{
+					count = 0;
+				}
+
+				return count;
+			}
+
+			set { this.eventSuppressCountTextBox.Text = value.ToString(); }
+		}
+
+		public int PluginChannelCount
         {
             set { this.pluginChannelCount = value; }
         }
@@ -159,9 +175,9 @@ namespace VixenModules.Output.E131
             // and we 'reformat' to text for display
             if (unicast != null)
             {
-                if (!this.unicasts.ContainsKey(unicast))
+                if (!E131OutputPlugin.unicasts.ContainsKey(unicast))
                 {
-                    this.unicasts.Add(unicast, 0);
+                    E131OutputPlugin.unicasts.Add(unicast, 0);
                     this.destinationColumn.Items.Add("Unicast " + unicast);
                 }
 
@@ -311,7 +327,7 @@ namespace VixenModules.Output.E131
                 {
                     var ipAddressText = ipAddress.ToString();
 
-                    if (this.unicasts.ContainsKey(ipAddressText))
+                    if (E131OutputPlugin.unicasts.ContainsKey(ipAddressText))
                     {
                         MessageBox.Show(
                             "Error - Duplicate IP Address",
@@ -321,7 +337,7 @@ namespace VixenModules.Output.E131
                     }
                     else
                     {
-                        this.unicasts.Add(ipAddressText, 0);
+                        E131OutputPlugin.unicasts.Add(ipAddressText, 0);
                         this.SetDestinations();
                     }
                 }
@@ -334,13 +350,13 @@ namespace VixenModules.Output.E131
             this.AddUnicastIp();
         }
 
-        private void EventRepeatCountTextBoxValidating(object sender, CancelEventArgs e)
+        private void eventRepeatCountTextBoxValidating(object sender, CancelEventArgs e)
         {
             int count;
 
             if (!int.TryParse(((TextBox)sender).Text, out count))
             {
-                count = 0;
+                count = -1;
             }
 
             if (count < 0 || 99 < count)
@@ -351,10 +367,32 @@ namespace VixenModules.Output.E131
             if (e.Cancel)
             {
                 MessageBeepClass.MessageBeep(MessageBeepClass.BeepType.SimpleBeep);
+				Focus();
             }
         }
 
-        /// <summary>
+		private void eventSuppressCountTextBoxValidating(object sender, CancelEventArgs e)
+		{
+			int count;
+
+			if (!int.TryParse(((TextBox)sender).Text, out count))
+			{
+				count = -1;
+			}
+
+			if (count < 0 || 10000 < count)
+			{
+				e.Cancel = true;
+			}
+
+			if (e.Cancel)
+			{
+				Focus();
+				MessageBeepClass.MessageBeep(MessageBeepClass.BeepType.SimpleBeep);
+			}
+		}
+
+		/// <summary>
         ///   event handler for a numeric textbox this handler is used by the univDVGN editing control for the numeric columns and by a simple textbox control for numeric only input controls
         /// </summary>
         /// <param name = "sender"></param>
@@ -580,7 +618,7 @@ namespace VixenModules.Output.E131
                 this.destinationColumn.Items.Add("Multicast " + destination);
             }
 
-            foreach (var ipAddr in this.unicasts.Keys)
+            foreach (var ipAddr in E131OutputPlugin.unicasts.Keys)
             {
                 this.destinationColumn.Items.Add("Unicast " + ipAddr);
             }
@@ -882,6 +920,7 @@ namespace VixenModules.Output.E131
                     }
                 }
 
-        }
+		}
+
     }
 }

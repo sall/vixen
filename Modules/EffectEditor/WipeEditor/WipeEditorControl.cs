@@ -77,7 +77,15 @@ namespace VixenModules.EffectEditor.WipeEditor {
 
 		public int PassCount {
 			get { return (int)numericUpDownNumPasses.Value; }
-			set { numericUpDownNumPasses.Value = value; } 
+			set {
+                //Added to correct divide by 0 exception when Number of passes is set to 0 
+                //and it is selected in the UI
+                if (value < 1)
+                    numericUpDownNumPasses.Value = 1;
+                else
+                    numericUpDownNumPasses.Value = value; 
+            }
+ 
 		}
 
 		public bool WipeByCount {
@@ -90,6 +98,8 @@ namespace VixenModules.EffectEditor.WipeEditor {
 				if (radioWipeDown.Checked) return WipeDirection.Down;
 				if (radioWipeUp.Checked) return WipeDirection.Up;
 				if (radioWipeLeft.Checked) return WipeDirection.Left;
+				if (radioWipeIn.Checked) return WipeDirection.In;
+				if (radioWipeOut.Checked) return WipeDirection.Out;
 				else return WipeDirection.Right;
 
 			}
@@ -107,6 +117,12 @@ namespace VixenModules.EffectEditor.WipeEditor {
 					case WipeDirection.Left:
 						radioWipeLeft.Checked = true;
 						break;
+					case WipeDirection.In:
+						radioWipeIn.Checked = true;
+						break;
+					case WipeDirection.Out:
+						radioWipeOut.Checked = true;
+						break;
 
 				}
 			}
@@ -119,6 +135,10 @@ namespace VixenModules.EffectEditor.WipeEditor {
 		private void radioNumPasses_CheckedChanged(object sender, EventArgs e)
 		{
 			numericUpDownNumPasses.Enabled = radioNumPasses.Checked;
+            //Added logic go prevent divide by 0 exception.
+            if (numericUpDownNumPasses.Value <= 0) {
+                numericUpDownNumPasses.Value = 1;
+            }
 			numericUpDownPulseWidth.Enabled = radioNumPasses.Checked;
 			numericUpDownPulseLength.Enabled = !radioNumPasses.Checked;
 	}

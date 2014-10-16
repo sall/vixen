@@ -10,7 +10,9 @@ namespace Common.VixenHelp
 	public class VixenHelp
 	{
 		public enum HelpStrings
-		{
+        {
+            [Description("http://www.vixenlights.com/vixen-3-documentation/preview/adding-items-to-the-preview/smart-objects/icicles/")]
+            Preview_Icicle,
 			[Description("http://www.vixenlights.com/vixen-3-documentation/preview/adding-items-to-the-preview/smart-objects/mega-tree/")]
 			Preview_MegaTree,
 			[Description("http://www.vixenlights.com/vixen-3-documentation/preview/adding-items-to-the-preview/smart-objects/star/")]
@@ -33,12 +35,14 @@ namespace Common.VixenHelp
 			Preview_ResizeBackground,
 			[Description("http://www.vixenlights.com/vixen-3-documentation/preview/custom-props/")]
 			Preview_CustomShape,
-			[Description("http://www.vixenlights.com/vixen-3-documentation/show-scheduler/")]
+			[Description("http://www.vixenlights.com/vixen-3-documentation/scheduling-a-show/show-scheduler/")]
 			Scheduler_Main,
-			[Description("http://www.vixenlights.com/vixen-3-documentation/show-editor/")]
+			[Description("http://www.vixenlights.com/vixen-3-documentation/scheduling-a-show/show-editor/")]
 			Show_Editor,
 			[Description("http://www.vixenlights.com/vixen-3-documentation/sequencer/effects/nutcracker-effects/")]
-			Effect_Nutcracker
+			Effect_Nutcracker,
+			[Description("http://www.vixenlights.com/vixen-3-documentation/setup-configuration/")]
+			Setup_Main
 		}
 		
 		public static void ShowHelp(HelpStrings helpString)

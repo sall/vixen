@@ -220,13 +220,14 @@ namespace Common.Controls
 
 		public void AddSelectedNode(TreeNode node)
 		{
-			AddNodeToSelectedList(node);
+			AddNodeToSelectedListIfNotInList(node);
 			ToggleNode(node, true);
 		}
 
-		private void AddNodeToSelectedList(TreeNode node)
+		private void AddNodeToSelectedListIfNotInList(TreeNode node)
 		{
-			m_SelectedNodes.Add(node);
+			if (!m_SelectedNodes.Contains(node))
+				m_SelectedNodes.Add(node);
 			SortSelectedNodes();
 		}
 
@@ -315,7 +316,7 @@ namespace Common.Controls
 				base.OnMouseDown(e);
 			}
 			catch (Exception ex) {
-				HandleException(ex);
+			    HandleException(ex);
 			}
 		}
 
@@ -337,8 +338,7 @@ namespace Common.Controls
 				}
 
 				base.OnMouseUp(e);
-			}
-			catch (Exception ex) {
+			} catch (Exception ex) {
 				HandleException(ex);
 			}
 			_selectedNodeWithControlKey = false;
@@ -376,8 +376,7 @@ namespace Common.Controls
 				e.Cancel = true;
 
 				base.OnBeforeSelect(e);
-			}
-			catch (Exception ex) {
+			} catch (Exception ex) {
 				HandleException(ex);
 			}
 		}
@@ -388,8 +387,7 @@ namespace Common.Controls
 			try {
 				base.OnAfterSelect(e);
 				base.SelectedNode = null;
-			}
-			catch (Exception ex) {
+			} catch (Exception ex) {
 				HandleException(ex);
 			}
 		}
@@ -450,15 +448,9 @@ namespace Common.Controls
 				}
 				else if (e.KeyCode == Keys.Home) {
 					if (bShift) {
-						if (m_SelectedNode.Parent == null) {
-							// Select all of the root nodes up to this point 
-							if (Nodes.Count > 0) {
-								SelectNode(Nodes[0]);
-							}
-						}
-						else {
-							// Select all of the nodes up to this point under this nodes parent
-							SelectNode(m_SelectedNode.Parent.FirstNode);
+						// Select all of the root nodes up to this point 
+						if (Nodes.Count > 0) {
+							SelectNode(Nodes[0]);
 						}
 					}
 					else {
@@ -469,26 +461,19 @@ namespace Common.Controls
 					}
 				}
 				else if (e.KeyCode == Keys.End) {
+					// Select the last node visible node in the tree.
+					// Don't expand branches incase the tree is virtual
+					TreeNode ndLast = Nodes[Nodes.Count - 1];
+					while (ndLast.IsExpanded && (ndLast.LastNode != null)) {
+						ndLast = ndLast.LastNode;
+					}
 					if (bShift) {
-						if (m_SelectedNode.Parent == null) {
-							// Select the last ROOT node in the tree
-							if (Nodes.Count > 0) {
-								SelectNode(Nodes[Nodes.Count - 1]);
-							}
-						}
-						else {
-							// Select the last node in this branch
-							SelectNode(m_SelectedNode.Parent.LastNode);
+						if (Nodes.Count > 0) {
+							SelectNode(ndLast);
 						}
 					}
 					else {
 						if (Nodes.Count > 0) {
-							// Select the last node visible node in the tree.
-							// Don't expand branches incase the tree is virtual
-							TreeNode ndLast = Nodes[Nodes.Count - 1];
-							while (ndLast.IsExpanded && (ndLast.LastNode != null)) {
-								ndLast = ndLast.LastNode;
-							}
 							SelectSingleNode(ndLast);
 						}
 					}
@@ -528,8 +513,7 @@ namespace Common.Controls
 						}
 					}
 				}
-			}
-			catch (Exception ex) {
+			} catch (Exception ex) {
 				HandleException(ex);
 			}
 			finally {
@@ -1025,15 +1009,15 @@ namespace Common.Controls
 				ToggleNode(node, true);
 				node.EnsureVisible();
 			}
+
+			OnAfterSelect(new TreeViewEventArgs(m_SelectedNode));
 		}
 
 		private void ToggleNode(TreeNode node, bool bSelectNode)
 		{
 			if (bSelectNode) {
 				m_SelectedNode = node;
-				if (!m_SelectedNodes.Contains(node)) {
-					AddNodeToSelectedList(node);
-				}
+				AddNodeToSelectedListIfNotInList(node);
 				node.BackColor = SystemColors.Highlight;
 				node.ForeColor = SystemColors.HighlightText;
 			}

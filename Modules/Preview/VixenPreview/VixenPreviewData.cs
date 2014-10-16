@@ -25,6 +25,7 @@ namespace VixenModules.Preview.VixenPreview
 		private List<DisplayItem> _displayItems = new List<DisplayItem>();
 		private string _backgroundFileName;
 		private int _backgroundAlpha = 255;
+		private bool _saveLocations = true;
 
 		public VixenPreviewData()
 		{
@@ -32,7 +33,7 @@ namespace VixenModules.Preview.VixenPreview
 
 		public override IModuleDataModel Clone()
 		{
-			Console.WriteLine("Clone");
+			//Console.WriteLine("Clone");
 			VixenPreviewData result = new VixenPreviewData
 			                          	{
 			                          		Width = 1024,
@@ -109,6 +110,13 @@ namespace VixenModules.Preview.VixenPreview
 		{
 			get { return _height; }
 			set { _height = value; }
+		}
+
+		[DataMember]
+		public bool SaveLocations
+		{
+			get { return _saveLocations; }
+			set { _saveLocations = value; }
 		}
 
 		[DataMember]

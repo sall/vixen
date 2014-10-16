@@ -11,6 +11,8 @@ using Vixen.Module.SequenceType;
 using Vixen.Services;
 using Vixen.Sys;
 using NLog;
+using Common.Resources.Properties;
+using Common.Controls;
 
 namespace VixenApplication
 {
@@ -22,6 +24,7 @@ namespace VixenApplication
 		private bool stopping;
 		private bool _openExecution = true;
 		private bool _disableControllers = false;
+		private bool _devBuild = false;
 		private string _rootDataDirectory;
 		private CpuUsage _cpuUsage;
 
@@ -29,6 +32,9 @@ namespace VixenApplication
 
 		public VixenApplication()
 		{
+			InitializeComponent();
+			Icon = Resources.Icon_Vixen3;
+
 			string[] args = Environment.GetCommandLineArgs();
 			foreach (string arg in args) {
 				_ProcessArg(arg);
@@ -40,18 +46,34 @@ namespace VixenApplication
 			_applicationData = new VixenApplicationData(_rootDataDirectory);
 
 			stopping = false;
-			InitializeComponent();
 			PopulateVersionStrings();
 			AppCommands = new AppCommand(this);
 			Execution.ExecutionStateChanged += executionStateChangedHandler;
 			VixenSystem.Start(this, _openExecution, _disableControllers, _applicationData.DataFileDirectory);
 
 			InitStats();
+
+			// other modules look for and create it this way...
+			AppCommand toolsMenu = AppCommands.Find("Tools");
+			if (toolsMenu == null)
+			{
+				toolsMenu = new AppCommand("Tools", "Tools");
+				AppCommands.Add(toolsMenu);
+		}
+			var myMenu = new AppCommand("Options", "Options...");
+			myMenu.Click += optionsToolStripMenuItem_Click;
+			toolsMenu.Add(myMenu);
+
 		}
 
 
 		private void VixenApp_FormClosing(object sender, FormClosingEventArgs e)
 		{
+			// close all open editors
+			foreach (IEditorUserInterface editor in _openEditors.ToArray()) {
+				editor.CloseEditor();
+			}
+
 			stopping = true;
 			VixenSystem.Stop();
 
@@ -86,26 +108,30 @@ namespace VixenApplication
 		{
 			System.Reflection.Assembly assembly = System.Reflection.Assembly.LoadFile(VixenSystem.AssemblyFileName);
 			Version version = assembly.GetName().Version;
-			string result = version.Major + "." + version.Minor + "." + version.Build;
 
-#if AUTOBUILD
-			labelVersion.Text = "Test Build " + version.Revision;
-			labelDebugVersion.Text = "(for upcoming release " + result + ")";
+			_devBuild = version.Major == 0;
+
+			if (_devBuild) {
+				labelVersion.Text = "DevBuild";
+			} else {
+				labelVersion.Text = string.Format("{0}.{1}", version.Major, version.Minor);
+				if (version.Revision > 0) {
+					labelVersion.Text += string.Format("u{0}", version.Revision);
+				}
+			}
+
+			labelDebugVersion.Text = string.Format("Build #{0}", version.Build);
 			labelDebugVersion.Visible = true;
-#else
-			labelVersion.Text = result;
-			labelDebugVersion.Visible = false;
-#endif
 		}
 
 		private void CheckForTestBuild()
 		{
-#if AUTOBUILD
-			MessageBox.Show(
-				"Please be aware that this is a development/test version. Some parts of the software may not work, " +
-				"and data loss is possible! Please backup your data before using this version of the software.",
-				"Development/Test Software", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-#endif
+			if (_devBuild) {
+				MessageBox.Show(
+					"Please be aware that this is a development version. Some parts of the software may not work, " +
+					"and data loss is possible! Please backup your data before using this version of the software.",
+					"Development/Test Software", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+			}
 		}
 
 		private void _ProcessArg(string arg)
@@ -132,9 +158,9 @@ namespace VixenApplication
 		private void ProcessProfiles()
 		{
 			XMLProfileSettings profile = new XMLProfileSettings();
-			string loadAction = profile.GetSetting("Profiles/LoadAction", "LoadSelected");
-			int profileCount = profile.GetSetting("Profiles/ProfileCount", 0);
-			int profileToLoad = profile.GetSetting("Profiles/ProfileToLoad", -1);
+			string loadAction = profile.GetSetting(XMLProfileSettings.SettingType.Profiles, "LoadAction", "LoadSelected");
+			int profileCount = profile.GetSetting(XMLProfileSettings.SettingType.Profiles, "ProfileCount", 0);
+			int profileToLoad = profile.GetSetting(XMLProfileSettings.SettingType.Profiles, "ProfileToLoad", -1);
 			// why ask if there is 0 or 1 profile?
 			if (loadAction == "Ask" && profileCount > 1) {
 				SelectProfile f = new SelectProfile();
@@ -151,7 +177,7 @@ namespace VixenApplication
 				}
 				else {
 					if (profileToLoad < profileCount) {
-						_rootDataDirectory = profile.GetSetting("Profiles/Profile" + profileToLoad.ToString() + "/DataFolder", string.Empty);
+						_rootDataDirectory = profile.GetSetting(XMLProfileSettings.SettingType.Profiles, "Profile" + profileToLoad.ToString() + "/DataFolder", string.Empty);
 						if (_rootDataDirectory != string.Empty) {
 							if (!System.IO.Directory.Exists(_rootDataDirectory))
 								System.IO.Directory.CreateDirectory(_rootDataDirectory);
@@ -178,7 +204,7 @@ namespace VixenApplication
 					if (target != null) {
 
 						var strFileName = target.FileName.ToString().Replace("[VIXENPROFILEDIR]", logDirectory).Replace('/', '\\').Replace("'", "");
-						var strArchiveFileName = target.FileName.ToString().Replace("[VIXENPROFILEDIR]", logDirectory).Replace('/', '\\').Replace("'", "");
+						var strArchiveFileName = target.ArchiveFileName.ToString().Replace("[VIXENPROFILEDIR]", logDirectory).Replace('/', '\\').Replace("'", "");
 
 						target.FileName = strFileName;
 						target.ArchiveFileName = strArchiveFileName;
@@ -192,7 +218,7 @@ namespace VixenApplication
 			//	if (target != null) {
 
 			//		var strFileName = target.FileName.ToString().Replace("[VIXENPROFILEDIR]", _rootDataDirectory).Replace('/', '\\').Replace("'", "");
-			//		var strArchiveFileName = target.FileName.ToString().Replace("[VIXENPROFILEDIR]", _rootDataDirectory).Replace('/', '\\').Replace("'", "");
+			//		var strArchiveFileName = target.ArchiveFileName.ToString().Replace("[VIXENPROFILEDIR]", _rootDataDirectory).Replace('/', '\\').Replace("'", "");
 
 			//		target.FileName = strFileName;
 			//		target.ArchiveFileName = strArchiveFileName;
@@ -200,22 +226,8 @@ namespace VixenApplication
 			//	}
 
 			//});
-#if DEBUG
 
-			Logging.Debug("Test");
-			Logging.Info("Test");
-			Logging.Warn("Test");
-			Logging.Error("Test");
-			Logging.Fatal("Test");
-			try {
-				throw new ApplicationException("Test Exception");
 			}
-			catch (Exception e) {
-
-				Logging.ErrorException(e.Message, e);
-			}
-#endif
-		}
 
 		#region IApplication implemetation
 
@@ -285,17 +297,28 @@ namespace VixenApplication
 		private void _OpenEditor(IEditorUserInterface editorUI)
 		{
 			_openEditors.Add(editorUI);
+			editorUI.Closing +=editorUI_Closing;
+			editorUI.Activated +=editorUI_Activated;
 
-			editorUI.Closing += (sender, e) =>
+			editorUI.StartEditor();
+		}
+
+		void editorUI_Activated(object sender, EventArgs e)
 			                    	{
-			                    		if (!_CloseEditor(sender as IEditorUserInterface)) {
-			                    			e.Cancel = true;
+			_activeEditor = sender as IEditorUserInterface; 
 			                    		}
-			                    	};
 
-			editorUI.Activated += (sender, e) => { _activeEditor = sender as IEditorUserInterface; };
-
-			editorUI.Start();
+		void editorUI_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+		{
+			IEditorUserInterface editor = (sender as IEditorUserInterface);
+			if (!_CloseEditor(editor))
+			{
+				e.Cancel = true;
+		}
+			else
+			{
+				editor.EditorClosing();
+			}
 		}
 
 		private bool _CloseEditor(IEditorUserInterface editor)
@@ -312,12 +335,15 @@ namespace VixenApplication
 
 			if (_openEditors.Contains(editor)) {
 				_openEditors.Remove(editor);
-				Form editorForm = editor as Form;
-				editor.Dispose();
 			}
 
+			_activeEditor= null;
+			
 			AddSequenceToRecentList(editor.Sequence.FilePath);
-
+			editor.Activated-= editorUI_Activated;
+			editor.Closing -= editorUI_Closing;
+			//editor.Dispose();
+			//editor = null;
 			return true;
 		}
 
@@ -369,56 +395,74 @@ namespace VixenApplication
 				}
 			}
 			catch (Exception ex) {
-				Logging.Error("Error trying to open file '" + filename + "': ", ex);
+				Logging.ErrorException("Error trying to open file '" + filename + "': ", ex);
 				MessageBox.Show("Error trying to open file '" + filename + "'.", "Error opening file", MessageBoxButtons.OK);
 			}
 		}
 
-		private void buttonSetupElements_Click(object sender, EventArgs e)
+		private void SetupElements()
 		{
-			ConfigElements form = new ConfigElements();
-			DialogResult result = form.ShowDialog();
-			if (result == DialogResult.OK) {
-				VixenSystem.SaveSystemConfig();
-			}
-			else {
-				VixenSystem.ReloadSystemConfig();
+			using (ConfigElements form = new ConfigElements()) {
+				DialogResult result = form.ShowDialog();
+				if (result == DialogResult.OK) {
+					VixenSystem.SaveSystemConfig();
+				}
+				else {
+					VixenSystem.ReloadSystemConfig();
+				}
 			}
 		}
 
-		private void buttonSetupOutputControllers_Click(object sender, EventArgs e)
+		private void SetupControllers()
 		{
-			ConfigControllers form = new ConfigControllers();
-			DialogResult result = form.ShowDialog();
-			if (result == DialogResult.OK) {
-				VixenSystem.SaveSystemConfig();
-			}
-			else {
-				VixenSystem.ReloadSystemConfig();
+			using (ConfigControllers form = new ConfigControllers()) {
+				DialogResult result = form.ShowDialog();
+				if (result == DialogResult.OK) {
+					VixenSystem.SaveSystemConfig();
+				}
+				else {
+					VixenSystem.ReloadSystemConfig();
+				}
 			}
 		}
 
-		private void buttonSetupFiltersAndPatching_Click(object sender, EventArgs e)
+		private void SetupFiltersAndPatching()
 		{
-			ConfigFiltersAndPatching form = new ConfigFiltersAndPatching(_applicationData);
-			DialogResult result = form.ShowDialog();
-			if (result == DialogResult.OK) {
-				VixenSystem.SaveSystemConfig();
-			}
-			else {
-				VixenSystem.ReloadSystemConfig();
+			using (ConfigFiltersAndPatching form = new ConfigFiltersAndPatching(_applicationData)) {
+				DialogResult result = form.ShowDialog();
+				if (result == DialogResult.OK) {
+					VixenSystem.SaveSystemConfig();
+				}
+				else {
+					VixenSystem.ReloadSystemConfig();
+				}
 			}
 		}
 
-		private void buttonSetupOutputPreviews_Click(object sender, EventArgs e)
+		private void SetupPreviews()
 		{
-			ConfigPreviews form = new ConfigPreviews();
-			DialogResult result = form.ShowDialog();
-			if (result == DialogResult.OK) {
-				VixenSystem.SaveSystemConfig();
+			using (ConfigPreviews form = new ConfigPreviews()) {
+				DialogResult result = form.ShowDialog();
+				if (result == DialogResult.OK) {
+					VixenSystem.SaveSystemConfig();
+				}
+				else {
+					VixenSystem.ReloadSystemConfig();
+				}
 			}
-			else {
-				VixenSystem.ReloadSystemConfig();
+		}
+
+		private void SetupDisplay()
+		{
+			using (DisplaySetup form = new DisplaySetup()) {
+				DialogResult dr = form.ShowDialog();
+
+				if (dr == DialogResult.OK) {
+					VixenSystem.SaveSystemConfig();
+				}
+				else {
+					VixenSystem.ReloadSystemConfig();
+				}
 			}
 		}
 
@@ -430,10 +474,6 @@ namespace VixenApplication
 		private void stopToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			Execution.CloseExecution();
-		}
-
-		private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
-		{
 		}
 
 		private void exitToolStripMenuItem_Click(object sender, EventArgs e)
@@ -450,6 +490,15 @@ namespace VixenApplication
 				Invoke(new MethodInvoker(updateExecutionState));
 			else
 				updateExecutionState();
+		}
+
+		private void optionsToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			var dlg = new OptionsDialog();
+			var res = dlg.ShowDialog();
+			// so far the dialog box does it all, no real need for this check...
+			if( res != DialogResult.OK)
+				return;
 		}
 
 		// we can't get passed in a state to display, since it may be called out-of-order if we're invoking across threads, etc.
@@ -479,23 +528,11 @@ namespace VixenApplication
 		{
 			string logDirectory = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Vixen 3", "Logs");
 
-			string tempFilePath = Path.Combine(Path.GetTempPath(), "Logs", logName);
-			if (File.Exists(System.IO.Path.Combine(logDirectory, logName)))
-				using (var sr = new StreamReader(System.IO.Path.Combine(logDirectory, logName))) {
-					using (var sw = new StreamWriter(tempFilePath)) {
-						while (!sr.EndOfStream) {
-							sw.WriteLine(sr.ReadLine());
-						}
-					}
-				}
-
 			using (Process process = new Process()) {
-				process.StartInfo = new ProcessStartInfo("notepad.exe", tempFilePath);
+				process.StartInfo = new ProcessStartInfo("notepad.exe", Path.Combine(logDirectory,logName));
 				process.Start();
 
 			}
-			if (File.Exists(tempFilePath))
-				File.Delete(tempFilePath);
 		}
 
 		#region Recent Sequences list
@@ -598,6 +635,41 @@ namespace VixenApplication
 				// Do something...
 				MessageBox.Show("You must re-start Vixen for the changes to take effect.", "Profiles Changed", MessageBoxButtons.OK);
 			}
+		}
+
+		private void setupElementsGroupsToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			SetupElements();
+		}
+
+		private void setupControllersToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			SetupControllers();
+		}
+
+		private void setupFiltersPatchingToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			SetupFiltersAndPatching();
+		}
+
+		private void setupDisplayToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			SetupDisplay();
+		}
+
+		private void setupPreviewsToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			SetupPreviews();
+		}
+
+		private void buttonSetupOutputPreviews_Click(object sender, EventArgs e)
+		{
+			SetupPreviews();
+		}
+
+		private void buttonSetupDisplay_Click(object sender, EventArgs e)
+		{
+			SetupDisplay();
 		}
 	}
 }

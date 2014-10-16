@@ -58,7 +58,30 @@ namespace Common.Controls
 
 		#region Tree view population
 
+
+		public void PopulateNodeTree(IEnumerable<ElementNode> elementsToSelect)
+		{
+			List<string> treeNodes = new List<string>();
+			foreach (ElementNode elementNode in elementsToSelect) {
+				treeNodes.Add(GenerateEquivalentTreeNodeFullPathFromElement(elementNode, treeview.PathSeparator));
+			}			
+			_PopulateNodeTree(treeNodes);
+		}
+
+		public void PopulateNodeTree(ElementNode elementToSelect)
+		{
+			List<string> treeNodes = new List<string>();
+			treeNodes.Add(GenerateEquivalentTreeNodeFullPathFromElement(elementToSelect, treeview.PathSeparator));
+			_PopulateNodeTree(treeNodes);
+		}
+
 		public void PopulateNodeTree()
+		{
+			_PopulateNodeTree();
+		}
+
+
+		private void _PopulateNodeTree(IEnumerable<string> elementTreeNodesToSelect = null)
 		{
 			// save metadata that is currently in the treeview
 			_expandedNodes = new HashSet<string>();
@@ -71,6 +94,7 @@ namespace Common.Controls
 			// clear the treeview, and repopulate it
 			treeview.BeginUpdate();
 			treeview.Nodes.Clear();
+			treeview.SelectedNodes.Clear();
 
 			foreach (ElementNode element in VixenSystem.Nodes.GetRootNodes()) {
 				AddNodeToTree(treeview.Nodes, element);
@@ -87,6 +111,10 @@ namespace Common.Controls
 				}
 			}
 
+			// if a new element has been passed in to select, select it instead.
+			if (elementTreeNodesToSelect != null) {
+				_selectedNodes = new HashSet<string>(elementTreeNodesToSelect);
+			}
 			foreach (string node in _selectedNodes) {
 				TreeNode resultNode = FindNodeInTreeAtPath(treeview, node);
 
@@ -94,6 +122,7 @@ namespace Common.Controls
 					treeview.AddSelectedNode(resultNode);
 				}
 			}
+
 
 			treeview.EndUpdate();
 
@@ -111,6 +140,13 @@ namespace Common.Controls
 					break;
 				}
 			}
+
+			// finally, if we were selecting another element, make sure we raise the selection changed event
+			if (elementTreeNodesToSelect != null) {
+				// TODO: oops, we just pass the selection changed event through to the control; oh well,
+				// an "elements have changed" event will do for now. Fix this sometime.
+				OnElementsChanged();
+			}
 		}
 
 		private string GenerateTreeNodeFullPath(TreeNode node, string separator)
@@ -124,6 +160,19 @@ namespace Common.Controls
 
 			return result;
 		}
+
+		private string GenerateEquivalentTreeNodeFullPathFromElement(ElementNode element, string separator)
+		{
+			string result = element.Id.ToString();
+			ElementNode parent = element.Parents.FirstOrDefault();
+			while (parent != null && parent != VixenSystem.Nodes.RootNode) {
+				result = parent.Id.ToString() + separator + result;
+				parent = parent.Parents.FirstOrDefault();
+			}
+
+			return result;
+		}
+
 
 		private TreeNode FindNodeInTreeAtPath(TreeView tree, string path)
 		{
@@ -189,7 +238,7 @@ namespace Common.Controls
 
 			if (!elementNode.Children.Any()) {
 				if (elementNode.Element != null &&
-					VixenSystem.DataFlow.GetChildren(VixenSystem.Elements.GetDataFlowComponentForElement(elementNode.Element)).Any()) {
+					VixenSystem.DataFlow.GetDestinationsOfComponent(VixenSystem.Elements.GetDataFlowComponentForElement(elementNode.Element)).Any()) {
 					if (elementNode.Element.Masked)
 						addedNode.ImageKey = addedNode.SelectedImageKey = "RedBall";
 					else
@@ -398,7 +447,8 @@ namespace Common.Controls
 			}
 
 			IEnumerable<ElementNode> invalidSourceNodes = invalidNodesForTarget.Intersect(nodes);
-			if (invalidSourceNodes.Count() > 0) {
+            if (invalidSourceNodes.Any())
+            {
 				if (invalidSourceNodes.Intersect(permittedNodesForTarget).Count() == invalidSourceNodes.Count())
 					e.ValidDragTarget = true;
 				else
@@ -431,7 +481,11 @@ namespace Common.Controls
 					result.AddRange(
 						nameGenerator.Names.Where(name => !string.IsNullOrEmpty(name)).Select(
 							name => AddNewNode(name, false, parent, true)));
-					PopulateNodeTree();
+					if (result == null || result.Count() == 0) { 
+						MessageBox.Show("Could not create elements.  Ensure you use a valid name and try again.");
+						return result;
+					}
+					PopulateNodeTree(result.FirstOrDefault());
 				}
 			}
 
@@ -467,25 +521,31 @@ namespace Common.Controls
 
 			ElementNode newNode = ElementNodeService.Instance.CreateSingle(parent, nodeName, true);
 			if (repopulateNodeTree)
-				PopulateNodeTree();
+				PopulateNodeTree(newNode);
 			return newNode;
 		}
 
-		public void CreateGroupFromSelectedNodes()
+		public bool CreateGroupFromSelectedNodes()
 		{
-			ElementNode newGroup = AddSingleNodeWithPrompt();
+			// save this because AddSingle changes the selection to the new node
+			var originalSelection = SelectedElementNodes.ToList();
 
-			foreach (ElementNode en in SelectedElementNodes) {
+			ElementNode newGroup = AddSingleNodeWithPrompt();
+			if (newGroup == null)
+				return false;
+
+			foreach (ElementNode en in originalSelection) {
 				VixenSystem.Nodes.AddChildToParent(en, newGroup);
 			}
 
-			PopulateNodeTree();
+			PopulateNodeTree(newGroup);
+			return true;
 		}
 
 		public bool CheckAndPromptIfNodeWillLosePatches(ElementNode node)
 		{
 			if (node != null && node.Element != null) {
-				if (VixenSystem.DataFlow.GetChildren(VixenSystem.Elements.GetDataFlowComponentForElement(node.Element)).Any()) {
+				if (VixenSystem.DataFlow.GetDestinationsOfComponent(VixenSystem.Elements.GetDataFlowComponentForElement(node.Element)).Any()) {
 					string message = "Adding items to this element will convert it into a Group, which will remove any " +
 					                 "patches it may have. Are you sure you want to continue?";
 					string title = "Convert Element to Group?";
@@ -499,9 +559,23 @@ namespace Common.Controls
 			return false;
 		}
 
-		public void RenameSelectedElements()
+		public bool RenameSelectedElements()
 		{
-			if (treeview.SelectedNodes.Count > 0) {
+			if (SelectedTreeNodes.Count == 0)
+				return false;
+
+			if (SelectedTreeNodes.Count == 1) {
+				using (TextDialog dialog = new TextDialog("Item name?", "Rename item", (SelectedNode).Name, true)) {
+					if (dialog.ShowDialog() == DialogResult.OK) {
+						if (dialog.Response != string.Empty && dialog.Response != SelectedNode.Name) {
+							VixenSystem.Nodes.RenameNode(SelectedNode, dialog.Response);
+							PopulateNodeTree();
+
+							return true;
+						}
+					}
+				}
+			} else if (SelectedTreeNodes.Count > 1) {
 				List<string> oldNames = new List<string>(treeview.SelectedNodes.Select(x => x.Tag as ElementNode).Select(x => x.Name).ToArray());
 				NameGenerator renamer = new NameGenerator(oldNames.ToArray());
 				if (renamer.ShowDialog() == DialogResult.OK) {
@@ -510,12 +584,16 @@ namespace Common.Controls
 							Logging.Warn("ConfigElements: bulk renaming elements, and ran out of new names!");
 							break;
 						}
-						(treeview.SelectedNodes[i].Tag as ElementNode).Name = renamer.Names[i];
+						VixenSystem.Nodes.RenameNode((treeview.SelectedNodes[i].Tag as ElementNode), renamer.Names[i]);
 					}
 
 					PopulateNodeTree();
+
+					return true;
 				}
 			}
+
+			return false;
 		}
 
 
@@ -533,7 +611,8 @@ namespace Common.Controls
 
 		private void contextMenuStripTreeView_Opening(object sender, CancelEventArgs e)
 		{
-			cutNodesToolStripMenuItem.Enabled = (SelectedTreeNodes.Count > 0);
+			// temporarily disable Cut function till we can keep the underlying Elements around
+			cutNodesToolStripMenuItem.Enabled = false; // (SelectedTreeNodes.Count > 0);
 			copyNodesToolStripMenuItem.Enabled = (SelectedTreeNodes.Count > 0);
 			pasteNodesToolStripMenuItem.Enabled = (_clipboardNodes != null);
 			copyPropertiesToolStripMenuItem.Enabled = (SelectedTreeNodes.Count == 1);
@@ -595,7 +674,8 @@ namespace Common.Controls
 				invalidNodesForTarget = destinationNode.InvalidChildren();
 
 			IEnumerable<ElementNode> invalidSourceNodes = invalidNodesForTarget.Intersect(_clipboardNodes);
-			if (invalidSourceNodes.Count() > 0) {
+            if (invalidSourceNodes.Any())
+            {
 				SystemSounds.Asterisk.Play();
 			}
 			else {
@@ -659,14 +739,16 @@ namespace Common.Controls
 
 		private void addNewNodeToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			AddSingleNodeWithPrompt(SelectedNode);
-			OnElementsChanged();
+			var added = AddSingleNodeWithPrompt(SelectedNode);
+			if( added != null)
+				OnElementsChanged();
 		}
 
 		private void addMultipleNewNodesToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			AddMultipleNodesWithPrompt(SelectedNode);
-			OnElementsChanged();
+			var added = AddMultipleNodesWithPrompt(SelectedNode);
+			if( added != null)
+				OnElementsChanged();
 		}
 
 		private void deleteNodesToolStripMenuItem_Click(object sender, EventArgs e)
@@ -684,28 +766,17 @@ namespace Common.Controls
 
 		private void createGroupWithNodesToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			CreateGroupFromSelectedNodes();
-			OnElementsChanged();
+			bool bChanged = CreateGroupFromSelectedNodes();
+			if( bChanged)
+				OnElementsChanged();
 		}
 
 		private void renameNodesToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			if (SelectedTreeNodes.Count == 0)
-				return;
-
-			if (SelectedTreeNodes.Count == 1) {
-				using (TextDialog dialog = new TextDialog("Item name?", "Rename item", (SelectedNode).Name, true)) {
-					if (dialog.ShowDialog() == DialogResult.OK) {
-						if (dialog.Response != string.Empty && dialog.Response != SelectedNode.Name)
-							VixenSystem.Nodes.RenameNode(SelectedNode, dialog.Response);
-					}
-				}
-			} else if (SelectedTreeNodes.Count > 1) {
-				RenameSelectedElements();
+			if (RenameSelectedElements()) {
+				PopulateNodeTree();
+				OnElementsChanged();
 			}
-
-			PopulateNodeTree();
-			OnElementsChanged();
 		}
 
 		#endregion
@@ -732,41 +803,6 @@ namespace Common.Controls
 						OnElementsChanged();
 					}
 				}
-			}
-		}
-
-
-		private void megatreeToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			ConfigureElements.AddMegatree f = new ConfigureElements.AddMegatree();
-			if (f.ShowDialog() == DialogResult.OK) {
-				ElementNode treeParent = AddNewNode(f.TreeName, false, SelectedNode, false);
-
-				for (int stringNum = 0; stringNum < f.StringCount; stringNum++) {
-					ElementNode treeString = AddNewNode(f.TreeName + " String " + (stringNum + 1).ToString(), false, treeParent, false);
-					for (int pixelNum = 0; pixelNum < f.PixelsPerString; pixelNum++) {
-						AddNewNode(treeString.Name + "-" + (pixelNum + 1).ToString(), false, treeString, false);
-					}
-				}
-
-				PopulateNodeTree();
-			}
-		}
-
-		private void pixelGridToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			ConfigureElements.AddPixelGrid f = new ConfigureElements.AddPixelGrid();
-			if (f.ShowDialog() == DialogResult.OK) {
-				ElementNode treeParent = AddNewNode(f.GridName, false, SelectedNode, false);
-
-				for (int stringNum = 0; stringNum < f.StringCount; stringNum++) {
-					ElementNode treeString = AddNewNode(f.GridName + " Column " + (stringNum + 1).ToString(), false, treeParent, false);
-					for (int pixelNum = 0; pixelNum < f.PixelsPerString; pixelNum++) {
-						AddNewNode(treeString.Name + " - Row " + (pixelNum + 1).ToString(), false, treeString, false);
-					}
-				}
-
-				PopulateNodeTree();
 			}
 		}
 	}

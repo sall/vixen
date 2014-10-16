@@ -4,9 +4,13 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Windows.Forms;
+using NLog;
 using VixenModules.Media.Audio;
 using System.ComponentModel;
+using Font = System.Drawing.Font;
+using FontStyle = System.Drawing.FontStyle;
 
 namespace Common.Controls.Timeline
 {
@@ -17,9 +21,10 @@ namespace Common.Controls.Timeline
 	public sealed class Waveform : TimelineControlBase
 	{
 		private double samplesPerPixel;
-		private SampleAggregator samples = new SampleAggregator();
+		private SampleAggregator samples;
 		private Audio audio;
 		private BackgroundWorker bw;
+		private bool _creatingSamples = false;
 
 		/// <summary>
 		/// Creates a waveform view of the <code>Audio</code> that is associated scaled to the timeinfo.
@@ -28,6 +33,7 @@ namespace Common.Controls.Timeline
 		public Waveform(TimeInfo timeinfo)
 			: base(timeinfo)
 		{
+			samples = new SampleAggregator();
 			BackColor = Color.Gray;
 			Visible = false;
 		}
@@ -48,8 +54,11 @@ namespace Common.Controls.Timeline
 		//Runs in background to keep the ui free.
 		private void bw_createScaleSamples(object sender, DoWorkEventArgs args)
 		{
+			_creatingSamples = true;
 			BackgroundWorker worker = sender as BackgroundWorker;
-			if (audio == null) {
+			if (audio == null)
+			{
+				_creatingSamples = false;
 				return;
 			}
 			if (!audio.MediaLoaded) {
@@ -60,7 +69,7 @@ namespace Common.Controls.Timeline
 			samples.Clear();
 			double samplesRead = 0;
 			while (samplesRead < audio.NumberSamples) {
-				if ((worker.CancellationPending == true)) {
+				if ((worker.CancellationPending)) {
 					args.Cancel = true;
 					break;
 				}
@@ -84,6 +93,7 @@ namespace Common.Controls.Timeline
 				}
 				samples.Add(new SampleAggregator.Sample {High = high, Low = low});
 			}
+			_creatingSamples = false;
 		}
 
 		private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -137,52 +147,66 @@ namespace Common.Controls.Timeline
 			get { return new Size(400, 50); }
 		}
 
-		protected override void OnResize(EventArgs e)
-		{
-			base.OnResize(e);
-		}
-
 		protected override void OnTimePerPixelChanged(object sender, EventArgs e)
 		{
 			if (bw != null && bw.IsBusy) {
 				bw.CancelAsync();
 			}
-			base.OnTimePerPixelChanged(sender, e);
-
+			while (_creatingSamples)
+			{
+				Thread.Sleep(1);
+			}
 			CreateWorker();
 			bw.RunWorkerAsync();
 		}
 
-		protected override void OnVisibleTimeStartChanged(object sender, EventArgs e)
+		protected override void OnPlaybackStartTimeChanged(object sender, EventArgs e)
 		{
-			this.Invalidate();
+			//Do nothing
+		}
+
+		protected override void OnPlaybackEndTimeChanged(object sender, EventArgs e)
+		{
+			//Do nothing
+		}
+
+		protected override void OnPlaybackCurrentTimeChanged(object sender, EventArgs e)
+		{
+			//Do nothing
 		}
 
 		protected override void OnPaint(PaintEventArgs e)
 		{
-			if (samples.Count > 0 && !bw.IsBusy) {
-				e.Graphics.TranslateTransform(-timeToPixels(VisibleTimeStart), 0);
-				float maxSample = Math.Max(Math.Abs(samples.Low), samples.High);
-				int workingHeight = Height - (int) (Height*.1); //Leave a little margin
-				float factor = (float) (workingHeight)/maxSample;
+			if (VisibleTimeStart <= audio.MediaDuration)
+			{
+				if (samples.Count > 0 && !_creatingSamples)
+				{
+					e.Graphics.TranslateTransform(-timeToPixels(VisibleTimeStart), 0);
+					float maxSample = Math.Max(Math.Abs(samples.Low), samples.High);
+					int workingHeight = Height - (int) (Height*.1); //Leave a little margin
+					float factor = workingHeight/maxSample;
 
-				float maxValue = 2*maxSample*factor;
-				float minValue = -maxSample*factor;
-				int start = (int) timeToPixels(VisibleTimeStart);
-				int end = (int) timeToPixels(VisibleTimeEnd);
-
-				for (int x = start; x < end; x += 1) {
-					float lowPercent = ((((float) samples[x].Low*factor) - minValue)/maxValue);
-					float highPercent = ((((float) samples[x].High*factor) - minValue)/maxValue);
-					e.Graphics.DrawLine(Pens.Black, x, workingHeight*lowPercent, x, workingHeight*highPercent);
+					float maxValue = 2*maxSample*factor;
+					float minValue = -maxSample*factor;
+					int start = (int) timeToPixels(VisibleTimeStart);
+					int end = (int) timeToPixels(VisibleTimeEnd <= audio.MediaDuration ? VisibleTimeEnd : audio.MediaDuration);
+					
+					for (int x = start; x < end; x += 1)
+					{
+						float lowPercent = (((samples[x].Low*factor) - minValue)/maxValue);
+						float highPercent = (((samples[x].High*factor) - minValue)/maxValue);
+						e.Graphics.DrawLine(Pens.Black, x, workingHeight*lowPercent, x, workingHeight*highPercent);
+					}
 				}
-			}
-			else {
-				using (Font f = new Font(this.Font.FontFamily, 10f, FontStyle.Regular)) {
-					e.Graphics.DrawString("Building waveform.....", f, Brushes.Black,
-					                      new Point((int) timeToPixels(VisibleTimeStart) + 15,
-					                                (int) (Height - f.GetHeight(e.Graphics))/2),
-					                      new StringFormat {Alignment = StringAlignment.Near});
+				else
+				{
+					using (Font f = new Font(Font.FontFamily, 10f, FontStyle.Regular))
+					{
+						e.Graphics.DrawString("Building waveform.....", f, Brushes.Black,
+							new Point((int) timeToPixels(VisibleTimeStart) + 15,
+								(int) (Height - f.GetHeight(e.Graphics))/2),
+							new StringFormat {Alignment = StringAlignment.Near});
+					}
 				}
 			}
 
@@ -277,6 +301,19 @@ namespace Common.Controls.Timeline
 			{
 				return GetEnumerator();
 			}
+		}
+		protected override void Dispose(bool disposing)
+		{
+			if (audio != null) {
+				audio.Dispose();
+				audio= null;
+			}
+			if (samples != null) {
+				samples.Clear();
+				samples	 = null;
+				//samples = new SampleAggregator();
+			}
+			base.Dispose(disposing);
 		}
 	}
 }

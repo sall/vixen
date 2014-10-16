@@ -18,6 +18,7 @@ namespace BaseSequence
 		private SynchronizationContext _syncContext;
 		private bool _isRunning;
 		private bool _isPaused;
+		private bool _loop;
 
 		public event EventHandler<SequenceStartedEventArgs> SequenceStarted;
 		public event EventHandler<SequenceEventArgs> SequenceEnded;
@@ -69,6 +70,13 @@ namespace BaseSequence
 
 		public void Play(TimeSpan startTime, TimeSpan endTime)
 		{
+			_loop = false;
+			_Play(startTime, endTime);
+		}
+
+		public void PlayLoop(TimeSpan startTime, TimeSpan endTime)
+		{
+			_loop = true;
 			_Play(startTime, endTime);
 		}
 
@@ -152,11 +160,18 @@ namespace BaseSequence
 
 			// Only hook the input stream during execution.
 			// Hook before starting the behaviors.
-			_HookDataListener();
+			//_HookDataListener();
 
 			// Bound the execution range.
 			StartTime = _CoerceStartTime(startTime);
 			EndTime = _CoerceEndTime(endTime);
+			_IsTimedSequence = EndTime >= StartTime; 
+
+			if (StartTime == EndTime)
+			{
+				//We are done before we get started
+				_syncContext.Post(x => _Stop(), null);
+			}
 
 			TimingSource = Sequence.GetTiming() ?? _GetDefaultTimingSource();
 
@@ -170,15 +185,39 @@ namespace BaseSequence
 			// Start the crazy train.
 			IsRunning = true;
 
-			// Fire the first event manually because it takes a while for the timer
-			// to elapse the first time.
-			_CheckForNaturalEnd();
-
-			// If there is no length, we may have been stopped as a cascading result
-			// of that update.
-			if (IsRunning) {
-				_endCheckTimer.Start();
+			while (TimingSource.Position == StartTime)
+			{
+				Thread.Sleep(1); //Give the train a chance to get out of the station.
 			}
+
+			_endCheckTimer.Start();
+
+		}
+
+		private void _loopPlay()
+		{
+
+			TimingSource.Stop();
+			// Stop whatever is driving this crazy train.
+			lock (_endCheckTimer)
+			{
+				_endCheckTimer.Stop();
+			}
+			//Stop running to trigger events to reset the sequence
+			IsRunning = false;
+			//Reset our position. No need to stop the media, we will just reset its position.
+			TimingSource.Position = StartTime;
+			Thread.Sleep(50); //Give everything a chance to stop before we fire it all back up again.
+			//Fire it back up again.
+			IsRunning = true;
+			TimingSource.Start();
+
+			while (TimingSource.Position == StartTime)
+			{
+				Thread.Sleep(1); //Give the train a chance to get out of the station.
+			}
+
+			_endCheckTimer.Start();
 		}
 
 		protected virtual void _HookDataListener()
@@ -209,7 +248,7 @@ namespace BaseSequence
 		protected virtual void _LoadMedia()
 		{
 			var sequenceMedia = Sequence.GetAllMedia();
-			if (sequenceMedia != null && sequenceMedia.Count() > 0)
+            if (sequenceMedia != null && sequenceMedia.Any())
 				foreach (IMediaModuleInstance media in sequenceMedia) {
 					media.LoadMedia(StartTime);
 				}
@@ -218,7 +257,7 @@ namespace BaseSequence
 		protected virtual void _StartMedia()
 		{
 			var sequenceMedia = Sequence.GetAllMedia();
-			if (sequenceMedia != null && sequenceMedia.Count() > 0)
+			if (sequenceMedia != null && sequenceMedia.Any() )
 				foreach (IMediaModuleInstance media in sequenceMedia) {
 					media.Start();
 				}
@@ -227,7 +266,7 @@ namespace BaseSequence
 		protected virtual void _PauseMedia()
 		{
 			var sequenceMedia = Sequence.GetAllMedia();
-			if (sequenceMedia != null && sequenceMedia.Count() > 0)
+            if (sequenceMedia != null && sequenceMedia.Any())
 				foreach (IMediaModuleInstance media in sequenceMedia) {
 					media.Pause();
 				}
@@ -236,7 +275,7 @@ namespace BaseSequence
 		protected virtual void _ResumeMedia()
 		{
 			var sequenceMedia = Sequence.GetAllMedia();
-			if (sequenceMedia != null && sequenceMedia.Count() > 0)
+            if (sequenceMedia != null && sequenceMedia.Any())
 				foreach (IMediaModuleInstance media in sequenceMedia) {
 					media.Resume();
 				}
@@ -245,7 +284,7 @@ namespace BaseSequence
 		protected virtual void _StopMedia()
 		{
 			var sequenceMedia = Sequence.GetAllMedia();
-			if (sequenceMedia != null && sequenceMedia.Count() > 0)
+            if (sequenceMedia != null && sequenceMedia.Any())
 				foreach (IMediaModuleInstance media in sequenceMedia) {
 					media.Stop();
 				}
@@ -292,7 +331,7 @@ namespace BaseSequence
 
 			// Release the hook before the behaviors are shut down so that
 			// they can affect the sequence.
-			_UnhookDataListener();
+			//_UnhookDataListener();
 
 			IsRunning = false;
 			IsPaused = false;
@@ -331,19 +370,25 @@ namespace BaseSequence
 		private void _CheckForNaturalEnd()
 		{
 			if (_IsEndOfSequence()) {
-				_syncContext.Post(x => _Stop(), null);
+				if (_loop)
+				{
+					_syncContext.Post(x => _loopPlay(), null);
+				}
+				else
+				{
+					_syncContext.Post(x => _Stop(), null);	
+				}
+				
 			}
 		}
 
 		private bool _IsEndOfSequence()
 		{
-			return _IsTimedSequence && TimingSource.Position >= EndTime;
+			TimeSpan position = TimingSource.Position;
+			return _IsTimedSequence && (position >= EndTime || position == TimeSpan.Zero);
 		}
 
-		protected bool _IsTimedSequence
-		{
-			get { return EndTime >= StartTime; }
-		}
+		protected bool _IsTimedSequence { get; set; }
 
 		#endregion
 

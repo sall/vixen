@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
@@ -33,37 +33,21 @@
   <PropertyGroup>
     <StartupObject />
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>$(SolutionDir)\Output\Modules\Editor\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <OutputPath>$(SolutionDir)\Release\Modules\Editor\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>$(SolutionDir)\Output\Modules\Editor\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>$(SolutionDir)\Release\Modules\Editor\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>$(SolutionDir)\Release64\Modules\Editor\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
@@ -87,16 +71,81 @@
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+    <Reference Include="WeifenLuo.WinFormsUI.Docking">
+      <HintPath>..\..\..\Common\Libraries\WeifenLuo.WinFormsUI.Docking.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AudacityImportDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AudacityImportDialog.Designer.cs">
+      <DependentUpon>AudacityImportDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="AutomaticMusicDetection.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="AutomaticMusicDetection.Designer.cs">
       <DependentUpon>AutomaticMusicDetection.cs</DependentUpon>
     </Compile>
+    <Compile Include="BulkEffectMoveForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="BulkEffectMoveForm.Designer.cs">
+      <DependentUpon>BulkEffectMoveForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="EffectDistributionDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="EffectDistributionDialog.Designer.cs">
+      <DependentUpon>EffectDistributionDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="BeatMarkExportDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="BeatMarkExportDialog.Designer.cs">
+      <DependentUpon>BeatMarkExportDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ExportDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ExportDialog.Designer.cs">
+      <DependentUpon>ExportDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form_AddMultipleEffects.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_AddMultipleEffects.Designer.cs">
+      <DependentUpon>Form_AddMultipleEffects.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form_Marks.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_Marks.Designer.cs">
+      <DependentUpon>Form_Marks.cs</DependentUpon>
+    </Compile>
     <Compile Include="EffectRasterizer.cs" />
+    <Compile Include="EffectTimeEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="EffectTimeEditor.Designer.cs">
+      <DependentUpon>EffectTimeEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form_Effects.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_Effects.Designer.cs">
+      <DependentUpon>Form_Effects.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form_Grid.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_Grid.Designer.cs">
+      <DependentUpon>Form_Grid.cs</DependentUpon>
+    </Compile>
     <Compile Include="IntentRasterizer.cs" />
+    <Compile Include="PapagayoDoc.cs" />
     <Compile Include="MarkManager.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -120,6 +169,12 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="ColorCollectionLibrary_Form.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ColorCollectionLibrary_Form.Designer.cs">
+      <DependentUpon>ColorCollectionLibrary_Form.cs</DependentUpon>
+    </Compile>
     <Compile Include="TimedSequenceEditor.cs" />
     <Compile Include="TimedSequenceEditorDescriptor.cs" />
     <Compile Include="TimedSequenceEditorEffectEditor.cs">
@@ -141,12 +196,51 @@
     </Compile>
     <Compile Include="TimedSequenceElement.cs" />
     <Compile Include="TimedSequenceRowLabel.cs" />
+    <Compile Include="Form_ToolPalette.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_ToolPalette.Designer.cs">
+      <DependentUpon>Form_ToolPalette.cs</DependentUpon>
+    </Compile>
     <Compile Include="Undo.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <Content Include="Resources\magnet.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="AudacityImportDialog.resx">
+      <DependentUpon>AudacityImportDialog.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="AutomaticMusicDetection.resx">
       <DependentUpon>AutomaticMusicDetection.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="BulkEffectMoveForm.resx">
+      <DependentUpon>BulkEffectMoveForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EffectDistributionDialog.resx">
+      <DependentUpon>EffectDistributionDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="BeatMarkExportDialog.resx">
+      <DependentUpon>BeatMarkExportDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ExportDialog.resx">
+      <DependentUpon>ExportDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_AddMultipleEffects.resx">
+      <DependentUpon>Form_AddMultipleEffects.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_Marks.resx">
+      <DependentUpon>Form_Marks.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EffectTimeEditor.resx">
+      <DependentUpon>EffectTimeEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_Effects.resx">
+      <DependentUpon>Form_Effects.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form_Grid.resx">
+      <DependentUpon>Form_Grid.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MarkManager.resx">
       <DependentUpon>MarkManager.cs</DependentUpon>
@@ -156,6 +250,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ParameterEditor.resx">
       <DependentUpon>ParameterEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ColorCollectionLibrary_Form.resx">
+      <DependentUpon>ColorCollectionLibrary_Form.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="TimedSequenceEditorEffectEditor.resx">
       <DependentUpon>TimedSequenceEditorEffectEditor.cs</DependentUpon>
@@ -167,6 +264,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>TimedSequenceEditorResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <EmbeddedResource Include="Form_ToolPalette.resx">
+      <DependentUpon>Form_ToolPalette.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -174,62 +274,8 @@
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </None>
-    <None Include="Resources\minus-button.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\plus-button.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Edit_RedoHS.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Edit_UndoHS.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\PlayHS.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\StopHS.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\PauseHS.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\saveHS.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\CutHS.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\CopyHS.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\PasteHS.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\DeleteHS.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\ZoomHS.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Zoom_In.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Zoom_Out.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\base_speaker_32.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\pencil_32.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\DataContainer_MoveFirstHS.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\DataContainer_MoveLastHS.png" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Common\BaseSequence\BaseSequence.csproj">
@@ -242,9 +288,34 @@
       <Name>Controls</Name>
       <Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\Common\Resources\Resources.csproj">
+      <Project>{F7A80169-6310-4585-9D58-A6F6F5C5B380}</Project>
+      <Name>Resources</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\App\ColorGradients\ColorGradients.csproj">
+      <Project>{1b189b36-02af-4a57-9e1b-6dc833212725}</Project>
+      <Name>ColorGradients</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\App\Curves\Curves.csproj">
+      <Project>{f0ba7127-61b4-453a-802b-abcb5a0d3d54}</Project>
+      <Name>Curves</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\App\LipSync\LipSyncApp.csproj">
+      <Project>{e3689e21-2204-48b9-8370-d45ee4a23451}</Project>
+      <Name>LipSyncApp</Name>
+      <Private>False</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\App\VirtualEffect\VirtualEffect.csproj">
       <Project>{02072E53-7A01-423C-914E-BF785BA4F5CB}</Project>
       <Name>VirtualEffect</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Effect\LipSync\LipSync.csproj">
+      <Project>{6de9a846-ac25-40b6-b8b2-b306ec9f2569}</Project>
+      <Name>LipSync</Name>
       <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\Media\Audio\Audio.csproj">
@@ -252,17 +323,16 @@
       <Name>Audio</Name>
       <Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\..\Property\Color\Color.csproj">
+      <Project>{73068a83-b3b7-4a2c-923d-71c7886cd5e3}</Project>
+      <Name>Color</Name>
+      <Private>False</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\Sequence\Timed\Timed.csproj">
       <Project>{45E1228A-F714-41D5-BB9B-A776F2B23143}</Project>
       <Name>Timed</Name>
       <Private>False</Private>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\plus-white-icon.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\minus-white-icon.png" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0">

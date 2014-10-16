@@ -29,6 +29,8 @@ namespace VixenModules.EffectEditor.NutcrackerEffectEditor
 		public NutcrackerTypeEditorControl()
 		{
 			InitializeComponent();
+			buttonHelp.Image = new Bitmap(Common.Resources.Properties.Resources.help, new Size(16, 16));
+
 			NutcrackerDataValue = new NutcrackerData();
 		}
 
@@ -65,8 +67,7 @@ namespace VixenModules.EffectEditor.NutcrackerEffectEditor
 				if (displayItem.Shape is PreviewMegaTree) {
 					PreviewMegaTree tree = displayItem.Shape as PreviewMegaTree;
 					for (int stringNum = 0; stringNum < stringCount; stringNum++) {
-						int currentString = stringCount - stringNum - 1;
-						PreviewBaseShape treeString = tree._strings[currentString];
+						PreviewBaseShape treeString = tree._strings[stringNum];
 						for (int pixelNum = 0; pixelNum < treeString.Pixels.Count; pixelNum++)
 						{
 							treeString.Pixels[pixelNum].PixelColor = effect.Pixels[stringNum][pixelNum];
@@ -95,8 +96,10 @@ namespace VixenModules.EffectEditor.NutcrackerEffectEditor
 						line.Pixels[pixelNum].PixelColor = effect.Pixels[0][pixelNum];
 					}
 				}
+
+				preview.RenderInForeground();
 			}
-			preview.RenderInForeground();
+			
 		}
 
 		private void PopulateEffectComboBox()
@@ -118,6 +121,8 @@ namespace VixenModules.EffectEditor.NutcrackerEffectEditor
 			SetCurrentEffect(Data.CurrentEffect);
 			comboBoxEffect.SelectedItem = Data.CurrentEffect.ToString();
 			trackBarSpeed.Value = Data.Speed;
+			radioButtonHorizontal.Checked = (Data.StringOrienation == NutcrackerEffects.StringOrientations.Horizontal);
+			radioButtonVertical.Checked = (Data.StringOrienation == NutcrackerEffects.StringOrientations.Vertical);
 
 			LoadBarsData();
 			LoadButterflyData();
@@ -149,12 +154,13 @@ namespace VixenModules.EffectEditor.NutcrackerEffectEditor
 
 		private void LoadColors()
 		{
-			for (int colorNum = 0; colorNum < effect.Palette.Count(); colorNum++) {
+			for (int colorNum = 0; colorNum < effect.Palette.Colors.Count(); colorNum++) {
 				Color color = effect.Palette.Colors[colorNum];
+				//Console.WriteLine("cnum:" + colorNum + " clr:" + color);
 				CheckBox checkBox =
 					this.Controls.Find("checkBoxColor" + (colorNum + 1).ToString(), true).FirstOrDefault() as CheckBox;
 				Panel colorPanel = this.Controls.Find("panelColor" + (colorNum + 1).ToString(), true).FirstOrDefault() as Panel;
-				checkBox.Checked = true;
+				checkBox.Checked = effect.Palette.ColorsActive[colorNum];
 				colorPanel.BackColor = color;
 			}
 		}
@@ -214,9 +220,11 @@ namespace VixenModules.EffectEditor.NutcrackerEffectEditor
 						childCount++;
 					}
 				}
-				if (childCount == 0 && TargetEffect.TargetNodes.FirstOrDefault().Children.Count() > 0) {
+				if (childCount == 0 && TargetEffect.TargetNodes.FirstOrDefault().Children.Any() ) {
 					childCount = 1;
 				}
+				if (childCount == 0)
+					childCount = 1;
 				return childCount;
 			}
 		}
@@ -229,23 +237,34 @@ namespace VixenModules.EffectEditor.NutcrackerEffectEditor
 
 		private int PixelsPerString(ElementNode parentNode)
 		{
+			//TODO: what would we do if parentNode is null?
 			int pps = 0;
 			int leafCount = 0;
 			int groupCount = 0;
+			// if no groups are children, then return nChildren
+			// otherwise return the size of the first group
+			ElementNode firstGroup = null;
 			foreach (ElementNode node in parentNode.Children) {
 				if (node.IsLeaf) {
 					leafCount++;
 				}
 				else {
 					groupCount++;
+					if (firstGroup == null)
+						firstGroup = node;
 				}
 			}
 			if (groupCount == 0) {
 				pps = leafCount;
 			}
 			else {
-				pps = PixelsPerString(parentNode.Children.FirstOrDefault());
+				// this needs to be called on a group, first might be an element
+				//pps = PixelsPerStringx(parentNode.Children.FirstOrDefault());
+				// this is marginally better but its not clear what to do about further nesting
+				pps = PixelsPerString(firstGroup);
 			}
+			if (pps == 0)
+				pps = 1;
 			return pps;
 		}
 
@@ -259,7 +278,7 @@ namespace VixenModules.EffectEditor.NutcrackerEffectEditor
 			preview.LoadBackground();
 			preview.BackgroundAlpha = 0;
 			displayItem = new DisplayItem();
-			PreviewMegaTree tree = new PreviewMegaTree(new PreviewPoint(10, 10), null);
+			PreviewMegaTree tree = new PreviewMegaTree(new PreviewPoint(10, 10), null, 1);
 			tree.BaseHeight = 25;
 			tree.TopHeight = 1;
 			tree.TopWidth = 1;
@@ -287,7 +306,7 @@ namespace VixenModules.EffectEditor.NutcrackerEffectEditor
 			preview.LoadBackground();
 			preview.BackgroundAlpha = 0;
 			displayItem = new DisplayItem();
-			PreviewArch arch = new PreviewArch(new PreviewPoint(10, 10), null);
+			PreviewArch arch = new PreviewArch(new PreviewPoint(10, 10), null, 1);
 
 			arch.PixelCount = PixelsPerString();
 			arch.PixelSize = Data.PixelSize;
@@ -315,7 +334,7 @@ namespace VixenModules.EffectEditor.NutcrackerEffectEditor
 				p1 = new PreviewPoint(preview.Width/2, preview.Height - 10);
 				p2 = new PreviewPoint(preview.Width/2, 10);
 			}
-			PreviewLine line = new PreviewLine(p1, p2, PixelsPerString(), null);
+			PreviewLine line = new PreviewLine(p1, p2, PixelsPerString(), null, 1);
 
 			line.PixelCount = PixelsPerString();
 			line.PixelSize = Data.PixelSize;
@@ -333,7 +352,7 @@ namespace VixenModules.EffectEditor.NutcrackerEffectEditor
 			preview.LoadBackground();
 			preview.BackgroundAlpha = 0;
 			displayItem = new DisplayItem();
-			PreviewPixelGrid grid = new PreviewPixelGrid(new PreviewPoint(10, 10), null);
+			PreviewPixelGrid grid = new PreviewPixelGrid(new PreviewPoint(10, 10), null, 1);
 			grid.StringType = PreviewBaseShape.StringTypes.Pixel;
 			grid.StringCount = StringCount;
 			grid.LightsPerString = PixelsPerString();
@@ -1069,7 +1088,26 @@ namespace VixenModules.EffectEditor.NutcrackerEffectEditor
 		                                          Common.Controls.ControlsEx.ValueControls.ValueChangedEventArgs e)
 		{
 			Data.PixelSize = scrollPixelSize.Value;
+			// the 2D preview types, when string cnt < 2, can return without setting this
+			if (displayItem == null)
+				return;
 			displayItem.Shape.PixelSize = Data.PixelSize;
+		}
+
+		private void radioButtonVertical_CheckedChanged(object sender, EventArgs e)
+		{
+			if (radioButtonVertical.Checked)
+			{
+				Data.StringOrienation = NutcrackerEffects.StringOrientations.Vertical;
+			}
+		}
+
+		private void radioButtonHorizontal_CheckedChanged(object sender, EventArgs e)
+		{
+			if (radioButtonHorizontal.Checked)
+			{
+				Data.StringOrienation = NutcrackerEffects.StringOrientations.Horizontal;
+			}
 		}
 
 	}

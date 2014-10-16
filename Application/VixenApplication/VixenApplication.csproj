@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
@@ -34,23 +34,23 @@
     <StartupObject>VixenApplication.Program</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>V3.ico</ApplicationIcon>
+    <ApplicationIcon>..\..\Common\Resources\Vixen3.ico</ApplicationIcon>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>$(SolutionDir)\Output\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>$(SolutionDir)\Release\</OutputPath>
+    <DefineConstants>TRACE;AUTOBUILD</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
     <PlatformTarget>x86</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <OutputPath>$(SolutionDir)\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>$(SolutionDir)\Release64\</OutputPath>
+    <DefineConstants>TRACE;AUTOBUILD</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
@@ -60,16 +60,30 @@
       <Name>Vixen</Name>
       <Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\..\Common\Help\VixenHelp.csproj">
+      <Project>{bd12bffc-7039-4c79-aba0-51f99773a916}</Project>
+      <Name>VixenHelp</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Resources\Resources.csproj">
+      <Project>{F7A80169-6310-4585-9D58-A6F6F5C5B380}</Project>
+      <Name>Resources</Name>
+      <Private>False</Private>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualBasic.PowerPacks.Vs, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="ICSharpCode.SharpZipLib">
+      <HintPath>..\..\Common\Libraries\ICSharpCode.SharpZipLib.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="NLog">
       <HintPath>..\..\packages\NLog.2.0.1.2\lib\net40\NLog.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Design" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -91,6 +105,18 @@
     </Compile>
     <Compile Include="DataProfileForm.Designer.cs">
       <DependentUpon>DataProfileForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="DataZipForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DataZipForm.Designer.cs">
+      <DependentUpon>DataZipForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Setup\DisplaySetup.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Setup\DisplaySetup.Designer.cs">
+      <DependentUpon>DisplaySetup.cs</DependentUpon>
     </Compile>
     <Compile Include="FiltersAndPatching\ConfigFiltersAndPatching-Shapes.cs" />
     <Compile Include="FiltersAndPatching\ConfigFiltersAndPatching-Tools.cs" />
@@ -144,6 +170,12 @@
     <Compile Include="InstalledModules.Designer.cs">
       <DependentUpon>InstalledModules.cs</DependentUpon>
     </Compile>
+    <Compile Include="OptionsDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="OptionsDialog.Designer.cs">
+      <DependentUpon>OptionsDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="ProfileItem.cs" />
     <Compile Include="RuleEditorContainer.cs">
       <SubType>Form</SubType>
@@ -156,6 +188,70 @@
     </Compile>
     <Compile Include="SelectProfile.Designer.cs">
       <DependentUpon>SelectProfile.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Setup\ElementTemplates\LipSync.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Setup\ElementTemplates\LipSync.Designer.cs">
+      <DependentUpon>LipSync.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Setup\ElementTemplates\StarBurst.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Setup\ElementTemplates\StarBurst.Designer.cs">
+      <DependentUpon>StarBurst.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Setup\ElementTemplates\Megatree.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Setup\ElementTemplates\Megatree.Designer.cs">
+      <DependentUpon>Megatree.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Setup\ElementTemplates\NumberedGroup.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Setup\ElementTemplates\NumberedGroup.Designer.cs">
+      <DependentUpon>NumberedGroup.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Setup\ElementTemplates\PixelGrid.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Setup\ElementTemplates\PixelGrid.Designer.cs">
+      <DependentUpon>PixelGrid.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Setup\ElementTemplates\SingleItem.cs" />
+    <Compile Include="Setup\ISetupControllersControl.cs" />
+    <Compile Include="Setup\ISetupElementsControl.cs" />
+    <Compile Include="Setup\ISetupPatchingControl.cs" />
+    <Compile Include="Setup\SetupControllersSimple.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Setup\SetupControllersSimple.Designer.cs">
+      <DependentUpon>SetupControllersSimple.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Setup\SetupElementsPreview.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Setup\SetupElementsPreview.Designer.cs">
+      <DependentUpon>SetupElementsPreview.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Setup\SetupElementsTree.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Setup\SetupElementsTree.Designer.cs">
+      <DependentUpon>SetupElementsTree.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Setup\SetupPatchingGraphical.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Setup\SetupPatchingGraphical.Designer.cs">
+      <DependentUpon>SetupPatchingGraphical.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Setup\SetupPatchingSimple.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Setup\SetupPatchingSimple.Designer.cs">
+      <DependentUpon>SetupPatchingSimple.cs</DependentUpon>
     </Compile>
     <Compile Include="VixenApplication.cs">
       <SubType>Form</SubType>
@@ -178,7 +274,6 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VixenApplicationData.cs" />
-    <Compile Include="XMLProfileSettings.cs" />
     <EmbeddedResource Include="ConfigControllersOutputs.resx">
       <DependentUpon>ConfigControllersOutputs.cs</DependentUpon>
     </EmbeddedResource>
@@ -187,6 +282,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="DataProfileForm.resx">
       <DependentUpon>DataProfileForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="DataZipForm.resx">
+      <DependentUpon>DataZipForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Setup\DisplaySetup.resx">
+      <DependentUpon>DisplaySetup.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="EffectParametersForm.resx">
       <DependentUpon>EffectParametersForm.cs</DependentUpon>
@@ -209,11 +310,44 @@
     <EmbeddedResource Include="InstalledModules.resx">
       <DependentUpon>InstalledModules.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="OptionsDialog.resx">
+      <DependentUpon>OptionsDialog.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="RuleEditorContainer.resx">
       <DependentUpon>RuleEditorContainer.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="SelectProfile.resx">
       <DependentUpon>SelectProfile.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Setup\ElementTemplates\LipSync.resx">
+      <DependentUpon>LipSync.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Setup\ElementTemplates\StarBurst.resx">
+      <DependentUpon>StarBurst.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Setup\ElementTemplates\Megatree.resx">
+      <DependentUpon>Megatree.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Setup\ElementTemplates\NumberedGroup.resx">
+      <DependentUpon>NumberedGroup.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Setup\ElementTemplates\PixelGrid.resx">
+      <DependentUpon>PixelGrid.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Setup\SetupControllersSimple.resx">
+      <DependentUpon>SetupControllersSimple.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Setup\SetupElementsPreview.resx">
+      <DependentUpon>SetupElementsPreview.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Setup\SetupElementsTree.resx">
+      <DependentUpon>SetupElementsTree.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Setup\SetupPatchingGraphical.resx">
+      <DependentUpon>SetupPatchingGraphical.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Setup\SetupPatchingSimple.resx">
+      <DependentUpon>SetupPatchingSimple.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="VixenApplication.resx">
       <DependentUpon>VixenApplication.cs</DependentUpon>
@@ -282,7 +416,7 @@
     </ProjectReference>
     <ProjectReference Include="..\..\Common\NShape\Core\NShape.csproj">
       <Project>{9EFE1059-E2DC-4576-B9E3-4AE3F998CB28}</Project>
-      <Name>NShape %28VixenModules\Common\NShape\NShape%29</Name>
+      <Name>NShape</Name>
       <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\Common\NShape\GeneralShapes\NShapeGeneralShapes.csproj">
@@ -306,28 +440,20 @@
     <EmbeddedResource Include="Resources\HandCursor.cur" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\ZoomIn32.png" />
+    <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\ZoomOut32.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\DownArrowShort_Blue_16x16.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\UpArrowShort_Blue_16x16.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Delete.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\add-24.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\delete-24.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="V3.ico" />
+    <Content Include="..\..\Common\Libraries\SciLexer.dll">
+      <Link>SciLexer.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Common\Libraries\SciLexer64.dll">
+      <Link>SciLexer64.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <EmbeddedResource Include="..\..\Common\Resources\Vixen3.ico">
+      <Link>Vixen3.ico</Link>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

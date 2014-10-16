@@ -2,10 +2,14 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Windows.Forms;
+using Common.Resources.Properties;
 using Vixen.Factory;
 using Vixen.Module;
 using Vixen.Module.Preview;
@@ -18,12 +22,12 @@ namespace VixenApplication
 	public partial class ConfigPreviews : Form
 	{
 		private OutputPreview _displayedController;
-		private bool _internal;
 		private bool _changesMade;
 
 		public ConfigPreviews()
 		{
 			InitializeComponent();
+			Icon = Resources.Icon_Vixen3;
 			_displayedController = null;
 		}
 
@@ -125,10 +129,7 @@ namespace VixenApplication
 				item.Checked = oc.IsRunning;
 				item.SubItems.Add(ApplicationServices.GetModuleDescriptor(oc.ModuleId).TypeName);
 				item.Tag = oc;
-				// I'm sorry for this.  Someone know of a better way?
-				_internal = true;
 				listViewControllers.Items.Add(item);
-				_internal = false;
 			}
 
 			listViewControllers.EndUpdate();
@@ -173,7 +174,12 @@ namespace VixenApplication
 			else if (e.NewValue == CheckState.Checked) {
 				if (preview != null && !preview.IsRunning) {
 					VixenSystem.Previews.Start(preview);
-				}
+					//A bit of a kludge, but need a bit of delay to give the preview a chance to load
+					//before we force ourselves back on top.
+					Thread.Sleep(10); 
+					TopMost = true;
+					TopMost = false;
+				}	
 			}
 		}
 

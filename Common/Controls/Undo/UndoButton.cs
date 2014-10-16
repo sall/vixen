@@ -26,6 +26,7 @@ namespace Common.Controls
 			                		MinimumSize = new Size(SetWidth, SetHeight) // <- important
 			                	};
 			m_dropControl.ItemChosen += m_dropControl_ItemChosen;
+			m_dropControl.ButtonType = ButtonType;
 
 			// ...hosted by a ToolStripControlHost
 			m_toolHost = new ToolStripControlHost(m_dropControl)
@@ -43,29 +44,10 @@ namespace Common.Controls
 
 
 			this.DisplayStyle = ToolStripItemDisplayStyle.Image;
-			this.ButtonType = UndoButtonType.UndoButton; // Default.
+			this.BackgroundImageLayout = ImageLayout.Stretch;
 
 			// There is no OnDropDownOpening to override, so I guess we have to do it this way.
 			this.DropDownOpening += UndoButton_DropDownOpening;
-		}
-
-
-		public UndoButtonType ButtonType
-		{
-			get { return m_dropControl.ButtonType; }
-			set
-			{
-				m_dropControl.ButtonType = value;
-				switch (value) {
-					case UndoButtonType.UndoButton:
-						this.Image = Icons.Edit_UndoHS;
-						break;
-
-					case UndoButtonType.RedoButton:
-						this.Image = Icons.Edit_RedoHS;
-						break;
-				}
-			}
 		}
 
 
@@ -92,6 +74,18 @@ namespace Common.Controls
 			add { m_dropControl.ItemChosen += value; }
 			remove { m_dropControl.ItemChosen -= value; }
 		}
+
+		private UndoButtonType buttonType;
+		public UndoButtonType ButtonType {
+			get {
+				return buttonType;
+			}
+			set {
+				buttonType = value;
+				m_dropControl.ButtonType = buttonType;
+			}
+		}
+
 	}
 
 	public enum UndoButtonType

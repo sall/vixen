@@ -1,5 +1,7 @@
-﻿namespace VixenModules.EffectEditor.WipeEditor {
-	partial class WipeEditorControl {
+﻿namespace VixenModules.EffectEditor.WipeEditor
+{
+	partial class WipeEditorControl
+	{
 		/// <summary> 
 		/// Required designer variable.
 		/// </summary>
@@ -9,8 +11,10 @@
 		/// Clean up any resources being used.
 		/// </summary>
 		/// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-		protected override void Dispose(bool disposing) {
-			if (disposing && (components != null)) {
+		protected override void Dispose(bool disposing)
+		{
+			if (disposing && (components != null))
+			{
 				components.Dispose();
 			}
 			base.Dispose(disposing);
@@ -22,10 +26,11 @@
 		/// Required method for Designer support - do not modify 
 		/// the contents of this method with the code editor.
 		/// </summary>
-		private void InitializeComponent() {
+		private void InitializeComponent()
+		{
 			this.components = new System.ComponentModel.Container();
-			VixenModules.App.Curves.Curve curve2 = new VixenModules.App.Curves.Curve();
-			VixenModules.App.ColorGradients.ColorGradient colorGradient2 = new VixenModules.App.ColorGradients.ColorGradient();
+			VixenModules.App.Curves.Curve curve1 = new VixenModules.App.Curves.Curve();
+			VixenModules.App.ColorGradients.ColorGradient colorGradient1 = new VixenModules.App.ColorGradients.ColorGradient();
 			this.groupBoxPulse = new System.Windows.Forms.GroupBox();
 			this.groupBox2 = new System.Windows.Forms.GroupBox();
 			this.radioNumPasses = new System.Windows.Forms.RadioButton();
@@ -44,6 +49,8 @@
 			this.radioWipeDown = new System.Windows.Forms.RadioButton();
 			this.radioWipeUp = new System.Windows.Forms.RadioButton();
 			this.toolTipWipe = new System.Windows.Forms.ToolTip(this.components);
+			this.radioWipeIn = new System.Windows.Forms.RadioButton();
+			this.radioWipeOut = new System.Windows.Forms.RadioButton();
 			this.groupBoxPulse.SuspendLayout();
 			this.groupBox2.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDownPulseWidth)).BeginInit();
@@ -127,9 +134,19 @@
 			// 
 			this.numericUpDownNumPasses.Enabled = false;
 			this.numericUpDownNumPasses.Location = new System.Drawing.Point(123, 53);
+			this.numericUpDownNumPasses.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
 			this.numericUpDownNumPasses.Name = "numericUpDownNumPasses";
 			this.numericUpDownNumPasses.Size = new System.Drawing.Size(48, 20);
 			this.numericUpDownNumPasses.TabIndex = 19;
+			this.numericUpDownNumPasses.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
 			// 
 			// numericUpDownPulseLength
 			// 
@@ -169,11 +186,11 @@
 			// 
 			// curveTypeEditorControlEachPulse
 			// 
-			curve2.IsCurrentLibraryCurve = false;
-			curve2.LibraryReferenceName = "";
-			this.curveTypeEditorControlEachPulse.CurveValue = curve2;
+			curve1.IsCurrentLibraryCurve = false;
+			curve1.LibraryReferenceName = "";
+			this.curveTypeEditorControlEachPulse.CurveValue = curve1;
 			this.curveTypeEditorControlEachPulse.EffectParameterValues = new object[] {
-        ((object)(curve2))};
+        ((object)(curve1))};
 			this.curveTypeEditorControlEachPulse.Location = new System.Drawing.Point(112, 9);
 			this.curveTypeEditorControlEachPulse.Name = "curveTypeEditorControlEachPulse";
 			this.curveTypeEditorControlEachPulse.Size = new System.Drawing.Size(150, 80);
@@ -192,13 +209,13 @@
 			// 
 			// colorGradientTypeEditorControlGradient
 			// 
-			colorGradient2.Gammacorrected = false;
-			colorGradient2.IsCurrentLibraryGradient = false;
-			colorGradient2.LibraryReferenceName = "";
-			colorGradient2.Title = null;
-			this.colorGradientTypeEditorControlGradient.ColorGradientValue = colorGradient2;
+			colorGradient1.Gammacorrected = false;
+			colorGradient1.IsCurrentLibraryGradient = false;
+			colorGradient1.LibraryReferenceName = "";
+			colorGradient1.Title = null;
+			this.colorGradientTypeEditorControlGradient.ColorGradientValue = colorGradient1;
 			this.colorGradientTypeEditorControlGradient.EffectParameterValues = new object[] {
-        ((object)(colorGradient2))};
+        ((object)(colorGradient1))};
 			this.colorGradientTypeEditorControlGradient.Location = new System.Drawing.Point(6, 19);
 			this.colorGradientTypeEditorControlGradient.Name = "colorGradientTypeEditorControlGradient";
 			this.colorGradientTypeEditorControlGradient.Size = new System.Drawing.Size(249, 61);
@@ -207,13 +224,15 @@
 			// 
 			// groupBox1
 			// 
+			this.groupBox1.Controls.Add(this.radioWipeOut);
+			this.groupBox1.Controls.Add(this.radioWipeIn);
 			this.groupBox1.Controls.Add(this.radioWipeLeft);
 			this.groupBox1.Controls.Add(this.radioWipeRight);
 			this.groupBox1.Controls.Add(this.radioWipeDown);
 			this.groupBox1.Controls.Add(this.radioWipeUp);
 			this.groupBox1.Location = new System.Drawing.Point(3, 336);
 			this.groupBox1.Name = "groupBox1";
-			this.groupBox1.Size = new System.Drawing.Size(267, 44);
+			this.groupBox1.Size = new System.Drawing.Size(267, 85);
 			this.groupBox1.TabIndex = 17;
 			this.groupBox1.TabStop = false;
 			this.groupBox1.Text = "Wipe Direction";
@@ -267,6 +286,28 @@
 			// 
 			this.toolTipWipe.ToolTipTitle = "Wipe Configuration";
 			// 
+			// radioWipeIn
+			// 
+			this.radioWipeIn.AutoSize = true;
+			this.radioWipeIn.Location = new System.Drawing.Point(12, 43);
+			this.radioWipeIn.Name = "radioWipeIn";
+			this.radioWipeIn.Size = new System.Drawing.Size(84, 17);
+			this.radioWipeIn.TabIndex = 4;
+			this.radioWipeIn.TabStop = true;
+			this.radioWipeIn.Text = "Burst Inward";
+			this.radioWipeIn.UseVisualStyleBackColor = true;
+			// 
+			// radioWipeOut
+			// 
+			this.radioWipeOut.AutoSize = true;
+			this.radioWipeOut.Location = new System.Drawing.Point(140, 43);
+			this.radioWipeOut.Name = "radioWipeOut";
+			this.radioWipeOut.Size = new System.Drawing.Size(92, 17);
+			this.radioWipeOut.TabIndex = 5;
+			this.radioWipeOut.TabStop = true;
+			this.radioWipeOut.Text = "Burst Outward";
+			this.radioWipeOut.UseVisualStyleBackColor = true;
+			// 
 			// WipeEditorControl
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -275,7 +316,7 @@
 			this.Controls.Add(this.groupBoxColor);
 			this.Controls.Add(this.groupBoxPulse);
 			this.Name = "WipeEditorControl";
-			this.Size = new System.Drawing.Size(277, 394);
+			this.Size = new System.Drawing.Size(277, 441);
 			this.groupBoxPulse.ResumeLayout(false);
 			this.groupBoxPulse.PerformLayout();
 			this.groupBox2.ResumeLayout(false);
@@ -310,5 +351,7 @@
 		private System.Windows.Forms.Label label2;
 		private System.Windows.Forms.NumericUpDown numericUpDownPulseWidth;
 		private System.Windows.Forms.NumericUpDown numericUpDownNumPasses;
+		private System.Windows.Forms.RadioButton radioWipeOut;
+		private System.Windows.Forms.RadioButton radioWipeIn;
 	}
 }

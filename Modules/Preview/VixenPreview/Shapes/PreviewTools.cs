@@ -24,6 +24,65 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 {
 	internal class PreviewTools
 	{
+
+        //AgentFire: Better approach (you can rename the struct if you need):
+        public struct Vector2
+        {
+            public readonly double X;
+            public readonly double Y;
+            public Vector2(Point p)
+                : this(p.X, p.Y)
+            {
+            }
+
+            public Vector2(double x, double y)
+            {
+                this.X = x;
+                this.Y = y;
+            }
+            public static Vector2 operator -(Vector2 a, Vector2 b)
+            {
+                return new Vector2(b.X - a.X, b.Y - a.Y);
+            }
+            public static Vector2 operator +(Vector2 a, Vector2 b)
+            {
+                return new Vector2(b.X + a.X, b.Y + a.Y);
+            }
+            public static Vector2 operator *(Vector2 a, double d)
+            {
+                return new Vector2(a.X * d, a.Y * d);
+            }
+            public static Vector2 operator /(Vector2 a, double d)
+            {
+                return new Vector2(a.X / d, a.Y / d);
+            }
+
+            public static implicit operator Point(Vector2 a)
+            {
+                return new Point((int)a.X, (int)a.Y);
+            }
+
+            public Vector2 UnitVector
+            {
+                get { return this / Length; }
+            }
+
+            public double Length
+            {
+                get
+                {
+                    double aSq = Math.Pow(X, 2);
+                    double bSq = Math.Pow(Y, 2);
+                    return Math.Sqrt(aSq + bSq);
+                }
+            }
+
+            public override string ToString()
+            {
+                return string.Format("[{0}, {1}]", X, Y);
+            }
+        }
+
 		public static System.Object renderLock = new System.Object();
 		public static Color SelectedItemColor = Color.LimeGreen;
 		public static Color HighlightedElementColor = Color.Pink;
@@ -70,7 +129,6 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 			addedNode.Name = channelNode.Id.ToString();
 			addedNode.Text = channelNode.Name;
 			addedNode.Tag = channelNode;
-
 			collection.Add(addedNode);
 
 			foreach (ElementNode childNode in channelNode.Children) {
@@ -129,7 +187,8 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 			double radianIncrement;
 			if (degrees <= 180) {
 				radianIncrement = Math.PI/(numPoints - 1);
-				for (double t = 0; t <= totalRadians; t += radianIncrement) {
+				// watch out for rounding on the fp adds
+				for (double t = 0; t <= totalRadians+radianIncrement/10; t += radianIncrement) {
 					double X = C_x + (Width/2)*Math.Cos(t) + leftOffset;
 					double Y = C_y + (Height/2)*Math.Sin(t) + topOffset;
 					points.Add(new Point((int) X, (int) Y));
@@ -148,7 +207,9 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 				double startRadian = radianOffset;
 				double endRadian = totalRadians + radianOffset;
 				radianIncrement = (Math.PI*2)/totalPoints;
-				for (double t = startRadian; t < endRadian; t += radianIncrement) {
+				// watch out for rounding on the fp adds
+				for (double t = startRadian; t < endRadian + radianIncrement / 10; t += radianIncrement)
+				{
 					double X = (C_x + (Width/2)*Math.Cos(t)) + leftOffset;
 					double Y = (C_y + (Height/2)*Math.Sin(t)) + topOffset;
 					points.Add(new Point((int) X, (int) Y));
@@ -167,7 +228,7 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 			}
 		}
 
-		public static DisplayItem DeSerializeToObject(string st, Type type)
+		public static DisplayItem DeSerializeToDisplayItem(string st, Type type)
 		{
 			var serializer = new DataContractSerializer(type);
 			DisplayItem item = null;
@@ -183,22 +244,46 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 			return item;
 		}
 
-		public static Bitmap ResizeBitmap(Bitmap imgToResize, Size size)
-		{
-			try {
-				Bitmap b = new Bitmap(size.Width, size.Height);
-				using (Graphics g = Graphics.FromImage((Image) b)) {
-					g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+        public static List<DisplayItem> DeSerializeToDisplayItemList(string st)
+        {
+            List<DisplayItem> result = new List<DisplayItem>();
+            var serializer = new DataContractSerializer(result.GetType());
+            using (var backing = new System.IO.StringReader(st))
+            {
+                try
+                {
+                    using (var reader = new System.Xml.XmlTextReader(backing))
+                    {
+                        result = serializer.ReadObject(reader) as List<DisplayItem>;
+                    }
+                }
+                catch
+                {  
+                    // We're not going to do anything. If we get here, the result list should be empty, which is fine.
+                }
+            }
+            return result;
+        }
 
-					g.DrawImage(imgToResize, 0, 0, size.Width, size.Height);
-				}
+        public static Bitmap ResizeBitmap(Bitmap imgToResize, Size size)
+        {
+            try
+            {
+                Bitmap b = new Bitmap(size.Width, size.Height);
+                using (Graphics g = Graphics.FromImage((Image)b))
+                {
+                    g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
 
-				return b;
-			}
-			catch {
-				throw;
-			}
-		}
+                    g.DrawImage(imgToResize, 0, 0, size.Width, size.Height);
+                }
+
+                return b;
+            }
+            catch
+            {
+                throw;
+            }
+        }
  
 		public static Bitmap Copy32BPPBitmapSafe(Bitmap srcBitmap)
 		{
@@ -260,6 +345,11 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 		//    return result;
 		//}
 
+        /// <summary>
+        /// Returns the number of child nodes that do not have children
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
 		public static List<ElementNode> GetLeafNodes(ElementNode node)
 		{
 			List<ElementNode> children = new List<ElementNode>();
@@ -269,6 +359,37 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 			}
 			return children;
 		}
+
+        public static List<ElementNode> GetParentNodes(ElementNode node)
+        {
+            List<ElementNode> children = new List<ElementNode>();
+            foreach (ElementNode child in node.Children)
+            {
+                if (!child.IsLeaf)
+                    children.Add(child);
+            }
+            return children;
+        }
+
+        /// <summary>
+        /// Retruns the number of strings and pixels in an ElementNode
+        /// </summary>
+        public static void CountPixelsAndStrings(ElementNode ParentNode, out int Pixels, out int Strings)
+        {
+            Pixels = 0;
+            Strings = 0;
+            foreach (ElementNode child in ParentNode.Children)
+            {
+                if (child.IsLeaf)
+                {
+                    Pixels++;
+                }
+                else
+                {
+                    Strings++;
+                }
+            }
+        }
 
 		public static string TemplateFolder
 		{
@@ -286,5 +407,22 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 		{
 			return System.IO.Path.Combine(TemplateFolder, templateName);
 		}
+
+        public static Point CalculatePointOnLine(Vector2 a, Vector2 b, int distance)
+        {
+            Vector2 vectorAB = a - b;
+
+            return a + vectorAB.UnitVector * distance;
+        }
+
+        public static double TriangleLeg(double hypotenuseLength, double leg1Length)
+        {
+            return Math.Sqrt(Math.Pow(hypotenuseLength, 2) - Math.Pow(leg1Length, 2));
+        }
+
+        public static double TriangleHypotenuse(double leg1Length, double leg2Length)
+        {
+            return Math.Sqrt(Math.Pow(Math.Abs(leg1Length), 2) + Math.Pow(Math.Abs(leg2Length), 2));
+        }
 	}
 }

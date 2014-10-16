@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
+using System.Threading;
 using Vixen.Data.Value;
 using Vixen.Intent;
 using Vixen.Module;
@@ -17,46 +19,65 @@ using ZedGraph;
 
 namespace VixenModules.Effect.Alternating
 {
+	 
 	public class Alternating : EffectModuleInstanceBase
 	{
 		private AlternatingData _data;
 		private EffectIntents _elementData = null;
-		private Element element;
 		public Alternating()
 		{
 			_data = new AlternatingData();
 		}
 
-		protected override void _PreRender()
+		protected override void TargetNodesChanged()
 		{
-			_elementData = new EffectIntents();
-
-			CheckForNullData();
-
-			foreach (ElementNode node in TargetNodes) {
-				if (node != null)
-					RenderNode(node);
-			}
+			CheckForInvalidColorData();
 		}
 
-		private void CheckForNullData()
+		protected override void _PreRender(CancellationTokenSource cancellationToken = null)
+		{
+			_elementData = new EffectIntents();
+			
+			var targetNodes = TargetNodes.AsParallel();
+			
+			if (cancellationToken != null)
+				targetNodes = targetNodes.WithCancellation(cancellationToken.Token);
+			
+			targetNodes.ForAll(node => {
+				if (node != null)
+				RenderNode(node);
+			});
+	 
+			 
+		}
+
+		//Validate that the we are using valid colors and set appropriate defaults if not.
+		private void CheckForInvalidColorData()
 		{
 			// check for sane default colors when first rendering it
-			//As we have RGB underlying we have to check for Black/Empty at the RGB level. Simple empty check does not work.
-			if (_data.Color1.ToArgb().ToArgb() == Color.Black.ToArgb() || _data.Color2.ToArgb().ToArgb() == Color.Black.ToArgb() ||
-				_data.ColorGradient1 == null || _data.ColorGradient2 == null) {
-				HashSet<Color> validColors = new HashSet<Color>();
-				validColors.AddRange(TargetNodes.SelectMany(x => ColorModule.getValidColorsForElementNode(x, true)));
-				Color1 = validColors.DefaultIfEmpty(Color.White).First();
-				ColorGradient1 = new ColorGradient(validColors.DefaultIfEmpty(Color.White).First());
+			HashSet<Color> validColors = new HashSet<Color>();
+			validColors.AddRange(TargetNodes.SelectMany(x => ColorModule.getValidColorsForElementNode(x, true)));
+	
+			//Validate Color 1
+			if (validColors.Any() && 
+				(!validColors.Contains(_data.Color1.ToArgb()) || !_data.ColorGradient1.GetColorsInGradient().IsSubsetOf(validColors)))
+			{
+				Color1 = validColors.First();
+				ColorGradient1 = new ColorGradient(validColors.First());
+			}
 
-				if (validColors.Count > 1) {
+			//Validate color 2
+			if (validColors.Any() &&
+				(!validColors.Contains(_data.Color2.ToArgb()) || !_data.ColorGradient2.GetColorsInGradient().IsSubsetOf(validColors)))
+			{
+				if (validColors.Count > 1)
+				{
 					Color2 = validColors.ElementAt(1);
 					ColorGradient2 = new ColorGradient(validColors.ElementAt(1));
-				}
-				else {
-					Color2 = validColors.DefaultIfEmpty(Color.Red).First();
-					ColorGradient2 = new ColorGradient(validColors.DefaultIfEmpty(Color.Red).First());
+				} else
+				{
+					Color2 = validColors.First();
+					ColorGradient2 = new ColorGradient(validColors.First());
 				}
 			}
 		}
@@ -88,7 +109,6 @@ namespace VixenModules.Effect.Alternating
 		{
 			get
 			{
-				CheckForNullData();
 				return _data.Color1;
 			}
 			set
@@ -114,7 +134,6 @@ namespace VixenModules.Effect.Alternating
 		{
 			get
 			{
-				CheckForNullData();
 				return _data.Color2;
 			}
 			set
@@ -195,7 +214,6 @@ namespace VixenModules.Effect.Alternating
 		{
 			get
 			{
-				CheckForNullData();
 				return _data.ColorGradient1;
 			}
 			set
@@ -210,7 +228,6 @@ namespace VixenModules.Effect.Alternating
 		{
 			get
 			{
-				CheckForNullData();
 				return _data.ColorGradient2;
 			}
 			set
@@ -242,11 +259,39 @@ namespace VixenModules.Effect.Alternating
 			}
 		}
 
+		public override bool IsDirty
+		{
+			get
+			{
+				if (!Curve1.CheckLibraryReference())
+				{
+					base.IsDirty = true;
+				}
+
+				if (!Curve2.CheckLibraryReference())
+				{
+					base.IsDirty = true;
+				}
+
+				if (!ColorGradient1.CheckLibraryReference())
+				{
+					base.IsDirty = true;
+				}
+
+				if (!ColorGradient2.CheckLibraryReference())
+				{
+					base.IsDirty = true;
+				}
+
+				return base.IsDirty;
+			}
+			protected set { base.IsDirty = value; }
+		}
+
 		// renders the given node to the internal ElementData dictionary. If the given node is
 		// not a element, will recursively descend until we render its elements.
 		private void RenderNode(ElementNode node)
 		{
-			bool altColor = false;
 			bool startingColor = false;
 			double intervals = 1;
 			 
@@ -258,12 +303,10 @@ namespace VixenModules.Effect.Alternating
 			TimeSpan startTime = TimeSpan.Zero;
 		 
 			for (int i = 0; i < intervals; i++) {
-				altColor = startingColor;
+				bool altColor = startingColor;
 				var intervalTime = intervals == 1
 									? TimeSpan
 									: TimeSpan.FromMilliseconds(Interval);
-
-				LightingValue? lightingValue = null;
 
 				int totalElements = node.Count();
 				int currentNode = 0;
@@ -276,11 +319,11 @@ namespace VixenModules.Effect.Alternating
 
 					currentNode += GroupEffect;
 
-					int cNode = 0;
-					elements.ToList().ForEach(element => {
-						RenderElement(altColor, ref startTime, ref intervalTime, ref lightingValue, element);
-						cNode++;
-					});
+					foreach (var element in elements)
+					{
+						RenderElement(altColor, ref startTime, ref intervalTime, element);	
+					}
+
 					altColor = !altColor;
 				}
 
@@ -290,8 +333,7 @@ namespace VixenModules.Effect.Alternating
 			}
 		}
 
-		private void RenderElement(bool altColor, ref TimeSpan startTime, ref System.TimeSpan intervalTime,
-								   ref LightingValue? lightingValue, ElementNode element)
+		private void RenderElement(bool altColor, ref TimeSpan startTime, ref TimeSpan intervalTime, ElementNode element)
 		{
 			EffectIntents result;
 
@@ -301,7 +343,7 @@ namespace VixenModules.Effect.Alternating
 				level.TargetNodes = new ElementNode[] { element };
 				level.Color = altColor ? Color1 : Color2;
 				level.TimeSpan = intervalTime;
-				
+				level.IntensityLevel = altColor ? IntensityLevel1 : IntensityLevel2;
 				result = level.Render();
 
 			} else {

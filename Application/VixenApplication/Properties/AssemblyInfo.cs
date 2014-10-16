@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Vixen")]
 [assembly: AssemblyProduct("Vixen")]
-[assembly: AssemblyCopyright("Copyright © K.C. Oaks 2005-2013")]
+[assembly: AssemblyCopyright("Copyright Â© K.C. Oaks 2005-2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -36,5 +36,5 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 
-[assembly: AssemblyVersion("3.0.8.5")]
-[assembly: AssemblyFileVersion("3.0.8.5")]
+[assembly: AssemblyVersion("3.0.0.0")]
+[assembly: AssemblyFileVersion("3.0.0.0")]

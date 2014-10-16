@@ -11,6 +11,7 @@ namespace Vixen.Execution.Context
 		private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
 		private ElementStateSourceCollection _elementStates;
 		private IContextCurrentEffects _currentEffects;
+		private HashSet<Guid> _affectedElements;
 		private IntentStateBuilder _elementStateBuilder;
 		private bool _disposed;
 
@@ -65,7 +66,6 @@ namespace Vixen.Execution.Context
 		{
 			if (IsRunning) {
 				_OnStop();
-				_ResetElementStates();
 				IsPaused = false;
 				IsRunning = false;
 			}
@@ -82,16 +82,14 @@ namespace Vixen.Execution.Context
 			return (_SequenceTiming != null) ? _SequenceTiming.Position : TimeSpan.Zero;
 		}
 
-		public IEnumerable<Guid> UpdateElementStates(TimeSpan currentTime)
+		public HashSet<Guid> UpdateElementStates(TimeSpan currentTime)
 		{
-			Guid[] affectedElements = null;
-
 			if (IsRunning && !IsPaused) {
-				affectedElements = _UpdateCurrentEffectList(currentTime);
-				_RepopulateElementBuffer(currentTime, affectedElements);
+				_affectedElements = _UpdateCurrentEffectList(currentTime);
+				_RepopulateElementBuffer(currentTime, _affectedElements);
 			}
 
-			return affectedElements;
+			return _affectedElements;
 		}
 
 		public IStateSource<IIntentStates> GetState(Guid key)
@@ -99,7 +97,7 @@ namespace Vixen.Execution.Context
 			return _elementStates.GetState(key);
 		}
 
-		private Guid[] _UpdateCurrentEffectList(TimeSpan currentTime)
+		private HashSet<Guid> _UpdateCurrentEffectList(TimeSpan currentTime)
 		{
 			// We have an object that does this for us.
 			return _currentEffects.UpdateCurrentEffects(_DataSource, currentTime);
@@ -114,7 +112,9 @@ namespace Vixen.Execution.Context
 
 		private void _DiscoverIntentsFromCurrentEffects(TimeSpan currentTime, IntentDiscoveryAction intentDiscoveryAction)
 		{
-			_DiscoverIntentsFromEffects(currentTime, _currentEffects, intentDiscoveryAction);
+			lock (_currentEffects) {
+				_DiscoverIntentsFromEffects(currentTime, _currentEffects, intentDiscoveryAction);
+			}
 		}
 
 		private void _DiscoverIntentsFromEffects(TimeSpan currentTime, IEnumerable<IEffectNode> effects,
@@ -161,9 +161,11 @@ namespace Vixen.Execution.Context
 
 		private void _ResetElementStates()
 		{
-			_currentEffects.Reset();
-			_InitializeElementStateBuilder();
-			_LatchElementStatesFromBuilder(_elementStates.ElementsInCollection);
+			lock (_currentEffects) {
+				_currentEffects.Reset();
+				_InitializeElementStateBuilder();
+				_LatchElementStatesFromBuilder(_elementStates.ElementsInCollection);
+			}
 		}
 
 		protected abstract IDataSource _DataSource { get; }
@@ -195,6 +197,7 @@ namespace Vixen.Execution.Context
 
 		protected virtual void OnContextEnded(EventArgs e)
 		{
+			_ResetElementStates();
 			if (ContextEnded != null) {
 				ContextEnded(this, e);
 			}

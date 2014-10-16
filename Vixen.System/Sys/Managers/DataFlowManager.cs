@@ -7,7 +7,10 @@ namespace Vixen.Sys.Managers
 {
 	public class DataFlowManager : IEnumerable<DataFlowPatch>
 	{
+		private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
+
 		private Dictionary<Guid, IDataFlowComponent> _componentLookup;
+		private Dictionary<IDataFlowComponent, List<IDataFlowComponent>> _componentDestinations;
 
 		public event EventHandler<DataFlowComponentEventArgs> ComponentSourceChanged;
 		public event EventHandler<DataFlowComponentEventArgs> ComponentAdded;
@@ -16,6 +19,7 @@ namespace Vixen.Sys.Managers
 		public DataFlowManager()
 		{
 			_componentLookup = new Dictionary<Guid, IDataFlowComponent>();
+			_componentDestinations = new Dictionary<IDataFlowComponent, List<IDataFlowComponent>>();
 		}
 
 		public void Initialize(IEnumerable<DataFlowPatch> dataFlowPatches)
@@ -35,9 +39,20 @@ namespace Vixen.Sys.Managers
 			return _componentLookup.Values;
 		}
 
-		public IEnumerable<IDataFlowComponent> GetChildren(IDataFlowComponent component)
+		public IEnumerable<IDataFlowComponent> GetDestinationsOfComponent(IDataFlowComponent component)
 		{
-			return _componentLookup.Values.Where(x => x.Source != null && Equals(x.Source.Component, component));
+			if (_componentDestinations.ContainsKey(component)) {
+				return _componentDestinations[component];
+			}
+			return Enumerable.Empty<IDataFlowComponent>();
+		}
+
+		public IEnumerable<IDataFlowComponent> GetDestinationsOfComponentOutput(IDataFlowComponent component, int outputIndex)
+		{
+			if (_componentDestinations.ContainsKey(component)) {
+				return _componentDestinations[component].Where(x => x.Source.OutputIndex == outputIndex);
+			}
+			return Enumerable.Empty<IDataFlowComponent>();
 		}
 
 		public IDataFlowComponent GetComponent(Guid? id)
@@ -116,6 +131,7 @@ namespace Vixen.Sys.Managers
 		private void _RemoveComponent(IDataFlowComponent component)
 		{
 			_RemoveAsSource(component);
+			_RemoveComponentSource(component);
 
 			_componentLookup.Remove(component.DataFlowComponentId);
 
@@ -124,16 +140,31 @@ namespace Vixen.Sys.Managers
 
 		private void _RemoveAsSource(IDataFlowComponent component)
 		{
-			IEnumerable<IDataFlowComponent> childComponents =
-				_componentLookup.Values.Where(x => x.Source != null && Equals(x.Source.Component, component));
-			foreach (IDataFlowComponent childComponent in childComponents) {
-				_RemoveComponentSource(childComponent);
+			List<IDataFlowComponent> childComponents;
+			_componentDestinations.TryGetValue(component, out childComponents);
+			if (childComponents != null) {
+				foreach (IDataFlowComponent childComponent in childComponents.ToArray()) {
+					_RemoveComponentSource(childComponent);
+				}
 			}
 		}
 
 		private void _RemoveComponentSource(IDataFlowComponent component)
 		{
 			if (component.Source == null) return;
+
+			IDataFlowComponent parent = component.Source.Component;
+			List<IDataFlowComponent> children = null;
+			_componentDestinations.TryGetValue(parent, out children);
+
+			if (children == null) {
+				Logging.Error("removing the source from a data flow component, but it's not already a child of the source!");
+			} else {
+				children.Remove(component);
+				if (children.Count == 0) {
+					_componentDestinations.Remove(parent);
+				}
+			}
 
 			_SetComponentSource(component, null);
 		}
@@ -164,6 +195,14 @@ namespace Vixen.Sys.Managers
 
 			component.Source = source;
 
+			if (source != null) {
+				// add the reverse reference (if we're not clearing it) -- track a data component's destinations, to make it easier to find later.
+				if (!_componentDestinations.ContainsKey(source.Component)) {
+					_componentDestinations[source.Component] = new List<IDataFlowComponent>();
+				}
+				_componentDestinations[source.Component].Add(component);
+			}
+
 			OnComponentSourceChanged(component);
 		}
 
@@ -190,7 +229,7 @@ namespace Vixen.Sys.Managers
 
 		public IEnumerator<DataFlowPatch> GetEnumerator()
 		{
-			return _componentLookup.Values.SelectMany(GetChildren).Select(x => new DataFlowPatch(x)).GetEnumerator();
+			return _componentLookup.Values.SelectMany(GetDestinationsOfComponent).Select(x => new DataFlowPatch(x)).GetEnumerator();
 		}
 
 		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()

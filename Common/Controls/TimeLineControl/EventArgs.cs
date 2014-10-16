@@ -19,6 +19,36 @@ namespace Common.Controls.Timeline
 		public Element Element { get; private set; }
 	}
 
+	public class DrawElementEventArgs: EventArgs
+	{
+		public DrawElementEventArgs(Guid guid, List<Row> rows, TimeSpan mouseDownTime, TimeSpan mouseUpTime)	
+		{
+			Guid = guid;
+			Rows = rows;
+			MouseDownTime = mouseDownTime;
+			MouseUpTime = mouseUpTime;
+		}
+
+		public Guid Guid { get; private set; }
+		public List<Row> Rows { get; set; }
+		private TimeSpan MouseDownTime { get; set; }
+		private TimeSpan MouseUpTime { get; set; }
+		public TimeSpan StartTime
+		{
+			get
+			{
+				return (MouseUpTime < MouseDownTime ? MouseUpTime : MouseDownTime);
+			}
+		}
+		public TimeSpan Duration
+		{
+			get
+			{
+				return (MouseUpTime > MouseDownTime ? MouseUpTime - MouseDownTime : MouseDownTime - MouseUpTime);
+			}
+		}
+	}
+
 
 	public class MultiElementEventArgs : EventArgs
 	{
@@ -96,6 +126,21 @@ namespace Common.Controls.Timeline
 		public IDataObject Data { get; private set; }
 	}
 
+	public class ToolDropEventArgs : TimelineEventArgs
+	{
+		//Wouldn't compile untill I added row and time, not needed but...
+		public ToolDropEventArgs(Row row, TimeSpan time, Element elem, IDataObject data, MouseButtons mouseButton)
+			: base(row, time)
+		{
+			Element = elem;
+			Data = data;
+			MouseButton = mouseButton;
+		}
+
+		public IDataObject Data { get; private set; }
+		public Element Element { get; private set; }
+		public MouseButtons MouseButton { get; private set; }
+	}
 
 	public class ElementsChangedTimesEventArgs : EventArgs
 	{
@@ -125,6 +170,22 @@ namespace Common.Controls.Timeline
 
 		public IEnumerable<Element> ElementsUnderCursor { get; private set; }
 		public bool AutomaticallyHandleSelection { get; set; }
+	}
+
+	public class ContextSelectedEventArgs : EventArgs
+	{
+		public ContextSelectedEventArgs(IEnumerable<Element> elements, TimeSpan gridTime, Row row)
+		{
+			ElementsUnderCursor = elements;
+			GridTime = gridTime;
+			Row = row;
+			AutomaticallyHandleSelection = true;
+		}
+
+		public IEnumerable<Element> ElementsUnderCursor { get; private set; }
+		public bool AutomaticallyHandleSelection { get; set; }
+		public TimeSpan GridTime { get; set; }
+		public Row Row { get; set; }
 	}
 
 	public class RenderElementEventArgs : EventArgs

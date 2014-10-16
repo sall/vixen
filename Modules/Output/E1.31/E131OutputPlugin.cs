@@ -60,6 +60,7 @@ namespace VixenModules.Controller.E131
     using VixenModules.Controller.E131.J1Sys;
     using VixenModules.Output.E131;
     using System.Linq;
+    using Vixen.Sys;
     // -----------------------------------------------------------------
     // 
     // OutputPlugin - the output plugin class for vixen
@@ -133,6 +134,13 @@ namespace VixenModules.Controller.E131
             {
                 if (!E131OutputPlugin.EmployedUniverses.Contains(u.Universe))
                     E131OutputPlugin.EmployedUniverses.Add(u.Universe);
+                if (u.Unicast != null)
+                {
+                    if (!unicasts.ContainsKey(u.Unicast))
+                    {
+                        unicasts.Add(u.Unicast, 0);
+                    }
+                }
             });
         }
 
@@ -172,12 +180,11 @@ namespace VixenModules.Controller.E131
                     initialUniverseList.Add(uE.Universe);
                 }
 
-
-
                 setupForm.WarningsOption = _data.Warnings;
                 setupForm.StatisticsOption = _data.Statistics;
-                setupForm.EventRepeatCount = _data.EventRepeatCount;
-
+				setupForm.EventRepeatCount = _data.EventRepeatCount;
+				setupForm.EventSuppressCount = _data.EventSuppressCount;
+                setupForm.Text = (new E131ModuleDescriptor()).TypeName + " Controller Setup - " + VixenSystem.OutputControllers.Single(controller => controller.ModuleInstanceId == _data.ModuleInstanceId).Name;
 
                 if (setupForm.ShowDialog() == DialogResult.OK)
                 {
@@ -185,7 +192,8 @@ namespace VixenModules.Controller.E131
 
                     _data.Warnings = setupForm.WarningsOption;
                     _data.Statistics = setupForm.StatisticsOption;
-                    _data.EventRepeatCount = setupForm.EventRepeatCount;
+					_data.EventRepeatCount = setupForm.EventRepeatCount;
+					_data.EventSuppressCount = setupForm.EventSuppressCount;
                     _data.Universes.Clear();
 
                     initialUniverseList.ForEach(u => E131OutputPlugin.EmployedUniverses.RemoveAll(t => u == t));
@@ -225,6 +233,7 @@ namespace VixenModules.Controller.E131
         }
 
         internal static List<int> EmployedUniverses = new List<int>();
+        internal static SortedList<string, int> unicasts = new SortedList<string, int>();
 
         public override bool HasSetup
         {
@@ -281,7 +290,7 @@ namespace VixenModules.Controller.E131
                     this._messageTexts.AppendLine();
                 }
 
-                this._messageTexts.AppendLine("Events: " + this._eventCnt);
+                this._messageTexts.AppendLine(string.Format("Events: {0}", this._eventCnt));
                 this._messageTexts.AppendLine(string.Format("Total Time: {0} Ticks; {1} ms", this._totalTicks, TimeSpan.FromTicks(this._totalTicks).Milliseconds));
 
                 foreach (var uE in _data.Universes)
@@ -302,7 +311,8 @@ namespace VixenModules.Controller.E131
             }
 
             // this._universeTable.Clear();
-            this._nicTable.Clear();
+            if (this._nicTable != null) this._nicTable.Clear();
+            this._nicTable = new  SortedList<string, NetworkInterface>();  
         }
 
         // -------------------------------------------------------------
@@ -380,97 +390,101 @@ namespace VixenModules.Controller.E131
                     }
 
                     // if it's multicast roll up your sleeves we've got work to do
-                    if (uE.Multicast != null)
-                    {
-                        // create an ipaddress object based on multicast universe ip rules
-                        var multicastIpAddress =
-                            new IPAddress(new byte[] { 239, 255, (byte)(uE.Universe >> 8), (byte)(uE.Universe & 0xff) });
+					else if (uE.Multicast != null)
+					{
+						// create an ipaddress object based on multicast universe ip rules
+						var multicastIpAddress =
+							new IPAddress(new byte[] { 239, 255, (byte)(uE.Universe >> 8), (byte)(uE.Universe & 0xff) });
 
-                        // create an ipendpoint object based on multicast universe ip/port rules
-                        var multicastIpEndPoint = new IPEndPoint(multicastIpAddress, 5568);
+						// create an ipendpoint object based on multicast universe ip/port rules
+						var multicastIpEndPoint = new IPEndPoint(multicastIpAddress, 5568);
 
-                        // first check for multicast id in nictable
-                        if (!this._nicTable.ContainsKey(uE.Multicast))
-                        {
-                            // no - deactivate and scream & yell!!
-                            uE.Active = false;
-                            this._messageTexts.AppendLine(string.Format("Invalid Multicast NIC ID: {0} - {1}", uE.Multicast, uE.RowUnivToText));
-                        }
-                        else
-                        {
-                            // yes - let's get a working networkinterface object
-                            networkInterface = this._nicTable[uE.Multicast];
+						// first check for multicast id in nictable
+						if (!this._nicTable.ContainsKey(uE.Multicast))
+						{
+							// no - deactivate and scream & yell!!
+							uE.Active = false;
+							this._messageTexts.AppendLine(string.Format("Invalid Multicast NIC ID: {0} - {1}", uE.Multicast, uE.RowUnivToText));
+						}
+						else
+						{
+							// yes - let's get a working networkinterface object
+							networkInterface = this._nicTable[uE.Multicast];
 
-                            // have we done this multicast id before?
-                            if (nicSockets.ContainsKey(uE.Multicast))
-                            {
-                                // yes - easy to do - use existing socket
-                                uE.Socket = nicSockets[uE.Multicast];
+							// have we done this multicast id before?
+							if (nicSockets.ContainsKey(uE.Multicast))
+							{
+								// yes - easy to do - use existing socket
+								uE.Socket = nicSockets[uE.Multicast];
 
-                                // setup destipendpoint based on multicast universe ip rules
-                                uE.DestIpEndPoint = multicastIpEndPoint;
-                            }
-                            // is the interface up?
-                            else if (networkInterface.OperationalStatus != OperationalStatus.Up)
-                            {
-                                // no - deactivate and scream & yell!!
-                                uE.Active = false;
-                                this._messageTexts.AppendLine(
-                                    "Multicast Interface Down: " + networkInterface.Name + " - " + uE.RowUnivToText);
-                            }
-                            else
-                            {
-                                // new interface in 'up' status - let's make a new udp socket
-                                uE.Socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+								// setup destipendpoint based on multicast universe ip rules
+								uE.DestIpEndPoint = multicastIpEndPoint;
+							}
+							// is the interface up?
+							else if (networkInterface.OperationalStatus != OperationalStatus.Up)
+							{
+								// no - deactivate and scream & yell!!
+								uE.Active = false;
+								this._messageTexts.AppendLine(string.Format("Multicast Interface Down: {0} - {1}", networkInterface.Name , uE.RowUnivToText));
+							}
+							else
+							{
+								// new interface in 'up' status - let's make a new udp socket
+								uE.Socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
-                                // get a working copy of ipproperties
-                                IPInterfaceProperties ipProperties = networkInterface.GetIPProperties();
+								// get a working copy of ipproperties
+								IPInterfaceProperties ipProperties = networkInterface.GetIPProperties();
 
-                                // get a working copy of all unicasts
-                                UnicastIPAddressInformationCollection unicasts = ipProperties.UnicastAddresses;
+								// get a working copy of all unicasts
+								UnicastIPAddressInformationCollection unicasts = ipProperties.UnicastAddresses;
 
 
-                                ipAddress = null;
+								ipAddress = null;
 
-                                foreach (var unicast in unicasts)
-                                {
-                                    if (unicast.Address.AddressFamily == AddressFamily.InterNetwork)
-                                    {
-                                        ipAddress = unicast.Address;
-                                    }
-                                }
+								foreach (var unicast in unicasts)
+								{
+									if (unicast.Address.AddressFamily == AddressFamily.InterNetwork)
+									{
+										ipAddress = unicast.Address;
+									}
+								}
 
-                                if (ipAddress == null)
-                                {
-                                    this._messageTexts.AppendLine(
-                                        "No IP On Multicast Interface: " + networkInterface.Name + " - " + uE.InfoToText);
-                                }
-                                else
-                                {
-                                    // set the multicastinterface option
-                                    uE.Socket.SetSocketOption(
-                                        SocketOptionLevel.IP,
-                                        SocketOptionName.MulticastInterface,
-                                        ipAddress.GetAddressBytes());
+								if (ipAddress == null)
+								{
+									this._messageTexts.AppendLine(string.Format("No IP On Multicast Interface: {0} - {1}" , networkInterface.Name , uE.InfoToText));
+								}
+								else
+								{
+									// set the multicastinterface option
+									uE.Socket.SetSocketOption(
+										SocketOptionLevel.IP,
+										SocketOptionName.MulticastInterface,
+										ipAddress.GetAddressBytes());
 
-                                    // set the multicasttimetolive option
-                                    uE.Socket.SetSocketOption(
-                                        SocketOptionLevel.IP, SocketOptionName.MulticastTimeToLive, uE.Ttl);
+									// set the multicasttimetolive option
+									uE.Socket.SetSocketOption(
+										SocketOptionLevel.IP, SocketOptionName.MulticastTimeToLive, uE.Ttl);
 
-                                    // setup destipendpoint based on multicast universe ip rules
-                                    uE.DestIpEndPoint = multicastIpEndPoint;
+									// setup destipendpoint based on multicast universe ip rules
+									uE.DestIpEndPoint = multicastIpEndPoint;
 
-                                    // add this socket to the socket table for reuse
-                                    nicSockets.Add(uE.Multicast, uE.Socket);
-                                }
-                            }
-                        }
-                    }
+									// add this socket to the socket table for reuse
+									nicSockets.Add(uE.Multicast, uE.Socket);
+								}
+							}
+						}
+					}
+					else
+					{
+						throw new System.Exception("no uni or multi cast");
+					}
 
                     // if still active we need to create an empty packet
                     if (uE.Active)
                     {
                         var zeroBfr = new byte[uE.Size];
+						for (int i = 0; i < uE.Size; i++)  // init to unlikely value for later compares
+							zeroBfr[i] = (byte)i;
                         var e131Packet = new E131Packet(_data.ModuleInstanceId, string.Empty, 0, (ushort)uE.Universe, zeroBfr, 0, uE.Size);
                         uE.PhyBuffer = e131Packet.PhyBuffer;
                     }
@@ -513,7 +527,6 @@ namespace VixenModules.Controller.E131
         public override void UpdateState(int chainIndex, ICommand[] outputStates)
         {
             UpdateState(chainIndex, outputStates.ToChannelValuesAsBytes());
-
         }
 
 
@@ -529,20 +542,23 @@ namespace VixenModules.Controller.E131
             }
             DateTime lastUpdate;
 
+			// no longer used, but I'm leaving it just in case we need it later...
+			/*
             if (channelValues.Where(w => w == 0).Count() == channelValues.Length)
             {
-
                 if (outputStateDictionary.TryGetValue(chainIndex, out lastUpdate))
                 {
+					if( DateTime.Now - lastUpdate < TimeSpan.FromSeconds(1))
                     return;
                 }
-                else
-                    outputStateDictionary[chainIndex] = DateTime.Now;
+                outputStateDictionary[chainIndex] = DateTime.Now;
             }
             else
             {
                 outputStateDictionary.TryRemove(chainIndex, out lastUpdate);
             }
+			*/
+
             int universeSize = 0;
 
             this._eventCnt++;
@@ -554,53 +570,68 @@ namespace VixenModules.Controller.E131
 
             foreach (var uE in _data.Universes)
             {
+                //Not sure why phybuf can be null, but the plugin will crash after being reconfigured otherwise.
+                if( uE.PhyBuffer == null)
+					continue;
+
                 //Check if the universe is active and inside a valid channel range
-                if (uE.Active && (uE.Start + 1) <= OutputCount)
+                if ( !uE.Active || uE.Start >= OutputCount)
+					continue;
+
+                //Check the universe size boundary.
+                if ((uE.Start + uE.Size) > OutputCount)
                 {
-                    //Check the universe size boundary.
-                    if ((uE.Start + 1 + uE.Size) > OutputCount)
-                    {
-                        universeSize = OutputCount - uE.Start - 1;
-                    }
-                    else
-                    {
-                        universeSize = uE.Size;
-                    }
+                    universeSize = OutputCount - uE.Start;
+                }
+                else
+                {
+                    universeSize = uE.Size;
+                }
 
+                // Reduce duplicate packets... 
+				// -the data. counts are the targets
+				// -the uE. counts are how many have happened
 
-                    //Reduce duplicate packets
-                    //SeqNumbers are per universe so that they can run independently
-                    if (_data.EventRepeatCount > 0)
-                    {
-                        if (uE.EventRepeatCount-- > 0)
-                        {
-                            if (E131Packet.CompareSlots(uE.PhyBuffer, channelValues, uE.Start, universeSize))
-                            {
-                                continue;
-                            }
-                        }
-                    }
+				// do we want to suppress this one?  compare to last frame sent
+				bool sendit = true;
+				bool issame = E131Packet.CompareSlots(uE.PhyBuffer, channelValues, uE.Start, universeSize);
+				if (issame)
+				{
+					// we allow the first event repeat count dups
+					if (_data.EventRepeatCount > 0 && ++uE.EventRepeatCount >= _data.EventRepeatCount)
+					{
+						sendit = false;
+						// we want to suppress, but should we force it anyway?
+						if (_data.EventSuppressCount > 0 && ++uE.EventSuppressCount >= _data.EventSuppressCount)
+						{
+							sendit = true;
+							uE.EventSuppressCount = 0;
+						}
+					}
+				}
+				else
+				{
+					// it's different so will go... clear counters
+					// hopefully this happens within the 7.7 months it will take them to overflow :-)
+					uE.EventRepeatCount = 0;
+					uE.EventSuppressCount = 0;
+				}
 
-
-                    //Not sure why this is needed, but the plugin will crash after being reconfigured otherwise.
-                    if (uE.PhyBuffer != null)
-                    {
-                        E131Packet.CopySeqNumSlots(uE.PhyBuffer, channelValues, uE.Start, universeSize, uE.seqNum++);
-                        uE.Socket.SendTo(uE.PhyBuffer, uE.DestIpEndPoint);
-                        uE.EventRepeatCount = _data.EventRepeatCount;
-
-                        uE.PktCount++;
-                        uE.SlotCount += uE.Size;
-                    }
+                if( sendit)
+                {
+					//SeqNumbers are per universe so that they can run independently
+					E131Packet.CopySeqNumSlots(uE.PhyBuffer, channelValues, uE.Start, universeSize, uE.seqNum++);
+                    uE.Socket.SendTo(uE.PhyBuffer, uE.DestIpEndPoint);
+                    uE.PktCount++;
+                    uE.SlotCount += uE.Size;
                 }
             }
-
             stopWatch.Stop();
 
             this._totalTicks += stopWatch.ElapsedTicks;
         }
 
-        private void LoadSetupNodeInfo()
+		private void LoadSetupNodeInfo()
         {
             if (_data == null)
             {
@@ -608,7 +639,8 @@ namespace VixenModules.Controller.E131
                 _data.Universes = new List<UniverseEntry>();
                 _data.Warnings = true;
                 _data.Statistics = false;
-                _data.EventRepeatCount = 0;
+				_data.EventRepeatCount = 0;
+				_data.EventSuppressCount = 0;
             }
 
             if (_data.Universes == null)
@@ -619,6 +651,25 @@ namespace VixenModules.Controller.E131
                 ImportOldSettingsFile();
                 System.IO.File.Move("Modules\\Controller\\E131settings.xml", "Modules\\Controller\\E131settings.xml.old");
             }
+
+			foreach (var uE in _data.Universes)
+			{
+				// somehow.. maybe when moving a config from one system to another
+				// or when network ids come and go on the same system
+				// or if the serializer fails to load these
+				// if both of these are zero the Setup will fail leaving
+				// this instance in a bad state
+				// so make sure at least multicast is non-null
+				// Setup will report the error and deactivate this universe
+				// At least then we can start up without null ptr exceptions
+				if (uE.Unicast == null && uE.Multicast == null)
+				{
+					//Console.WriteLine("e131 fixing null multicast...");
+					uE.Multicast = "null";
+				}
+					
+			}
+
         }
 
         private void ImportOldSettingsFile()
@@ -669,7 +720,13 @@ namespace VixenModules.Controller.E131
                     {
                         _data.EventRepeatCount = attribute.Value.TryParseInt32(0);
                     }
-                }
+
+					_data.EventSuppressCount = 0;
+					if ((attribute = attributes.GetNamedItem("eventSuppressCount")) != null)
+					{
+						_data.EventSuppressCount = attribute.Value.TryParseInt32(0);
+					}
+				}
 
                 if (child.Name == "Universe")
                 {

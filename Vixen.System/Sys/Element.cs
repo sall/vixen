@@ -13,8 +13,8 @@ namespace Vixen.Sys
 	[Serializable]
 	public class Element : IOutputStateSource, IEqualityComparer<Element>, IEquatable<Element>
 	{
-		private ElementContextSource _dataSource;
 		private IIntentStates _state;
+		private static readonly IIntentStates EmptyState = new IntentStateList();
 
 		internal Element(string name)
 			: this(Guid.NewGuid(), name)
@@ -25,8 +25,7 @@ namespace Vixen.Sys
 		{
 			Id = id;
 			Name = name;
-			_dataSource = new ElementContextSource(Id);
-			_state = new IntentStateList();
+			_state = EmptyState;
 		}
 
 		public string Name { get; set; }
@@ -38,6 +37,11 @@ namespace Vixen.Sys
 		public void Update()
 		{
 			_state = _AggregateStateFromContexts();
+		}
+
+		public void ClearStates()
+		{
+			_state = EmptyState;
 		}
 
 		public IIntentStates State
@@ -84,7 +88,19 @@ namespace Vixen.Sys
 			// make more sense there) on a dictionary miss.
 			//IEnumerable<IIntentState> intentStates = _dataSource.Where(x => x != null).SelectMany(x => x.State);
 			//return new IntentStateList(intentStates);
-			return new IntentStateList(_dataSource.Where(x => x != null).SelectMany(x => x.State));
+
+			//return new IntentStateList(_dataSource.Where(x => x != null).SelectMany(x => x.State));
+
+			IntentStateList ret = new IntentStateList();
+			foreach (var ctx in VixenSystem.Contexts.Where(x => x.IsRunning))
+			{
+				var iss = ctx.GetState(Id);
+				if (iss == null)
+					continue;
+				ret.AddRange(iss.State);
+			}
+			return ret;
+
 		}
 	}
 }

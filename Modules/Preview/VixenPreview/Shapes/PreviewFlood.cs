@@ -40,8 +40,6 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 
 			// Lay out the flood
 			Layout();
-
-			//DoResize += new ResizeEvent(OnResize);
 		}
 
 		[OnDeserialized]
@@ -91,6 +89,47 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 			}
 		}
 
+        public override int Top
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public override int Left
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public override int Right
+        {
+            get { throw new NotImplementedException(); }
+        }
+
+        public override int Bottom
+        {
+            get { throw new NotImplementedException(); }
+        }
+
+        public override void Match(PreviewBaseShape matchShape)
+        {
+            PreviewFlood shape = (matchShape as PreviewFlood);
+            PixelSize = shape.PixelSize;
+            Layout();
+        }
+
 		public override void Layout()
 		{
 			if (_p1 == null) {
@@ -102,6 +141,8 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 			pixel.X = _p1.X;
 			pixel.Y = _p1.Y;
 			pixel.PixelSize = 3;
+
+			SetPixelZoom();
 		}
 
 		public override void Draw(Bitmap b, bool editMode, List<ElementNode> highlightedElements)

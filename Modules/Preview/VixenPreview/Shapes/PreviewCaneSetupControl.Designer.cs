@@ -37,19 +37,20 @@
             // 
             this.propertyGrid.Dock = System.Windows.Forms.DockStyle.Fill;
             this.propertyGrid.Location = new System.Drawing.Point(0, 0);
+            this.propertyGrid.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
             this.propertyGrid.Name = "propertyGrid";
-            this.propertyGrid.Size = new System.Drawing.Size(213, 239);
+            this.propertyGrid.Size = new System.Drawing.Size(426, 460);
             this.propertyGrid.TabIndex = 13;
             // 
             // buttonHelp
             // 
             this.buttonHelp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonHelp.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.buttonHelp.Image = ((System.Drawing.Image)(resources.GetObject("buttonHelp.Image")));
             this.buttonHelp.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.buttonHelp.Location = new System.Drawing.Point(152, 1);
+            this.buttonHelp.Location = new System.Drawing.Point(304, 2);
+            this.buttonHelp.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
             this.buttonHelp.Name = "buttonHelp";
-            this.buttonHelp.Size = new System.Drawing.Size(60, 23);
+            this.buttonHelp.Size = new System.Drawing.Size(120, 44);
             this.buttonHelp.TabIndex = 67;
             this.buttonHelp.Text = "Help";
             this.buttonHelp.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -58,12 +59,14 @@
             // 
             // PreviewCaneSetupControl
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 25F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.buttonHelp);
             this.Controls.Add(this.propertyGrid);
+            this.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
             this.Name = "PreviewCaneSetupControl";
-            this.Size = new System.Drawing.Size(213, 239);
+            this.Size = new System.Drawing.Size(426, 460);
+            this.Title = "Candy Cane Properties";
             this.ResumeLayout(false);
 
         }

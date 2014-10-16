@@ -34,12 +34,7 @@
 
 		public override string TypeName
 		{
-			get { return "DmxUsbProModule"; }
-		}
-
-		public override int UpdateInterval
-		{
-			get { return 10; }
+			get { return "DMX Pro"; }
 		}
 
 		public override string Version

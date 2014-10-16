@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Windows.Forms;
+using Common.Controls.ColorManagement.ColorModels;
 using Vixen.Data.Flow;
 using Vixen.Data.Value;
 using Vixen.Intent;
@@ -18,7 +19,7 @@ namespace VixenModules.OutputFilter.DimmingCurve
 {
 	public class DimmingCurveDescriptor : OutputFilterModuleDescriptorBase
 	{
-		private readonly Guid _typeId = new Guid("{2e40d6b1-43d2-4668-b63a-c600fadd7dd5}");
+		private static readonly Guid _typeId = new Guid("{2e40d6b1-43d2-4668-b63a-c600fadd7dd5}");
 
 		public override string TypeName
 		{
@@ -26,6 +27,11 @@ namespace VixenModules.OutputFilter.DimmingCurve
 		}
 
 		public override Guid TypeId
+		{
+			get { return _typeId; }
+		}
+
+		public static Guid ModuleId
 		{
 			get { return _typeId; }
 		}
@@ -96,6 +102,12 @@ namespace VixenModules.OutputFilter.DimmingCurve
 			}
 		}
 
+		public Curve DimmingCurve
+		{
+			get { return _data.Curve; }
+			set { _data.Curve = value; }
+		}
+
 		public override bool HasSetup
 		{
 			get { return true; }
@@ -105,7 +117,7 @@ namespace VixenModules.OutputFilter.DimmingCurve
 		{
 			using (CurveEditor editor = new CurveEditor(_data.Curve)) {
 				if (editor.ShowDialog() == DialogResult.OK) {
-					_data.Curve = editor.Curve;
+					DimmingCurve = editor.Curve;
 					_CreateOutputs();
 					return true;
 				}
@@ -158,8 +170,17 @@ namespace VixenModules.OutputFilter.DimmingCurve
 		public override void Handle(IIntentState<LightingValue> obj)
 		{
 			LightingValue lightingValue = obj.GetValue();
-			double newValue = _curve.GetValue(lightingValue.Intensity*100.0)/100.0;
-			_intentValue = new StaticIntentState<LightingValue>(obj, new LightingValue(lightingValue.Color, (float) newValue));
+			double newIntensity = _curve.GetValue(lightingValue.Intensity * 100.0) / 100.0;
+			_intentValue = new StaticIntentState<LightingValue>(obj, new LightingValue(lightingValue.hsv.H, lightingValue.hsv.S, newIntensity));
+		}
+
+		public override void Handle(IIntentState<RGBValue> obj)
+		{
+			RGBValue rgbValue = obj.GetValue();
+			HSV hsv = HSV.FromRGB(rgbValue.Color);
+			double newIntensity = _curve.GetValue(rgbValue.Intensity * 100.0) / 100.0;
+			hsv.V = newIntensity;
+			_intentValue = new StaticIntentState<RGBValue>(obj, new RGBValue(hsv.ToRGB().ToArgb()));
 		}
 	}
 

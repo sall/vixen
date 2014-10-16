@@ -5,6 +5,7 @@ using Vixen.Factory;
 using Vixen.Data.Flow;
 using Vixen.Module.Controller;
 using Vixen.Commands;
+using Vixen.Sys.Instrumentation;
 
 namespace Vixen.Sys.Output
 {
@@ -135,18 +136,71 @@ namespace Vixen.Sys.Output
 			set { _updateInterval = value; }
 		}
 
+		// for instrumentation support
+		private long _generateMs;
+		private long _extractMs;
+		private long _deviceMs;
+		public void GetLastUpdateMs(out long generateMs, out long extractMs, out long deviceMs)
+		{
+			generateMs = _generateMs;
+			extractMs = _extractMs;
+			deviceMs = _deviceMs;
+		}
+
+		/// <summary>
+		/// Just update the commands and don't send them out
+		/// </summary>
+		public void UpdateCommands()
+		{
+			if (VixenSystem.ControllerLinking.IsRootController(this) && _ControllerChainModule != null)
+			{
+				_outputMediator.LockOutputs();
+				try
+				{
+					foreach (OutputController controller in this)
+					{
+						foreach (var x in controller.Outputs)
+						{
+							x.Update();
+							x.Command = _GenerateOutputCommand(x);
+						}
+					}
+				} finally
+				{
+					_outputMediator.UnlockOutputs();
+				}
+			}
+
+		}
+	
 		public void Update()
 		{
+			var sw = System.Diagnostics.Stopwatch.StartNew();
 			if (VixenSystem.ControllerLinking.IsRootController(this) && _ControllerChainModule != null) {
 				_outputMediator.LockOutputs();
 				try {
 					foreach (OutputController controller in this) {
-						controller.Outputs.AsParallel().ForAll(x =>
-						                                       	{
-						                                       		x.Update();
-						                                       		x.Command = _GenerateOutputCommand(x);
-						                                       	});
+						//if (true)
+						//{
+						//	controller.Outputs.AsParallel().ForAll(x =>
+						//	{
+						//		x.Update();
+						//		x.Command = _GenerateOutputCommand(x);
+						//	});
+						//}
+						//else
+						//{
+							foreach( var x in controller.Outputs)
+							{
+								x.Update();								
+								x.Command = _GenerateOutputCommand(x);
+							}
+						//}
 					}
+
+					_generateMs = sw.ElapsedMilliseconds;
+					_extractMs = 0;
+					_deviceMs = 0;
 
 					// Latch out the new state.
 					// This must be done in order of the chain links so that data
@@ -155,9 +209,14 @@ namespace Vixen.Sys.Output
 						// A single port may be used to service multiple physical controllers,
 						// such as daisy-chained Renard controllers.  Tell the module where
 						// it is in that chain.
+						long t1 = sw.ElapsedMilliseconds;
 						int chainIndex = VixenSystem.ControllerLinking.GetChainIndex(controller.Id);
 						ICommand[] outputStates = _ExtractCommandsFromOutputs(controller).ToArray();
+						long t2 = sw.ElapsedMilliseconds;
 						controller._ControllerChainModule.UpdateState(chainIndex, outputStates);
+						long t3 = sw.ElapsedMilliseconds;
+						_extractMs += t2 - t1;
+						_deviceMs += t3 - t2;
 					}
 				}
 				finally {
@@ -219,7 +278,7 @@ namespace Vixen.Sys.Output
 			{
 				CommandOutputFactory outputFactory = new CommandOutputFactory();
 				while (OutputCount < value) {
-					AddOutput(outputFactory.CreateOutput("Unnamed Output", OutputCount));
+					AddOutput(outputFactory.CreateOutput(string.Format("Output {0}", OutputCount + 1), OutputCount));
 				}
 				while (OutputCount > value) {
 					RemoveOutput(Outputs[OutputCount - 1]);
@@ -230,7 +289,9 @@ namespace Vixen.Sys.Output
 		public void AddOutput(CommandOutput output)
 		{
 			_outputMediator.AddOutput(output);
-			VixenSystem.DataFlow.AddComponent(_adapterFactory.GetAdapter(output));
+			IDataFlowComponent component = _adapterFactory.GetAdapter(output);
+			VixenSystem.DataFlow.AddComponent(component);
+			VixenSystem.OutputControllers.AddControllerOutputForDataFlowComponent(component, this, output.Index);
 		}
 
 		public void AddOutput(Output output)
@@ -241,7 +302,9 @@ namespace Vixen.Sys.Output
 		public void RemoveOutput(CommandOutput output)
 		{
 			_outputMediator.RemoveOutput(output);
-			VixenSystem.DataFlow.RemoveComponent(_adapterFactory.GetAdapter(output));
+			IDataFlowComponent component = _adapterFactory.GetAdapter(output);
+			VixenSystem.DataFlow.RemoveComponent(component);
+			VixenSystem.OutputControllers.RemoveControllerOutputForDataFlowComponent(component);
 		}
 
 		public void RemoveOutput(Output output)
@@ -271,8 +334,20 @@ namespace Vixen.Sys.Output
 
 		private ICommand _GenerateOutputCommand(CommandOutput output)
 		{
-			IDataPolicy effectiveDataPolicy = _dataPolicyProvider.GetDataPolicyForOutput(output);
-			return effectiveDataPolicy.GenerateCommand(output.State);
+			if (output.State != null) {
+
+				IDataPolicy effectiveDataPolicy = _dataPolicyProvider.GetDataPolicyForOutput(output);
+				ICommand command = effectiveDataPolicy.GenerateCommand(output.State);
+				if (command != null)
+				{
+					List<ICommand> commands = new List<ICommand>();
+					commands.Add(command);
+					CommandsDataFlowData data = new CommandsDataFlowData(commands);
+					command = effectiveDataPolicy.GenerateCommand(data);
+				}
+				return command;
+			}
+			return null;
 		}
 
 		private IControllerModuleInstance _ControllerModule

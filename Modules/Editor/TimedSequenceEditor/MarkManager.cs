@@ -5,13 +5,20 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using Common.Resources;
 using VixenModules.Sequence.Timed;
 using Vixen.Execution;
 using Vixen.Module.Timing;
 using VixenModules.Media.Audio;
 using System.Collections.Concurrent;
 using System.IO;
+using Common.Resources.Properties;
+using System.Xml.Serialization;
+using System.Runtime.Serialization;
+using System.Xml;
+
 
 namespace VixenModules.Editor.TimedSequenceEditor
 {
@@ -36,6 +43,20 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		                   TimedSequenceEditorForm timedSequenceEditorForm)
 		{
 			InitializeComponent();
+			Icon = Resources.Icon_Vixen3;
+			buttonPlay.Image = Tools.GetIcon(Resources.control_play_blue, 16);
+			buttonPlay.Text = "";
+			buttonStop.Image = Tools.GetIcon(Resources.control_stop_blue, 16);
+			buttonStop.Text = "";
+			buttonIncreasePlaybackSpeed.Image = Tools.GetIcon(Resources.plus, 16);
+			buttonIncreasePlaybackSpeed.Text = "";
+			buttonDecreasePlaySpeed.Image = Tools.GetIcon(Resources.minus, 16);
+			buttonDecreasePlaySpeed.Text = "";
+			buttonIncreaseSelectedMarks.Image = Tools.GetIcon(Resources.plus, 16);
+			buttonIncreaseSelectedMarks.Text = "";
+			buttonDecreaseSelectedMarks.Image = Tools.GetIcon(Resources.minus, 16);
+			buttonDecreaseSelectedMarks.Text = "";
+
 			MarkCollections = markCollections;
 			_executionControl = executionControl;
 			_timingSource = timingSource;
@@ -553,7 +574,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 					int generatedMarks = (int) (duration.Ticks/interval.Ticks) - 1;
 
-					if (MessageBox.Show(string.Format("From the selected marks, a beat interval of {0:s.ff} seconds was detected ({1:0.00} bpm). This will generate {2} marks. Do you want to continue?", interval,
+					if (MessageBox.Show(string.Format("From the selected marks, a beat interval of {0:%s\\.ff} seconds was detected ({1:0.00} bpm). This will generate {2} marks. Do you want to continue?", interval,
 										 bpm, generatedMarks), "Confirmation", MessageBoxButtons.YesNo) != DialogResult.Yes) {
 						return;
 					}
@@ -754,7 +775,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		private void updateTimingSpeedTextbox()
 		{
-			textBoxTimingSpeed.Text = Math.Round((_timingSource.Speed*100), 0).ToString() + "%";
+			textBoxTimingSpeed.Text = string.Format("{0}%", Math.Round((_timingSource.Speed*100), 0));
 			buttonDecreasePlaySpeed.Enabled = _timingSource.Speed > _timingChangeDelta;
 		}
 
@@ -1042,8 +1063,77 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		static string lastFolder = "";
 		private void buttonImportAudacity_Click(object sender, EventArgs e)
 		{
+			var aDialog = new AudacityImportDialog();
+
+			if (aDialog.ShowDialog() == DialogResult.OK)
+			{
+				if (aDialog.IsVixen3BeatSelection)
+					ImportVixen3Beats();
+				if (aDialog.IsVampBarSelection || aDialog.IsAudacityBeatSelection)
+					LoadBarLabels();
+				if (aDialog.IsVampBeatSelection)
+					LoadBeatLabels();		
+			}
+		}
+
+		private void LoadBeatLabels()
+		{
 			openFileDialog.DefaultExt = ".txt";
-			openFileDialog.Filter = "Audacity Labels|*.txt|All Files|*.*";
+			openFileDialog.Filter = @"Audacity Beat Labels|*.txt|All Files|*.*";
+			openFileDialog.FilterIndex = 0;
+			openFileDialog.InitialDirectory = lastFolder;
+			openFileDialog.FileName = "";
+			var colors = new List<Color>
+			{
+				Color.Yellow,Color.Gold, Color.Goldenrod, Color.SaddleBrown,Color.CadetBlue,Color.BlueViolet 
+			};
+			
+			if (openFileDialog.ShowDialog() == DialogResult.OK)
+			{
+				lastFolder = Path.GetDirectoryName(openFileDialog.FileName);
+				try
+				{
+					String file;
+					using (var sr = new StreamReader(openFileDialog.FileName))
+					{
+						file = sr.ReadToEnd();
+					}
+					if (file.Any())
+					{
+						const string pattern = @"(\d*\.\d*)\s(\d*\.\d*)\s(\d)";
+						MatchCollection matches = Regex.Matches(file, pattern);
+						int numBeats =  Convert.ToInt32( matches.Cast<Match>().Max(x => x.Groups[3].Value) );
+						var marks = new List<MarkCollection>(numBeats);
+						for (int i = 0; i < numBeats; i++)
+						{
+							marks.Add(AddNewCollection(colors[i], string.Format("Audacity Beat {0} Marks", i + 1)));	
+						}
+						
+						foreach (Match match in matches)
+						{
+							TimeSpan time = TimeSpan.FromSeconds(Convert.ToDouble(match.Groups[1].Value));
+							int beatNumber = Convert.ToInt32(match.Groups[3].Value);
+							marks[beatNumber-1].Marks.Add(time);
+						}
+						foreach (MarkCollection mark in marks)
+						{
+							UpdateMarkListBox(mark);	
+						}
+						
+					}
+				} catch (Exception ex)
+				{
+					string msg = "There was an error importing the Audacity beat marks: " + ex.Message;
+					Logging.Error(msg);
+					MessageBox.Show(msg, @"Audacity Import Error", MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
+				}
+			}
+		}
+
+		private void LoadBarLabels()
+		{
+			openFileDialog.DefaultExt = ".txt";
+			openFileDialog.Filter = @"Audacity Bar Labels|*.txt|All Files|*.*";
 			openFileDialog.FilterIndex = 0;
 			openFileDialog.InitialDirectory = lastFolder;
 			if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
@@ -1056,15 +1146,25 @@ namespace VixenModules.Editor.TimedSequenceEditor
 					{
 						everything = sr.ReadToEnd();
 					}
-					string[] lines = everything.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
-					if (lines.Count() > 0)
+					// Remove the \r so we're just left with a \n (allows importing of Sean's Audacity beat marks
+					everything = everything.Replace("\r", "");
+					string[] lines = everything.Split(new string[] {"\n"}, StringSplitOptions.RemoveEmptyEntries);
+                    if (lines.Any())
 					{
-						MarkCollection marks = AddNewCollection(Color.Yellow, "Audacity Marks");
+						AddNewCollection(Color.Yellow, "Audacity Marks");
 						foreach (string line in lines)
 						{
-							string mark = line.Split('\t')[0];
+							string mark;
+							if (line.IndexOf("\t") > 0)
+							{
+								mark = line.Split('\t')[0].Trim();
+							}
+							else
+							{
+								mark = line.Trim().Split(' ')[0].Trim();
+							}
+						
 							TimeSpan time = TimeSpan.FromSeconds(Convert.ToDouble(mark));
-							mark = time.Minutes.ToString() + ":" + time.Seconds.ToString().PadLeft(2, '0') + "." + time.Milliseconds.ToString();
 							_displayedCollection.Marks.Add(time);
 						}
 						UpdateMarkListBox();
@@ -1072,9 +1172,9 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				}
 				catch (Exception ex)
 				{
-					string msg = "There was an error importing the Audacity beat marks: " + ex.Message;
+					string msg = "There was an error importing the Audacity bar marks: " + ex.Message;
 					Logging.Error(msg);
-					MessageBox.Show(msg, "Audacity Import Error", MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
+					MessageBox.Show(msg, @"Audacity Import Error", MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
 				}
 			}
 		}
@@ -1116,6 +1216,110 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			_displayedCollection.Marks.Sort();
 			PopulateMarkListFromMarkCollection(_displayedCollection);
 			UpdateMarkCollectionInList(_displayedCollection);
+		}
+
+		private void UpdateMarkListBox(MarkCollection marks)
+		{
+			marks.Marks.Sort();
+			PopulateMarkListFromMarkCollection(marks);
+			UpdateMarkCollectionInList(marks);
+		}
+
+		private void buttonExportBeatMarks_Click(object sender, EventArgs e)
+		{
+			if (MarkCollections.Count == 0)
+			{
+				MessageBox.Show("Unable to find marks collection for export");
+				return;
+			}
+
+			var bDialog = new BeatMarkExportDialog();
+
+			if (bDialog.ShowDialog() == DialogResult.OK)
+			{
+				if (bDialog.IsVixen3Selection)
+					ExportMarkCollections(null, "vixen3");
+				if (bDialog.IsAudacitySelection)
+					ExportMarkCollections(null, "audacity");
+				if (!bDialog.IsVixen3Selection && !bDialog.IsAudacitySelection)
+					MessageBox.Show("No export type selected");
+			}
+		}
+
+		//Vixen 3 Beat Mark Collection Import routine 2-7-2014 JMB
+		private void ImportVixen3Beats()
+		{
+			openFileDialog.DefaultExt = ".v3m";
+			openFileDialog.Filter = "Vixen 3 Mark Collection (*.v3m)|*.v3m|All Files (*.*)|*.*";
+			openFileDialog.FilterIndex = 0;
+			openFileDialog.InitialDirectory = lastFolder;
+			if (openFileDialog.ShowDialog() == DialogResult.OK)
+			{
+				using (FileStream reader = new FileStream(openFileDialog.FileName, FileMode.Open, FileAccess.Read))
+				{
+					DataContractSerializer ser = new DataContractSerializer(typeof(List<MarkCollection>));
+					MarkCollections = (List<MarkCollection>)ser.ReadObject(reader);
+				}
+				PopulateMarkCollectionsList();
+				PopulateFormWithMarkCollection(null, true);
+			}
+		}
+
+		//Beat Mark Collection Export routine 2-7-2014 JMB
+		//In the audacity section, if the MarkCollections.Count = 1 then we assume the collection is bars and iMarkCollection++
+		//Other wise its beats, at least from the information I have studied, and we do not iMarkCollection++ to keep the collections together properly.
+		private void ExportMarkCollections(MarkCollection collection, string exportType)
+		{
+			if (exportType == "vixen3")
+			{
+				saveFileDialog.DefaultExt = ".v3m";
+				saveFileDialog.Filter = "Vixen 3 Mark Collection (*.v3m)|*.v3m|All Files (*.*)|*.*";
+				saveFileDialog.InitialDirectory = lastFolder;
+				if (saveFileDialog.ShowDialog() == DialogResult.OK)
+				{
+					var xmlsettings = new XmlWriterSettings()
+					{
+						Indent = true,
+						IndentChars = "\t",
+					};
+
+					DataContractSerializer ser = new DataContractSerializer(typeof(List<MarkCollection>));
+					var writer = XmlWriter.Create(saveFileDialog.FileName, xmlsettings);
+					ser.WriteObject(writer, MarkCollections);
+					writer.Close();
+				}
+			}
+
+			if (exportType == "audacity")
+			{
+				int iMarkCollection = 0;
+				List<string> BeatMarks = new List<string>();
+				foreach (MarkCollection mc in MarkCollections)
+				{
+					iMarkCollection++;
+					foreach (TimeSpan time in mc.Marks)
+					{
+						BeatMarks.Add(time.TotalSeconds.ToString("0000.000") + "\t" + time.TotalSeconds.ToString("0000.000") + "\t" + iMarkCollection);
+						if (MarkCollections.Count == 1)
+							iMarkCollection++;
+					}
+				}
+
+				saveFileDialog.DefaultExt = ".txt";
+				saveFileDialog.Filter = "Audacity Marks (*.txt)|*.txt|All Files (*.*)|*.*";
+				if (saveFileDialog.ShowDialog() == DialogResult.OK)
+				{
+					string name = saveFileDialog.FileName;
+
+					using (System.IO.StreamWriter file = new System.IO.StreamWriter(name))
+					{
+						foreach (string bm in BeatMarks.OrderBy(x => x))
+						{
+							file.WriteLine(bm);
+						}
+					}
+				}
+			}
 		}
 	}
 }

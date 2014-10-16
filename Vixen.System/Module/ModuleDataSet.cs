@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using Vixen.IO;
+using Vixen.Sys;
 
 namespace Vixen.Module
 {
@@ -62,8 +63,15 @@ namespace Vixen.Module
 		/// </summary>
 		public IModuleDataModel GetTypeData(IModuleInstance module)
 		{
-			//return _GetModuleData(descriptor, descriptor.TypeId);
 			return _GetOrCreateAsTypeData(module);
+		}
+
+		/// <summary>
+		/// Retrieves the module type data without assigning it to a module instance.
+		/// </summary>
+		public IModuleDataModel GetTypeData(Guid id)
+		{
+			return _GetOrCreateAsTypeData(id);
 		}
 
 		/// <summary>
@@ -114,29 +122,30 @@ namespace Vixen.Module
 
 		private bool _ContainsTypeData(Guid moduleTypeId)
 		{
-			//return _dataModels.Any(x => x.ModuleTypeId.Equals(moduleTypeId));
 			return _dataModels.ContainsKey(Tuple.Create(moduleTypeId, moduleTypeId));
 		}
 
 		private bool _ContainsInstanceData(Guid moduleTypeId, Guid instanceId)
 		{
-			//return _dataModels.Any(x => x.ModuleTypeId.Equals(moduleTypeId) && x.ModuleInstanceId.Equals(instanceId));
 			return _dataModels.ContainsKey(Tuple.Create(moduleTypeId, instanceId));
 		}
 
 		private IModuleDataModel _GetAsTypeData(IModuleInstance module)
 		{
-			//return _dataModels.FirstOrDefault(x => x.ModuleTypeId.Equals(module.Descriptor.TypeId));
 			IModuleDataModel model = null;
 			_dataModels.TryGetValue(Tuple.Create(module.Descriptor.TypeId, module.Descriptor.TypeId), out model);
 			return model;
 		}
 
+		private IModuleDataModel _GetAsTypeData(Guid id)
+		{
+			IModuleDataModel model = null;
+			_dataModels.TryGetValue(Tuple.Create(id, id), out model);
+			return model;
+		}
+
 		private IModuleDataModel _GetAsInstanceData(IModuleInstance module)
 		{
-			//return
-			//	_dataModels.FirstOrDefault(
-			//		x => x.ModuleTypeId.Equals(module.Descriptor.TypeId) && x.ModuleInstanceId.Equals(module.InstanceId));
 			IModuleDataModel model = null;
 			_dataModels.TryGetValue(Tuple.Create(module.TypeId, module.InstanceId), out model);
 			return model;
@@ -145,6 +154,11 @@ namespace Vixen.Module
 		private void _AddAsTypeData(IModuleDataModel dataModel, IModuleInstance module)
 		{
 			_Add(dataModel, module.Descriptor.TypeId, module.Descriptor.TypeId);
+		}
+
+		private void _AddAsTypeData(IModuleDataModel dataModel, Guid typeId)
+		{
+			_Add(dataModel, typeId, typeId);
 		}
 
 		private void _AddAsInstanceData(IModuleDataModel dataModel, IModuleInstance module)
@@ -214,8 +228,7 @@ namespace Vixen.Module
 			// Clone exactly, assuming unchanged type and instance ids for the
 			// modules the data belongs to.
 			foreach (IModuleDataModel dataModel in source._dataModels.Values) {
-				IModuleDataModel newModel = dataModel.Clone();
-				destination._Add(newModel, dataModel.ModuleTypeId, dataModel.ModuleInstanceId);
+				destination._Add(dataModel, dataModel.ModuleTypeId, dataModel.ModuleInstanceId);
 			}
 		}
 
@@ -225,6 +238,16 @@ namespace Vixen.Module
 			if (dataModel == null) {
 				dataModel = _CreateDataModel(module);
 				_AddAsTypeData(dataModel, module);
+			}
+			return dataModel;
+		}
+
+		protected IModuleDataModel _GetOrCreateAsTypeData(Guid typeId)
+		{
+			IModuleDataModel dataModel = _GetAsTypeData(typeId);
+			if (dataModel == null) {
+				dataModel = _CreateDataModel(typeId);
+				_AddAsTypeData(dataModel, typeId);
 			}
 			return dataModel;
 		}
@@ -242,6 +265,12 @@ namespace Vixen.Module
 		protected IModuleDataModel _CreateDataModel(IModuleInstance module)
 		{
 			Type dataModelType = _GetDataModelType(module.Descriptor);
+			return _CreateDataModel(dataModelType);
+		}
+
+		protected IModuleDataModel _CreateDataModel(Guid typeId)
+		{
+			Type dataModelType = _GetDataModelType(Modules.GetDescriptorById(typeId));
 			return _CreateDataModel(dataModelType);
 		}
 
@@ -286,14 +315,13 @@ namespace Vixen.Module
 
 		internal IEnumerable<IModuleDataModel> DataModels
 		{
-			get { return _dataModels.Values; }
+			get { return _dataModels.Values.ToList(); }
 			set { 
 				//_dataModels = value.ToList();
 				_dataModels.Clear();
 				foreach(IModuleDataModel dataModel in value)
 				{
-					IModuleDataModel newModel = dataModel.Clone();
-					_Add(newModel, dataModel.ModuleTypeId, dataModel.ModuleInstanceId);
+					_Add(dataModel, dataModel.ModuleTypeId, dataModel.ModuleInstanceId);
 				}
 			}
 		}

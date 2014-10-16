@@ -41,6 +41,7 @@
 			this.components = new System.ComponentModel.Container();
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MarkManager));
 			this.groupBoxMarkCollections = new System.Windows.Forms.GroupBox();
+			this.buttonExportBeatMarks = new System.Windows.Forms.Button();
 			this.buttonImportAudacity = new System.Windows.Forms.Button();
 			this.buttonRemoveCollection = new System.Windows.Forms.Button();
 			this.buttonAddCollection = new System.Windows.Forms.Button();
@@ -112,6 +113,7 @@
 			this.timerPlayback = new System.Windows.Forms.Timer(this.components);
 			this.timerMarkHit = new System.Windows.Forms.Timer(this.components);
 			this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
+			this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
 			this.groupBoxMarkCollections.SuspendLayout();
 			this.groupBoxSelectedMarkCollection.SuspendLayout();
 			this.groupBoxDetails.SuspendLayout();
@@ -130,16 +132,27 @@
 			// 
 			// groupBoxMarkCollections
 			// 
+			this.groupBoxMarkCollections.Controls.Add(this.buttonExportBeatMarks);
 			this.groupBoxMarkCollections.Controls.Add(this.buttonImportAudacity);
 			this.groupBoxMarkCollections.Controls.Add(this.buttonRemoveCollection);
 			this.groupBoxMarkCollections.Controls.Add(this.buttonAddCollection);
 			this.groupBoxMarkCollections.Controls.Add(this.listViewMarkCollections);
 			this.groupBoxMarkCollections.Location = new System.Drawing.Point(12, 12);
 			this.groupBoxMarkCollections.Name = "groupBoxMarkCollections";
-			this.groupBoxMarkCollections.Size = new System.Drawing.Size(238, 298);
+			this.groupBoxMarkCollections.Size = new System.Drawing.Size(238, 328);
 			this.groupBoxMarkCollections.TabIndex = 1;
 			this.groupBoxMarkCollections.TabStop = false;
 			this.groupBoxMarkCollections.Text = "Mark Collections";
+			// 
+			// buttonExportBeatMarks
+			// 
+			this.buttonExportBeatMarks.Location = new System.Drawing.Point(6, 292);
+			this.buttonExportBeatMarks.Name = "buttonExportBeatMarks";
+			this.buttonExportBeatMarks.Size = new System.Drawing.Size(226, 23);
+			this.buttonExportBeatMarks.TabIndex = 11;
+			this.buttonExportBeatMarks.Text = "Export Beat Marks";
+			this.buttonExportBeatMarks.UseVisualStyleBackColor = true;
+			this.buttonExportBeatMarks.Click += new System.EventHandler(this.buttonExportBeatMarks_Click);
 			// 
 			// buttonImportAudacity
 			// 
@@ -147,7 +160,7 @@
 			this.buttonImportAudacity.Name = "buttonImportAudacity";
 			this.buttonImportAudacity.Size = new System.Drawing.Size(226, 23);
 			this.buttonImportAudacity.TabIndex = 10;
-			this.buttonImportAudacity.Text = "Import Audacity Beat Marks";
+			this.buttonImportAudacity.Text = "Import Beat Marks";
 			this.buttonImportAudacity.UseVisualStyleBackColor = true;
 			this.buttonImportAudacity.Click += new System.EventHandler(this.buttonImportAudacity_Click);
 			// 
@@ -354,21 +367,21 @@
 			// 
 			// buttonIncreaseSelectedMarks
 			// 
-			this.buttonIncreaseSelectedMarks.Image = global::VixenModules.Editor.TimedSequenceEditor.TimedSequenceEditorResources.plus_white_icon;
-			this.buttonIncreaseSelectedMarks.Location = new System.Drawing.Point(81, 23);
+			this.buttonIncreaseSelectedMarks.Location = new System.Drawing.Point(81, 13);
 			this.buttonIncreaseSelectedMarks.Name = "buttonIncreaseSelectedMarks";
-			this.buttonIncreaseSelectedMarks.Size = new System.Drawing.Size(23, 23);
+			this.buttonIncreaseSelectedMarks.Size = new System.Drawing.Size(32, 32);
 			this.buttonIncreaseSelectedMarks.TabIndex = 15;
+			this.buttonIncreaseSelectedMarks.Text = "+";
 			this.buttonIncreaseSelectedMarks.UseVisualStyleBackColor = true;
 			this.buttonIncreaseSelectedMarks.Click += new System.EventHandler(this.buttonIncreaseSelectedMarks_Click);
 			// 
 			// buttonDecreaseSelectedMarks
 			// 
-			this.buttonDecreaseSelectedMarks.Image = global::VixenModules.Editor.TimedSequenceEditor.TimedSequenceEditorResources.minus_white_icon;
-			this.buttonDecreaseSelectedMarks.Location = new System.Drawing.Point(103, 23);
+			this.buttonDecreaseSelectedMarks.Location = new System.Drawing.Point(116, 13);
 			this.buttonDecreaseSelectedMarks.Name = "buttonDecreaseSelectedMarks";
-			this.buttonDecreaseSelectedMarks.Size = new System.Drawing.Size(23, 23);
+			this.buttonDecreaseSelectedMarks.Size = new System.Drawing.Size(32, 32);
 			this.buttonDecreaseSelectedMarks.TabIndex = 14;
+			this.buttonDecreaseSelectedMarks.Text = "-";
 			this.buttonDecreaseSelectedMarks.UseVisualStyleBackColor = true;
 			this.buttonDecreaseSelectedMarks.Click += new System.EventHandler(this.buttonDecreaseSelectedMarks_Click);
 			// 
@@ -738,7 +751,7 @@
 			// 
 			this.trackBarPlayBack.Location = new System.Drawing.Point(6, 65);
 			this.trackBarPlayBack.Name = "trackBarPlayBack";
-			this.trackBarPlayBack.Size = new System.Drawing.Size(703, 42);
+			this.trackBarPlayBack.Size = new System.Drawing.Size(703, 45);
 			this.trackBarPlayBack.TabIndex = 5;
 			this.trackBarPlayBack.Scroll += new System.EventHandler(this.trackBarPlayBack_Scroll);
 			this.trackBarPlayBack.MouseDown += new System.Windows.Forms.MouseEventHandler(this.trackBarPlayBack_MouseDown);
@@ -762,11 +775,11 @@
 			// 
 			// buttonIncreasePlaybackSpeed
 			// 
-			this.buttonIncreasePlaybackSpeed.Image = global::VixenModules.Editor.TimedSequenceEditor.TimedSequenceEditorResources.plus_white_icon;
-			this.buttonIncreasePlaybackSpeed.Location = new System.Drawing.Point(375, 26);
+			this.buttonIncreasePlaybackSpeed.Location = new System.Drawing.Point(375, 21);
 			this.buttonIncreasePlaybackSpeed.Name = "buttonIncreasePlaybackSpeed";
-			this.buttonIncreasePlaybackSpeed.Size = new System.Drawing.Size(23, 23);
+			this.buttonIncreasePlaybackSpeed.Size = new System.Drawing.Size(32, 32);
 			this.buttonIncreasePlaybackSpeed.TabIndex = 11;
+			this.buttonIncreasePlaybackSpeed.Text = "+";
 			this.buttonIncreasePlaybackSpeed.UseVisualStyleBackColor = true;
 			this.buttonIncreasePlaybackSpeed.Click += new System.EventHandler(this.buttonIncreasePlaySpeed_Click);
 			// 
@@ -798,11 +811,11 @@
 			// 
 			// buttonDecreasePlaySpeed
 			// 
-			this.buttonDecreasePlaySpeed.Image = global::VixenModules.Editor.TimedSequenceEditor.TimedSequenceEditorResources.minus_white_icon;
-			this.buttonDecreasePlaySpeed.Location = new System.Drawing.Point(397, 26);
+			this.buttonDecreasePlaySpeed.Location = new System.Drawing.Point(410, 21);
 			this.buttonDecreasePlaySpeed.Name = "buttonDecreasePlaySpeed";
-			this.buttonDecreasePlaySpeed.Size = new System.Drawing.Size(23, 23);
+			this.buttonDecreasePlaySpeed.Size = new System.Drawing.Size(32, 32);
 			this.buttonDecreasePlaySpeed.TabIndex = 10;
+			this.buttonDecreasePlaySpeed.Text = "-";
 			this.buttonDecreasePlaySpeed.UseVisualStyleBackColor = true;
 			this.buttonDecreasePlaySpeed.Click += new System.EventHandler(this.buttonDecreasePlaySpeed_Click);
 			// 
@@ -817,11 +830,11 @@
 			// 
 			// buttonPlay
 			// 
-			this.buttonPlay.Image = global::VixenModules.Editor.TimedSequenceEditor.TimedSequenceEditorResources.PlayHS;
-			this.buttonPlay.Location = new System.Drawing.Point(26, 26);
+			this.buttonPlay.Location = new System.Drawing.Point(20, 23);
 			this.buttonPlay.Name = "buttonPlay";
-			this.buttonPlay.Size = new System.Drawing.Size(30, 23);
+			this.buttonPlay.Size = new System.Drawing.Size(32, 32);
 			this.buttonPlay.TabIndex = 1;
+			this.buttonPlay.Text = "Play";
 			this.buttonPlay.UseVisualStyleBackColor = true;
 			this.buttonPlay.Click += new System.EventHandler(this.buttonPlay_Click);
 			// 
@@ -835,11 +848,11 @@
 			// 
 			// buttonStop
 			// 
-			this.buttonStop.Image = global::VixenModules.Editor.TimedSequenceEditor.TimedSequenceEditorResources.StopHS;
-			this.buttonStop.Location = new System.Drawing.Point(62, 26);
+			this.buttonStop.Location = new System.Drawing.Point(55, 23);
 			this.buttonStop.Name = "buttonStop";
-			this.buttonStop.Size = new System.Drawing.Size(30, 23);
+			this.buttonStop.Size = new System.Drawing.Size(32, 32);
 			this.buttonStop.TabIndex = 2;
+			this.buttonStop.Text = "Stop";
 			this.buttonStop.UseVisualStyleBackColor = true;
 			this.buttonStop.Click += new System.EventHandler(this.buttonStop_Click);
 			// 
@@ -896,7 +909,7 @@
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(740, 626);
+			this.ClientSize = new System.Drawing.Size(734, 626);
 			this.Controls.Add(this.groupBoxPlayback);
 			this.Controls.Add(this.buttonCancel);
 			this.Controls.Add(this.groupBoxSelectedMarkCollection);
@@ -1016,6 +1029,8 @@
         private System.Windows.Forms.RadioButton radioAll;
 		private System.Windows.Forms.Button buttonImportAudacity;
 		private System.Windows.Forms.OpenFileDialog openFileDialog;
+		private System.Windows.Forms.Button buttonExportBeatMarks;
+		private System.Windows.Forms.SaveFileDialog saveFileDialog;
 
     }
 }

@@ -14,9 +14,10 @@ namespace Common.Controls
 		public NumberDialog(string title, string prompt, int value, int minimum = 0, int maximum = int.MaxValue)
 		{
 			InitializeComponent();
-			numericUpDownChooser.Value = value;
+			
 			numericUpDownChooser.Minimum = minimum;
 			numericUpDownChooser.Maximum = maximum;
+            numericUpDownChooser.Value = value;
 			Text = title;
 			labelPrompt.Text = prompt;
 		}
@@ -24,6 +25,15 @@ namespace Common.Controls
 		public int Value
 		{
 			get { return decimal.ToInt32(numericUpDownChooser.Value); }
+		}
+
+		private void numericUpDownChooser_KeyDown(object sender, KeyEventArgs e)
+		{
+			if (e.KeyCode == Keys.Enter) {
+				DialogResult = DialogResult.OK;
+			} else if (e.KeyCode == Keys.Escape) {
+				DialogResult = DialogResult.Cancel;
+			}
 		}
 	}
 }

@@ -23,9 +23,7 @@ namespace Common.Controls.Timeline
 			SetStyle(ControlStyles.UserPaint, true);
 			SetStyle(ControlStyles.AllPaintingInWmPaint, true);
 			SetStyle(ControlStyles.ResizeRedraw, true);
-			Row.RowToggled += RowLabelChangedHandler;
-			Row.RowHeightChanged += RowLabelChangedHandler;
-			Row.RowHeightResized += RowLabelResizedHandler;
+			EnableDisableHandlers(true);
 		}
 
 		#region Properties
@@ -55,6 +53,17 @@ namespace Common.Controls.Timeline
 
 		#endregion
 
+		protected override void Dispose(bool disposing)
+		{
+			if (RowLabels != null) {
+				RowLabels.Clear();
+				RowLabels= null;
+			}
+			Row.RowHeightChanged -= RowLabelChangedHandler;
+			Row.RowHeightResized -= RowLabelResizedHandler;
+			Row.RowToggled -= RowLabelChangedHandler;
+			base.Dispose(disposing);
+		}
 		#region Events
 
 		#endregion
@@ -63,6 +72,11 @@ namespace Common.Controls.Timeline
 
 		protected void LabelVisibleChangedHandler(object sender, EventArgs e)
 		{
+			var lbl = sender as RowLabel;
+			if (lbl !=null && !Controls.Contains(lbl))
+			{
+				Controls.Add(lbl);
+			}
 			Invalidate();
 		}
 
@@ -92,7 +106,21 @@ namespace Common.Controls.Timeline
 		#endregion
 
 		#region Methods
-
+		public void EnableDisableHandlers(bool enabled = true)
+		{
+			if (enabled) {
+				Row.RowToggled -= RowLabelChangedHandler;
+				Row.RowHeightChanged -= RowLabelChangedHandler;
+				Row.RowHeightResized -= RowLabelResizedHandler;
+				Row.RowToggled += RowLabelChangedHandler;
+				Row.RowHeightChanged += RowLabelChangedHandler;
+				Row.RowHeightResized += RowLabelResizedHandler;
+			} else {
+				Row.RowToggled -= RowLabelChangedHandler;
+				Row.RowHeightChanged -= RowLabelChangedHandler;
+				Row.RowHeightResized -= RowLabelResizedHandler;
+			}
+		}
 		private delegate void AddRowLabelDelegate(RowLabel trl);
 
 		public void AddRowLabel(RowLabel trl)
@@ -103,7 +131,10 @@ namespace Common.Controls.Timeline
 			else {
 				RowLabels.Add(trl);
 				// Addint a control is VERY slow!
-				Controls.Add(trl);
+				if (trl.Visible)
+				{
+					Controls.Add(trl);
+				}
 
 				trl.VisibleChanged += LabelVisibleChangedHandler;
 				// Don't call DoLayout. It'll get called after all the rows have been added!

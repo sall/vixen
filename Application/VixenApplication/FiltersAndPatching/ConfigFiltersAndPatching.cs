@@ -9,6 +9,8 @@ using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
 using Common.Controls;
+using Common.Resources;
+using Common.Resources.Properties;
 using Dataweb.NShape;
 using Dataweb.NShape.Advanced;
 using Dataweb.NShape.Controllers;
@@ -62,6 +64,17 @@ namespace VixenApplication
 		public ConfigFiltersAndPatching(VixenApplicationData applicationData)
 		{
 			InitializeComponent();
+
+			Icon = Resources.Icon_Vixen3;
+			buttonAddFilter.Image = Tools.GetIcon(Resources.add, 16);
+			buttonAddFilter.Text = "";
+			buttonDelete.Image = Tools.GetIcon(Resources.delete, 16);
+			buttonDelete.Text = "";
+			buttonZoomIn.Image = Tools.GetIcon(Resources.zoom_in, 16);
+			buttonZoomIn.Text = "";
+			buttonZoomOut.Image = Tools.GetIcon(Resources.zoom_out, 16);
+			buttonZoomOut.Text = "";
+
 
 			_applicationData = applicationData;
 
@@ -795,7 +808,7 @@ namespace VixenApplication
 				_dataFlowComponentToShapes[shape.DataFlowComponent].Add(shape);
 			}
 
-			if (node.Children.Count() > 0) {
+			if (node.Children.Any() ) {
 				foreach (var child in node.Children) {
 					FilterSetupShapeBase childSetupShapeBase = _MakeElementNodeShape(child, zOrder + 1);
 					shape.ChildFilterShapes.Add(childSetupShapeBase);
@@ -819,6 +832,7 @@ namespace VixenApplication
 
 			ControllerShape controllerShape = (ControllerShape) project.ShapeTypes["ControllerShape"].CreateInstance();
 			controllerShape.Title = controller.Name;
+			controllerShape.Controller = outputController;
 			controllerShape.SecurityDomainName = SECURITY_DOMAIN_FIXED_SHAPE_NO_CONNECTIONS;
 			controllerShape.FillStyle = project.Design.FillStyles["Controller"];
 
@@ -840,7 +854,7 @@ namespace VixenApplication
 				CommandOutput output = outputController.Outputs[i];
 				OutputShape outputShape = (OutputShape) project.ShapeTypes["OutputShape"].CreateInstance();
 				outputShape.SetController(outputController);
-				outputShape.SetOutput(output);
+				outputShape.SetOutput(output, i);
 				outputShape.SecurityDomainName = SECURITY_DOMAIN_FIXED_SHAPE_WITH_CONNECTIONS;
 				outputShape.FillStyle = project.Design.FillStyles["Output"];
 

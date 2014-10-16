@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics;
 using Vixen.Execution;
 using Vixen.Execution.Context;
 using Vixen.Sys.Managers;
 using Vixen.Sys.State.Execution;
+using System.Collections.Concurrent;
+using Vixen.Sys.Instrumentation;
 
 namespace Vixen.Sys
 {
@@ -12,6 +16,26 @@ namespace Vixen.Sys
 		internal static SystemClock SystemTime = new SystemClock();
 		private static ExecutionStateEngine _state;
 		private static ControllerUpdateAdjudicator _updateAdjudicator;
+		private static MillisecondsValue _systemAllowedUpdateTime;
+		private static MillisecondsValue _systemAllowedBlockTime;
+		private static MillisecondsValue _systemDeniedUpdateTime;
+		private static MillisecondsValue _systemDeniedBlockTime;
+		private static Stopwatch _stopwatch;
+		private static long lastMs = 0;
+		private static bool lastUpdateClearedStates = false;
+
+		public static void initInstrumentation()
+		{
+			_stopwatch = Stopwatch.StartNew();
+			_systemAllowedUpdateTime = new MillisecondsValue("System allowed update");
+			VixenSystem.Instrumentation.AddValue(_systemAllowedUpdateTime);
+			_systemAllowedBlockTime = new MillisecondsValue("System allowed block");
+			VixenSystem.Instrumentation.AddValue(_systemAllowedBlockTime);
+			_systemDeniedUpdateTime = new MillisecondsValue("System denied update");
+			VixenSystem.Instrumentation.AddValue(_systemDeniedUpdateTime);
+			_systemDeniedBlockTime = new MillisecondsValue("System denied block");
+			VixenSystem.Instrumentation.AddValue(_systemDeniedBlockTime);
+		}
 
 		// These are system-level events.
 		public static event EventHandler NodesChanged
@@ -48,9 +72,7 @@ namespace Vixen.Sys
 
 		internal static void Startup()
 		{
-			// Create the system context for live execution.
-			ContextBase systemContext = VixenSystem.Contexts.GetSystemLiveContext();
-			systemContext.Start();
+
 		}
 
 		internal static void Shutdown()
@@ -138,15 +160,53 @@ namespace Vixen.Sys
 			return 0;
 		}
 
-		public static bool UpdateState()
+
+		private static ConcurrentDictionary<string, TimeSpan> lastSnapshots = new ConcurrentDictionary<string, TimeSpan>();
+		private static Object lockObject = new Object();
+
+		public static ConcurrentDictionary<string, TimeSpan> UpdateState( out bool allowed)
 		{
-			bool allowUpdate = _UpdateAdjudicator.PetitionForUpdate();
-			if (allowUpdate) {
-				VixenSystem.Contexts.Update();
-				VixenSystem.Elements.Update();
-				VixenSystem.Filters.Update();
+			if (_stopwatch == null)
+				initInstrumentation();
+			long nowMs = _stopwatch.ElapsedMilliseconds;
+			lock (lockObject) {
+				long lockMs = _stopwatch.ElapsedMilliseconds - nowMs;
+				bool allowUpdate = _UpdateAdjudicator.PetitionForUpdate();
+				if (allowUpdate) {
+					HashSet<Guid> elementsAffected = VixenSystem.Contexts.Update();
+					if (elementsAffected.Any())
+					{
+						VixenSystem.Elements.Update(elementsAffected);
+						lastUpdateClearedStates = false;
+						if (VixenSystem.OutputControllers.Any(x => x.IsRunning))
+						{
+							//Only update the filter chain if we have a controller running
+							VixenSystem.Filters.Update();
+						}
+					}
+					else if(!lastUpdateClearedStates)
+					{
+						//No need to sample all the contexts as we were just told there are no elements effected.
+						VixenSystem.Elements.ClearStates();
+						lastUpdateClearedStates = true;
+						if (VixenSystem.OutputControllers.Any(x => x.IsRunning))
+						{
+							//Only update the filter chain if we have a controller running
+							VixenSystem.Filters.Update();
+						}
+					}
+
+					_systemAllowedBlockTime.Set( lockMs);
+					_systemAllowedUpdateTime.Set(_stopwatch.ElapsedMilliseconds - nowMs - lockMs);
+				}
+				else {
+					_systemDeniedBlockTime.Set(lockMs);
+					_systemDeniedUpdateTime.Set(_stopwatch.ElapsedMilliseconds - nowMs - lockMs);
+				}
+				lastMs = nowMs;
+				allowed = allowUpdate;
+				return lastSnapshots;
 			}
-			return allowUpdate;
 		}
 	}
 }

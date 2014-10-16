@@ -295,11 +295,12 @@ namespace VixenModules.App.ColorGradients
 			                               this.Width - BORDER*2 - 1, this.Height - BORDER*2 - 1);
 			if (_blend != null) {
 				using (HatchBrush brs = new HatchBrush(HatchStyle.LargeCheckerBoard,
-				                                       Color.Silver, Color.White)) {
+													   Color.Silver, Color.White)) {
 					e.Graphics.FillRectangle(brs, area);
 				}
-				Bitmap bmp = _blend.GenerateColorGradientImage(area.Size, DiscreteColors);
-				e.Graphics.DrawImage(bmp, area.X, area.Y);
+				using (Bitmap bmp = _blend.GenerateColorGradientImage(area.Size, DiscreteColors)) {
+					e.Graphics.DrawImage(bmp, area.X, area.Y);
+				}
 			}
 			//border
 			e.Graphics.DrawRectangle(Pens.Silver, area);
@@ -399,6 +400,14 @@ namespace VixenModules.App.ColorGradients
 
 		protected override void OnMouseDoubleClick(MouseEventArgs e)
 		{
+			//We need to make sure we double clicked on a fader and not just the control.
+			Point pt = Point.Empty;
+			bool foc;
+			if (!GetFadersUnderMouse(e.Location, ref pt, out foc).Any())
+			{
+				return;
+			}
+
 			if (Selection != null && !ReadOnly)
 				RaiseSelectionDoubleClicked();
 			base.OnMouseDoubleClick(e);

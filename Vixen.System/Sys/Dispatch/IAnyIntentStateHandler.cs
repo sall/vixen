@@ -2,8 +2,8 @@
 
 namespace Vixen.Sys.Dispatch
 {
-	internal interface IAnyIntentStateHandler : IHandler<IIntentState<ColorValue>>, IHandler<IIntentState<LightingValue>>,
-	                                            IHandler<IIntentState<PositionValue>>, IHandler<IIntentState<CommandValue>>
+	internal interface IAnyIntentStateHandler : IHandler<IIntentState<RGBValue>>, IHandler<IIntentState<LightingValue>>,
+	                                            IHandler<IIntentState<PositionValue>>, IHandler<IIntentState<CommandValue>>                                                
 	{
 	}
 }

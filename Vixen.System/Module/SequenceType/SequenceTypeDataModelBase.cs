@@ -45,16 +45,6 @@ namespace Vixen.Module.SequenceType
 		public override IModuleDataModel Clone()
 		{
 			throw new NotImplementedException();
-			SequenceTypeDataModelBase newInstance = new SequenceTypeDataModelBase();
-			newInstance.Version = Version;
-			newInstance.Length = Length;
-			newInstance.SelectedTimingProvider = new SelectedTimingProvider(SelectedTimingProvider.ProviderType,
-			                                                                SelectedTimingProvider.SourceName);
-			newInstance.Media = new MediaCollection(Media);
-			//newInstance.EffectData = 
-			//newInstance.SequenceFilterData = 
-
-			return newInstance;
 		}
 
 		private void _InitDataStreams()
@@ -101,7 +91,11 @@ namespace Vixen.Module.SequenceType
 			LocalDataSet.DataModels = _dataModels;
 
 			// Rehydrate the modules.
-			IEffectNode[] effectNodes = _effectNodeSurrogates.Select(x => x.CreateEffectNode()).ToArray();
+			var elementNodes = VixenSystem.Nodes.Distinct().ToDictionary(x => x.Id);
+			IEffectNode[] effectNodes = _effectNodeSurrogates.Select(x => x.CreateEffectNode(elementNodes)).ToArray();
+			// weed out effects without nodes..
+			effectNodes = effectNodes.Where(x => x.Effect.TargetNodes.Count() != 0).ToArray();
+
 			ISequenceFilterNode[] sequenceFilterNodes = _filterNodeSurrogates.Select(x => x.CreateFilterNode()).ToArray();
 
 			// Connect them to their respective data from the data store.

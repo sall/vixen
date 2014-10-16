@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{A54FB6A1-A9C3-488C-B961-41B8DBC81B36}</ProjectGuid>
@@ -12,16 +12,6 @@
     <AssemblyName>Controls</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>$(SolutionDir)\Output\Common\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>$(SolutionDir)\Release\Common\</OutputPath>
@@ -33,20 +23,36 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>$(SolutionDir)\Release64\Common\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)\Vixen.System\Vixen.csproj">
       <Project>{50B78623-FCF4-48AF-93FF-FA87C937028F}</Project>
       <Name>Vixen</Name>
       <Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\Resources\Resources.csproj">
+      <Project>{F7A80169-6310-4585-9D58-A6F6F5C5B380}</Project>
+      <Name>Resources</Name>
+      <Private>False</Private>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.WindowsAPICodePack.DirectX, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\Microsoft.WindowsAPICodePack.DirectX.dll</HintPath>
+    <Reference Include="Microsoft.WindowsAPICodePack.DirectX">
+      <HintPath>..\Libraries\Microsoft.WindowsAPICodePack.DirectX.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="NLog">
       <HintPath>..\..\packages\NLog.2.0.1.2\lib\net40\NLog.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -67,6 +73,12 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ControllerTree.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ControllerTree.Designer.cs">
+      <DependentUpon>ControllerTree.cs</DependentUpon>
+    </Compile>
     <Compile Include="Direct2D\AnimatedScene.cs" />
     <Compile Include="Direct2D\D3D10Image.cs" />
     <Compile Include="Direct2D\Direct2DControl.cs" />
@@ -113,11 +125,17 @@
     <Compile Include="DiscreteColorPickerItem.Designer.cs">
       <DependentUpon>DiscreteColorPickerItem.cs</DependentUpon>
     </Compile>
+    <Compile Include="DragAndDropListView.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="ElementTree.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="ElementTree.Designer.cs">
       <DependentUpon>ElementTree.cs</DependentUpon>
+    </Compile>
+    <Compile Include="NumericTextBox.cs">
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="PictureComboBox.cs">
       <SubType>Component</SubType>
@@ -126,6 +144,8 @@
       <DependentUpon>PictureComboBox.cs</DependentUpon>
     </Compile>
     <Compile Include="PictureComboBoxItem.cs" />
+    <Compile Include="TimelineControl\BlockingCollectionExtensions.cs" />
+    <Compile Include="TimelineControl\DelegateBasedObserver.cs" />
     <Compile Include="TimelineControl\Grid.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -183,11 +203,6 @@
     </Compile>
     <Compile Include="ParallelPortConfig.Designer.cs">
       <DependentUpon>ParallelPortConfig.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Icons.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Icons.resx</DependentUpon>
     </Compile>
     <Compile Include="TimelineControl\Waveform.cs" />
     <Compile Include="ToolStripEx.cs">
@@ -310,6 +325,7 @@
     <Compile Include="Wizard\WizardStage.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="XMLProfileSettings.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ColorPicker\ColorLabel.resx">
@@ -324,6 +340,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ColorPicker\ColorSelectionPlane.resx">
       <DependentUpon>ColorSelectionPlane.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ControllerTree.resx">
+      <DependentUpon>ControllerTree.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Direct2D\Direct2DControlWinForm.resx">
       <DependentUpon>Direct2DControlWinForm.cs</DependentUpon>
@@ -392,10 +411,6 @@
     <EmbeddedResource Include="ParallelPortConfig.resx">
       <DependentUpon>ParallelPortConfig.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Icons.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Icons.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
     <EmbeddedResource Include="SerialPortConfig.resx">
       <DependentUpon>SerialPortConfig.cs</DependentUpon>
     </EmbeddedResource>
@@ -413,18 +428,7 @@
     <Content Include="ColorPicker\ColorPicker.cur" />
     <Content Include="ControlsEx\std_zoomin.png" />
     <Content Include="ControlsEx\std_zoomout.png" />
-    <None Include="Microsoft.WindowsAPICodePack.DirectX.dll" />
     <None Include="packages.config" />
-    <None Include="Resources\UpArrowShort_Blue_48x48.png" />
-    <None Include="Resources\UpArrowShort_Blue_32x32.png" />
-    <None Include="Resources\UpArrowShort_Blue_24x24.png" />
-    <None Include="Resources\UpArrowShort_Blue_16x16.png" />
-    <None Include="Resources\DownArrowShort_Blue_48x48.png" />
-    <None Include="Resources\DownArrowShort_Blue_32x32.png" />
-    <None Include="Resources\DownArrowShort_Blue_24x24.png" />
-    <None Include="Resources\DownArrowShort_Blue_16x16.png" />
-    <None Include="Resources\Edit_RedoHS.png" />
-    <None Include="Resources\Edit_UndoHS.png" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Modules\Media\Audio\Audio.csproj">
@@ -438,6 +442,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Resources\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
