@@ -147,6 +147,12 @@ namespace Vixen.Module.Effect
 				}
 			}
 		}
+
+		public virtual void GenerateRasterOverlay(System.Drawing.Graphics g, System.Drawing.Rectangle clipRectangle)
+		{
+
+		}
+
 		public virtual ElementIntents GetElementIntents(TimeSpan effectRelativeTime)
 		{
 			_elementIntents.Clear();
@@ -246,6 +252,10 @@ namespace Vixen.Module.Effect
 			get { return false; }
 		}
 
+		public virtual bool HasRasterOverlay
+		{
+			get { return false; }
+		}
 		#endregion
 	}
 }

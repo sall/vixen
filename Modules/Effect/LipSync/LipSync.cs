@@ -17,14 +17,18 @@ using Vixen.Module.Effect;
 using Vixen.Services;
 using Vixen.Sys;
 using Vixen.Sys.Attribute;
+using VixenModules.App.Curves;
+using VixenModules.App.ColorGradients;
 using VixenModules.App.LipSyncApp;
 using VixenModules.Effect;
+using System.Drawing.Drawing2D;
 
 namespace VixenModules.Effect.LipSync
 {
 
     public class LipSync : EffectModuleInstanceBase
     {
+        private Curve _straightLine;
         private LipSyncData _data;
         private EffectIntents _elementData = null;
         static Dictionary<string, Bitmap> _phonemeBitmaps = null;
@@ -36,6 +40,10 @@ namespace VixenModules.Effect.LipSync
             _data = new LipSyncData();
             LoadResourceBitmaps();
             _library = ApplicationServices.Get<IAppModuleInstance>(LipSyncMapDescriptor.ModuleID) as LipSyncMapLibrary;
+            _straightLine = new Curve();
+            _straightLine.Points.Clear();
+            _straightLine.Points.Add(0, 100);
+            _straightLine.Points.Add(100, 100);
         }
 
         protected override void TargetNodesChanged()
@@ -84,15 +92,38 @@ namespace VixenModules.Effect.LipSync
                         {
                             if (mapData.PhonemeState(element.Name, _data.StaticPhoneme, item))
                             {
-                                var level = new SetLevel.SetLevel();
-                                level.TargetNodes = new ElementNode[] { element };
-                                level.Color = mapData.ConfiguredColor(element.Name, phoneme, item);
-                                level.IntensityLevel = mapData.ConfiguredIntensity(element.Name, phoneme, item);
-                                level.TimeSpan = TimeSpan;
-                                result = level.Render();
-                                _elementData.Add(result);
-                            }
+                                if ((_data.IsDefaultCurve()) && (_data.GradientOverride == null))
+                                {
+                                    var level = new SetLevel.SetLevel();
+                                    level.TargetNodes = new ElementNode[] { element };
+                                    level.Color = mapData.ConfiguredColor(element.Name, phoneme, item);
+                                    level.IntensityLevel = mapData.ConfiguredIntensity(element.Name, phoneme, item);
+                                    level.TimeSpan = TimeSpan;
+                                    result = level.Render();
+                                    _elementData.Add(result);
+                                }
+                                else
+                                {
+                                    var pulse = new Pulse.Pulse();
+                                    pulse.TargetNodes = new ElementNode[] { element };
+                                    pulse.TimeSpan = TimeSpan;
+                                    pulse.LevelCurve = new Curve();
+                                    pulse.LevelCurve.Points.Clear();
+                                    foreach (ZedGraph.PointPair p in _data.LevelCurve.Points)
+                                    {
+                                        double newY =
+                                            _data.LevelCurve.GetValue(p.X) *
+                                            mapData.ConfiguredIntensity(element.Name, phoneme, item);
+                                        pulse.LevelCurve.Points.Add(p.X, newY);
+                                    }
 
+                                    pulse.ColorGradient = GradientOverride ??
+                                        new ColorGradient(mapData.ConfiguredColor(element.Name, phoneme, item));
+
+                                    result = pulse.Render();
+                                    _elementData.Add(result);
+                                }
+                            }
                         }
                     });
 
@@ -146,6 +177,36 @@ namespace VixenModules.Effect.LipSync
             }
         }
 
+        [Value]
+        public Curve LevelCurve
+        {
+            get 
+            { 
+                return _data.LevelCurve;  
+            }
+
+            set
+            {
+                _data.LevelCurve = value;
+                IsDirty = true;
+            }
+        }
+
+        [Value]
+        public ColorGradient GradientOverride
+        {
+            get
+            {
+                return _data.GradientOverride;
+            }
+
+            set
+            {
+                _data.GradientOverride = value;
+                IsDirty = true;
+            }
+        }
+
         private void LoadResourceBitmaps()
         {
             if (_phonemeBitmaps == null)
@@ -175,9 +236,9 @@ namespace VixenModules.Effect.LipSync
             get { return ((IEffectModuleDescriptor)Descriptor).EffectName + " - " + StaticPhoneme; }
         }
 
-        public override bool ForceGenerateVisualRepresentation { get { return true; } }
+		public override bool HasRasterOverlay { get { return true; } }
 
-        public override void GenerateVisualRepresentation(System.Drawing.Graphics g, System.Drawing.Rectangle clipRectangle)
+		public override void GenerateRasterOverlay(System.Drawing.Graphics g, System.Drawing.Rectangle clipRectangle)
         {
             try
             {
@@ -201,14 +262,17 @@ namespace VixenModules.Effect.LipSync
                     clipRectangle.X += scaledImage.Width;
                     clipRectangle.Width -= scaledImage.Width;
                     Font AdjustedFont = Vixen.Common.Graphics.GetAdjustedFont(g, DisplayValue, clipRectangle, "Vixen.Fonts.DigitalDream.ttf");
-                    using (var StringBrush = new SolidBrush(Color.Yellow))
-                    {
-                        using (var backgroundBrush = new SolidBrush(Color.Green))
-                        {
-                            g.FillRectangle(backgroundBrush, clipRectangle);
-                        }
-                        g.DrawString(DisplayValue, AdjustedFont, StringBrush, 4 + scaledImage.Width, 4);
-                    }
+                    
+					using (var backgroundBrush = new SolidBrush(Color.Green))
+					{
+						SizeF stringSize = g.MeasureString(DisplayValue, AdjustedFont, clipRectangle.Width - 4);
+						g.FillRectangle(backgroundBrush, new Rectangle(scaledImage.Width, 0, (int)stringSize.Width + 4, (int)clipRectangle.Height + 4));
+					}
+
+					using (var StringBrush = new SolidBrush(Color.Yellow))
+					{
+						g.DrawString(DisplayValue, AdjustedFont, StringBrush, 4 + scaledImage.Width, 4);
+					}
                 }
                 
             }

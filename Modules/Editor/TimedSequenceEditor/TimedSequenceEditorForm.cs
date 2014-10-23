@@ -2900,7 +2900,13 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			foreach (Element elem in elementList)
 			{
 				object[] parms = elem.EffectNode.Effect.ParameterValues;
-				switch (elem.EffectNode.Effect.EffectName)
+				string effectName = elem.EffectNode.Effect.EffectName;
+				if (effectName.Contains("LipSync"))
+				{
+					effectName = "LipSync";
+				}
+
+				switch (effectName)
 				{
 					case "Alternating":
 						if (e.MouseButton == MouseButtons.Right || Control.ModifierKeys.HasFlag(Keys.Control))
@@ -2934,6 +2940,9 @@ namespace VixenModules.Editor.TimedSequenceEditor
 						break;
 					case "Wipe":
 						parms[0] = new ColorGradient(color);
+						break;
+					case "LipSync":
+						parms[4] = new ColorGradient(color);
 						break;
 				}
 				//TODO:
@@ -2972,7 +2981,13 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				curve.IsCurrentLibraryCurve = false;
 
 				object[] parms = elem.EffectNode.Effect.ParameterValues;
-				switch (elem.EffectNode.Effect.EffectName)
+				string effectName = elem.EffectNode.Effect.EffectName;
+				if (effectName.Contains("LipSync"))
+				{
+					effectName = "LipSync";
+				}
+
+				switch (effectName)
 				{
 					case "Alternating":
 						if (e.MouseButton == MouseButtons.Right || Control.ModifierKeys.HasFlag(Keys.Control))
@@ -2995,6 +3010,9 @@ namespace VixenModules.Editor.TimedSequenceEditor
 						break;
 					case "Wipe":
 						parms[2] = curve;
+						break;
+					case "LipSync":
+						parms[3] = curve;
 						break;
 				}
 				elem.EffectNode.Effect.ParameterValues = parms;
@@ -3030,7 +3048,13 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				gradient.IsCurrentLibraryGradient = false;
 
 				object[] parms = elem.EffectNode.Effect.ParameterValues;
-				switch (elem.EffectNode.Effect.EffectName)
+				string effectName = elem.EffectNode.Effect.EffectName;
+				if (effectName.Contains("LipSync"))
+				{
+					effectName = "LipSync";
+				}
+
+				switch (effectName)
 				{
 					case "Alternating":
 						if (e.MouseButton == MouseButtons.Right || Control.ModifierKeys.HasFlag(Keys.Control))
@@ -3061,6 +3085,9 @@ namespace VixenModules.Editor.TimedSequenceEditor
 						break;
 					case "Wipe":
 						parms[0] = gradient;
+						break;
+					case "LipSync":
+						parms[4] = gradient;
 						break;
 				}
 				elem.EffectNode.Effect.ParameterValues = parms;
@@ -4529,9 +4556,13 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
         private void lipSyncMappingsToolStripMenuItem_DropDownOpening(object sender, EventArgs e)
         {
+            this.explodeEffectToolStripMenuItem.Enabled =
+                (TimelineControl.SelectedElements.Any(effect => effect.EffectNode.Effect.GetType() == typeof(LipSync)));
+
             this.changeMapToolStripMenuItem.Enabled =
              (_library.Library.Count > 1) &&
              (TimelineControl.SelectedElements.Any(effect => effect.EffectNode.Effect.GetType() == typeof(LipSync)));
+
         }
 
 
@@ -4563,6 +4594,30 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
         }
 
+		private void explodeEffectToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			ToolStripMenuItem toolStripSender = (ToolStripMenuItem)sender;
+
+			TimelineControl.SelectedElements.ToList().ForEach(delegate(Element element)
+			{
+				if (element.EffectNode.Effect.GetType() == typeof(LipSync))
+				{
+					foreach (ElementNode targNode in element.EffectNode.Effect.TargetNodes)
+					{
+						foreach (ElementNode elemNode in targNode.Children)
+						{
+							IEffectModuleInstance newEffect = ApplicationServices.Get<IEffectModuleInstance>(element.EffectNode.Effect.TypeId);
+							newEffect.ParameterValues = element.EffectNode.Effect.ParameterValues;
+							addEffectInstance(newEffect, _elementNodeToRows[elemNode][0], element.StartTime, element.Duration);
+						}
+					}
+
+					RemoveEffectNodeAndElement(element.EffectNode);
+				}
+			});
+		}
+
+
 		private void helpDocumentationToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			System.Diagnostics.Process.Start("http://www.vixenlights.com/vixen-3-documentation/sequencer/");
@@ -4585,9 +4640,6 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				}
 			}
 		}
-
-
-
     }
 
 	[Serializable]

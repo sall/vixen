@@ -4,12 +4,16 @@ using System.Linq;
 using System.Text;
 using Vixen.Sys;
 using Vixen.Module.Effect;
+using VixenModules.App.Curves;
+using VixenModules.App.ColorGradients;
 
 namespace VixenModules.Effect.LipSync
 {
     public class LipSyncDescriptor : EffectModuleDescriptorBase
     {
         private static Guid _typeId = new Guid("{52F17F4B-2159-4820-8660-05CD9D1F47C1}");
+        private static Guid _CurvesId = new Guid("{4e258de2-7a75-4f0f-aa43-c8182e7f3400}");
+        private static Guid _ColorGradientId = new Guid("{64f4ab26-3ed4-49a3-a004-23656ed0424a}");
 
         public override string EffectName
         {
@@ -56,6 +60,11 @@ namespace VixenModules.Effect.LipSync
             get { return "1.0"; }
         }
 
+        public override Guid[] Dependencies
+        {
+            get { return new Guid[] { _CurvesId, _ColorGradientId }; }
+        }
+
         public override ParameterSignature Parameters
         {
             get
@@ -63,7 +72,9 @@ namespace VixenModules.Effect.LipSync
                 return new ParameterSignature(
                     new ParameterSpecification("StaticPhoneme", typeof(string),false),
                     new ParameterSpecification("PGOFilename", typeof(string),false),
-                    new ParameterSpecification("PhonemeMapping", typeof(string),false)
+                    new ParameterSpecification("PhonemeMapping", typeof(string),false),
+                    new ParameterSpecification("Intensity Curve", typeof(Curve)),
+                    new ParameterSpecification("Gradient Override", typeof(ColorGradient))
                     );
             }
         }

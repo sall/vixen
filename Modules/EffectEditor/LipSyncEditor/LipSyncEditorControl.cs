@@ -15,6 +15,8 @@ using Vixen.Module.EffectEditor;
 using Vixen.Module.Effect;
 using Vixen.Services;
 using VixenModules.App.LipSyncApp;
+using VixenModules.App.Curves;
+using VixenModules.App.ColorGradients;
 
 namespace VixenModules.EffectEditor.LipSyncEditor
 {
@@ -25,6 +27,8 @@ namespace VixenModules.EffectEditor.LipSyncEditor
         private static Dictionary<string, Bitmap> _phonemeBitmaps = null;
         private ResourceManager lipSyncRM = null;
         private LipSyncMapLibrary _library = null;
+        private Curve _defaultCurve = new Curve();
+
         public LipSyncEditorControl()
         {
             InitializeComponent();
@@ -38,7 +42,7 @@ namespace VixenModules.EffectEditor.LipSyncEditor
             imageListView.MultiSelect = false;
             imageListView.HideSelection = false;
 
-            imageList1.ImageSize = new Size(48,48);
+            imageList1.ImageSize = new Size(40,40);
 
             _library = ApplicationServices.Get<IAppModuleInstance>(LipSyncMapDescriptor.ModuleID) as LipSyncMapLibrary;
             foreach (LipSyncMapData data in _library.Library.Values)
@@ -85,13 +89,15 @@ namespace VixenModules.EffectEditor.LipSyncEditor
                 {
                     StaticPhoneme,
                     PhonemeMapping,
-                    LyricData
+                    LyricData,
+                    CurveData,
+                    GradientOverride
                 }; 
             }
 
             set
             {
-                if (value.Length != 3)
+                if (value.Length != 5)
                 {
                     Logging.Warn("LipSync effect parameters set with " + value.Length + " parameters");
                     return;
@@ -115,6 +121,8 @@ namespace VixenModules.EffectEditor.LipSyncEditor
                 StaticPhoneme = (string)value[0];
                 PhonemeMapping = (string)value[1];
                 LyricData = (string)value[2];
+                CurveData = (Curve)value[3];
+                GradientOverride = (ColorGradient)value[4];
             }
         }
 
@@ -166,6 +174,42 @@ namespace VixenModules.EffectEditor.LipSyncEditor
                 lyricDataTextBox.Text = value;
             }
         }
+
+        public Curve CurveData
+        {
+            get
+            {
+                return curveTypeEditorControl1.CurveValue;
+            }
+
+            set
+            {
+                curveTypeEditorControl1.CurveValue = value;
+            }
+        }
+
+        public ColorGradient GradientOverride
+        {
+            get
+            {
+                if (gradientOverrideCheckBox.Checked)
+                {
+                    return colorGradientTypeEditorControl1.ColorGradientValue;
+                }
+
+                return null;
+            }
+
+            set
+            {
+                if (value != null)
+                {
+                    colorGradientTypeEditorControl1.ColorGradientValue = value;
+                }
+                gradientOverrideCheckBox.Checked = (value != null);
+            }
+        }
+
         private void selectImageListItem(string text)
         {
             foreach (ListViewItem viewItem in imageListView.Items)
@@ -191,6 +235,9 @@ namespace VixenModules.EffectEditor.LipSyncEditor
                 staticPhoneMeCombo.Text = StaticPhoneme;
             }
 
+            gradientOverrideCheckBox.Checked = (GradientOverride != null);
+            colorGradientTypeEditorControl1.Visible = gradientOverrideCheckBox.Checked;
+
         }
 
         private void staticPhoneMeCombo_SelectedIndexChanged(object sender, EventArgs e)
@@ -205,6 +252,11 @@ namespace VixenModules.EffectEditor.LipSyncEditor
             {
                 staticPhoneMeCombo.Text = imageListView.SelectedItems[0].Text;
             }        
+        }
+
+        private void gradientOverrideCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            colorGradientTypeEditorControl1.Visible = gradientOverrideCheckBox.Checked;
         }
 
     }
