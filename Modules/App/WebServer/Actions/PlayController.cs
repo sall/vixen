@@ -45,6 +45,11 @@ namespace VixenModules.App.WebServer.Actions
 					Status(request, response);
 					return;
 				}
+                if (request.Uri.StartsWith("/api/play/stopSequence"))
+                {
+                    StopSequence(request, response);
+                    return;
+                }
 			}
 			
 			UnsupportedOperation(request, response);
