@@ -44,38 +44,80 @@ namespace VixenModules.App.WebServer.Actions
 			UnsupportedOperation(request, response);
 		}
 
-		private void GetElements(HttpRequestHead request, IHttpResponseDelegate response)
-		{
-			IEnumerable<ElementNode> elementNodes = VixenSystem.Nodes.GetRootNodes();
-			var elements = new List<Element>();
-			foreach (var elementNode in elementNodes)
-			{
-				AddNodes(elements,elementNode);
-			}
-			
-			SerializeResponse(elements,response);
-		}
+	    private void GetElements(HttpRequestHead request, IHttpResponseDelegate response)
+	    {
+	        var group = "";
+	        if (request.QueryString != null && request.QueryString.Length > 0)
+	        {
+	            NameValueCollection parms = GetParameters(request);
+	            group = parms["group"];
+	        }
+	        IEnumerable<ElementNode> elementNodes = VixenSystem.Nodes.GetRootNodes();
+	        var elements = new List<Element>();
+	        foreach (var elementNode in elementNodes)
+	        {
+	            AddNodes(elements, elementNode, group);
+	        }
 
-		private void AddNodes(List<Element> elements, ElementNode elementNode)
-		{
-			var element = new Element
-			{
-				Id = elementNode.Id,
-				Name = elementNode.Name
-			};
-			
-			element.Colors = ColorModule.getValidColorsForElementNode(elementNode, true).Select(ColorTranslator.ToHtml).ToList();
-			
-			elements.Add(element);
-			if (!elementNode.IsLeaf)
-			{
-				var children = new List<Element>();
-				element.Children = children;
-				foreach (var childNode in elementNode.Children)
-				{
-					AddNodes(children, childNode);
-				}
-			}	
+	        SerializeResponse(elements, response);
+	    }
+
+	    private void AddNodes(List<Element> elements, ElementNode elementNode, string group, bool showChild = false)
+	    {
+	        if (group == null || group == "")
+	        {
+	            var element = new Element
+	            {
+	                Id = elementNode.Id,
+	                Name = elementNode.Name
+	            };
+
+	            element.Colors =
+	                ColorModule.getValidColorsForElementNode(elementNode, true).Select(ColorTranslator.ToHtml).ToList();
+
+	            elements.Add(element);
+	            if (!elementNode.IsLeaf)
+	            {
+	                var children = new List<Element>();
+	                element.Children = children;
+	                foreach (var childNode in elementNode.Children)
+	                {
+	                    AddNodes(children, childNode, group);
+	                }
+	            }
+	        }
+	        else
+	        {
+	            if (elementNode.Name == group || showChild)
+	            {
+	                var element = new Element
+	                {
+	                    Id = elementNode.Id,
+	                    Name = elementNode.Name
+	                };
+
+	                element.Colors =
+	                    ColorModule.getValidColorsForElementNode(elementNode, true).Select(ColorTranslator.ToHtml).ToList();
+
+	                elements.Add(element);
+	                if (!elementNode.IsLeaf)
+	                {
+	                    var children = new List<Element>();
+	                    element.Children = children;
+	                    foreach (var childNode in elementNode.Children)
+	                    {
+	                        AddNodes(children, childNode, group, elementNode.Name == group);
+	                    }
+	                }
+	            }
+	            else
+	            {
+                    foreach (var childNode in elementNode.Children)
+                    {
+                        AddNodes(elements, childNode, group, false);
+                    }
+                }
+	        }
 		}
 
 		private static void TurnOnElement(HttpRequestHead request, IHttpResponseDelegate response)
