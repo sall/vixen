@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Common.Controls;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -31,13 +32,12 @@ namespace VixenModules.Preview.VixenPreview.Shapes
             {
                 if (shape.Pixels.Count == 0)
                     continue;
-                PreviewSetElementString newString = new PreviewSetElementString();
+                var newString = new PreviewSetElementString();
                 // If this is a Standard string, only set the first pixel of the string
                 if (shape.StringType == PreviewBaseShape.StringTypes.Standard)
                 {
                     //Console.WriteLine("Standard String");
                     PreviewPixel pixel = shape.Pixels[0];
-                    ;
                     //Console.WriteLine(shape.Pixels[0].Node.Name.ToString());
                     newString.Pixels.Add(pixel.Clone());
                 }
@@ -49,22 +49,17 @@ namespace VixenModules.Preview.VixenPreview.Shapes
                         newString.Pixels.Add(pixel.Clone());
                     }
                 }
-                //If Image Type
-                else
-                {
-
-                }
 
                 newString.StringName = "String " + i.ToString();
                 _strings.Add(newString);
                 i++;
             }
 
-            string shapeType = "";
             if (_shapes[0].Parent != null)
             {
+                string shapeType = "";
                 shapeType = _shapes[0].Parent.GetType().ToString();
-                if (shapeType.Contains("Icicle") || shapeType.Contains("MultiString") )
+                if ((shapeType.Contains("Icicle") && _shapes[0].StringType != PreviewBaseShape.StringTypes.Standard) || shapeType.Contains("MultiString") )
                 {
                     panelSetLightCount.Visible = true;
                 }
@@ -260,12 +255,12 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 
         private void buttonOK_Click(object sender, EventArgs e)
         {
-            if (connectStandardStrings && _shapes[0].StringType == PreviewBaseShape.StringTypes.Standard)
+            if ((connectStandardStrings || _shapes.Count() == 1) && _shapes[0].StringType == PreviewBaseShape.StringTypes.Standard)
             {
-                PreviewBaseShape shape = _shapes[0];
+                //var shape = _shapes[0];
                 for (int i = 0; i < _shapes.Count; i++)
                 {
-                    foreach (PreviewPixel pixel in _shapes[i]._pixels)
+                    foreach (var pixel in _shapes[i]._pixels)
                     {
                         pixel.Node = _strings[0].Pixels[0].Node;
                         pixel.NodeId = _strings[0].Pixels[0].NodeId;
@@ -275,25 +270,26 @@ namespace VixenModules.Preview.VixenPreview.Shapes
             else
             {
                 // shapes with count==0 don't show up in combo box so keep separate index
-                int comboidx = -1;
-                for (int i = 0; i < _shapes.Count; i++)
+                var comboidx = -1;
+                for (var i = 0; i < _shapes.Count; i++)
                 {                    
-                    //Console.WriteLine("i=" + i.ToString());
                     if (_shapes[i].Pixels.Count == 0)
                         continue;
                     comboidx++;
-                    Common.Controls.ComboBoxItem item = comboStrings.Items[comboidx] as Common.Controls.ComboBoxItem;
-                    PreviewSetElementString lightString = item.Value as PreviewSetElementString;
-                    PreviewBaseShape shape = _shapes[i];
+                    var item = comboStrings.Items[comboidx] as Common.Controls.ComboBoxItem;
+                    var lightString = item.Value as PreviewSetElementString;
+                    var shape = _shapes[i];
 
-                    while (shape.Pixels.Count > lightString.Pixels.Count)
-                    {
-                        shape.Pixels.RemoveAt(shape.Pixels.Count - 1);
-                    }
-                    while (shape.Pixels.Count < lightString.Pixels.Count)
-                    {
-                        PreviewPixel pixel = new PreviewPixel();
-                        shape.Pixels.Add(pixel);
+                    if (shape.StringType == PreviewBaseShape.StringTypes.Pixel) { 
+                        while (shape.Pixels.Count > lightString.Pixels.Count)
+                        {
+                            shape.Pixels.RemoveAt(shape.Pixels.Count - 1);
+                        }
+                        while (shape.Pixels.Count < lightString.Pixels.Count)
+                        {
+                            var pixel = new PreviewPixel();
+                            shape.Pixels.Add(pixel);
+                        }
                     }
 
                     for (int pixelNum = 0; pixelNum < lightString.Pixels.Count; pixelNum++)
@@ -302,7 +298,7 @@ namespace VixenModules.Preview.VixenPreview.Shapes
                         // If this is a standard light string, assing ALL pixels to the first node
                         if (shape.StringType == PreviewBaseShape.StringTypes.Standard)
                         {
-                            foreach (PreviewPixel pixel in shape._pixels)
+                            foreach (var pixel in shape._pixels)
                             {
                                 //Console.WriteLine("       pixel:" + lightString.Pixels[0].Node.Id.ToString());
                                 pixel.Node = _strings[i].Pixels[0].Node;
@@ -390,6 +386,25 @@ namespace VixenModules.Preview.VixenPreview.Shapes
                         elementString.Pixels.Add(pixel);
                     }
                 }
+                UpdateListLinkedElements();
+            }
+        }
+
+        private void reverseElementLinkingInThisStringToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ComboBoxItem comboBoxItem = comboStrings.SelectedItem as Common.Controls.ComboBoxItem;
+            if (comboBoxItem != null)
+            {
+                PreviewSetElementString elementString = comboBoxItem.Value as PreviewSetElementString;
+                if (elementString != null)
+                {
+                    elementString.Pixels.Reverse();
+                }
+                else
+                {
+                    Console.WriteLine("elementString==null");
+                }
+                numericUpDownLightCount.Value = elementString.Pixels.Count();
                 UpdateListLinkedElements();
             }
         }
