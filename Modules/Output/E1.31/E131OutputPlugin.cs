@@ -60,6 +60,7 @@ namespace VixenModules.Controller.E131
     using VixenModules.Controller.E131.J1Sys;
     using VixenModules.Output.E131;
     using System.Linq;
+    using Vixen.Sys;
     // -----------------------------------------------------------------
     // 
     // OutputPlugin - the output plugin class for vixen
@@ -133,6 +134,13 @@ namespace VixenModules.Controller.E131
             {
                 if (!E131OutputPlugin.EmployedUniverses.Contains(u.Universe))
                     E131OutputPlugin.EmployedUniverses.Add(u.Universe);
+                if (u.Unicast != null)
+                {
+                    if (!unicasts.ContainsKey(u.Unicast))
+                    {
+                        unicasts.Add(u.Unicast, 0);
+                    }
+                }
             });
         }
 
@@ -172,13 +180,11 @@ namespace VixenModules.Controller.E131
                     initialUniverseList.Add(uE.Universe);
                 }
 
-
-
                 setupForm.WarningsOption = _data.Warnings;
                 setupForm.StatisticsOption = _data.Statistics;
 				setupForm.EventRepeatCount = _data.EventRepeatCount;
 				setupForm.EventSuppressCount = _data.EventSuppressCount;
-
+                setupForm.Text = (new E131ModuleDescriptor()).TypeName + " Controller Setup - " + VixenSystem.OutputControllers.Single(controller => controller.ModuleInstanceId == _data.ModuleInstanceId).Name;
 
                 if (setupForm.ShowDialog() == DialogResult.OK)
                 {
@@ -227,6 +233,7 @@ namespace VixenModules.Controller.E131
         }
 
         internal static List<int> EmployedUniverses = new List<int>();
+        internal static SortedList<string, int> unicasts = new SortedList<string, int>();
 
         public override bool HasSetup
         {

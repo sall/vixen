@@ -23,7 +23,6 @@ namespace VixenModules.App.LipSyncApp
             StartNode = "";
             ZoomLevel = 1;
             StringsAreRows = false;
-            BottomRight = true;
         }
 
         public LipSyncMapData(List<string> stringNames)
@@ -40,7 +39,6 @@ namespace VixenModules.App.LipSyncApp
             StartNode = "";
             ZoomLevel = 1;
             StringsAreRows = false;
-            BottomRight = true;
         }
 
         public LipSyncMapData(LipSyncMapData data)
@@ -56,13 +54,17 @@ namespace VixenModules.App.LipSyncApp
             StartNode = data.StartNode;
             ZoomLevel = data.ZoomLevel;
             StringsAreRows = data.StringsAreRows;
-            BottomRight = data.BottomRight;
         }
 
         public override IModuleDataModel Clone()
         {
             LipSyncMapData newInstance = new LipSyncMapData();
-            newInstance.MapItems = new List<LipSyncMapItem>(MapItems);
+            newInstance.MapItems = new List<LipSyncMapItem>();
+
+            foreach (LipSyncMapItem item in MapItems)
+            {
+                newInstance.MapItems.Add(item.Clone());
+            }
             newInstance.StringCount = StringCount;
             newInstance.LibraryReferenceName = LibraryReferenceName;
             newInstance.IsDefaultMapping = false;
@@ -72,7 +74,6 @@ namespace VixenModules.App.LipSyncApp
             newInstance.StartNode = StartNode;
             newInstance.ZoomLevel = ZoomLevel;
             newInstance.StringsAreRows = StringsAreRows;
-            newInstance.BottomRight = BottomRight;
 
             return newInstance;
         }
@@ -91,9 +92,6 @@ namespace VixenModules.App.LipSyncApp
 
         [DataMember]
         public string StartNode { get; set; }
-
-        [DataMember]
-        public bool BottomRight { get; set; }
 
         [DataMember]
         public int ZoomLevel { get; set; }

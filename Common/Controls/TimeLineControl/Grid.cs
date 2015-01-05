@@ -49,6 +49,8 @@ namespace Common.Controls.Timeline
 		public bool isCurveDrop { get; set; }
 		public bool isGradientDrop { get; set; }
 		private MouseButtons MouseButtonDown;
+		public string alignmentHelperWarning = @"Too many effects selected on the same row for this action.\nMax selected effects per row for this action is 4";
+		public bool aCadStyleSelectionBox { get; set; }
 
 		#region Initialization
 
@@ -633,6 +635,18 @@ namespace Common.Controls.Timeline
 			return rv;
 		}
 
+		//Determines if the count of selected elements per row is an acecptable level for use by the alignment helpers
+		public bool OkToUseAlignmentHelper(IEnumerable<Element> elements)
+		{
+
+			foreach (Element elem in elements)
+			{
+				if (elem.Row.SelectedElements.Count() > 4)
+					return false;
+			}
+			return true;
+		}
+
 		/// <summary>
 		/// Aligns the elements start times to the reference element as a single atomic operation
 		/// </summary>
@@ -641,6 +655,12 @@ namespace Common.Controls.Timeline
 		/// <param name="holdDuration">Lock the durations</param>
 		public void AlignElementStartTimes(IEnumerable<Element> elements, Element referenceElement, bool holdDuration)
 		{
+			if (!OkToUseAlignmentHelper(elements))
+			{
+				MessageBox.Show(alignmentHelperWarning);
+				return;
+			}
+
 			var elementsToAlign = new Dictionary<Element, Tuple<TimeSpan, TimeSpan>>();
 			foreach (Element selectedElement in elements)
 			{
@@ -668,6 +688,12 @@ namespace Common.Controls.Timeline
 		/// <param name="holdDuration">Lock the durations</param>
 		public void AlignElementEndTimes(IEnumerable<Element> elements, Element referenceElement, bool holdDuration)
 		{
+			if (!OkToUseAlignmentHelper(elements))
+			{
+				MessageBox.Show(alignmentHelperWarning);
+				return;
+			}
+
 			var elementsToAlign = new Dictionary<Element, Tuple<TimeSpan, TimeSpan>>();
 			foreach (Element selectedElement in elements)
 			{
@@ -695,6 +721,12 @@ namespace Common.Controls.Timeline
 		/// <param name="holdEndTime">Lock the end times and extend the start time</param>
 		public void AlignElementDurations(IEnumerable<Element> elements, Element referenceElement, bool holdEndTime)
 		{
+			if (!OkToUseAlignmentHelper(elements))
+			{
+				MessageBox.Show(alignmentHelperWarning);
+				return;
+			}
+
 			var elementsToAlign = new Dictionary<Element, Tuple<TimeSpan, TimeSpan>>();
 			foreach (Element selectedElement in elements)
 			{
@@ -715,6 +747,12 @@ namespace Common.Controls.Timeline
 		/// <param name="referenceElement">The element to use for the start time reference</param>
 		public void AlignElementStartEndTimes(IEnumerable<Element> elements, Element referenceElement)
 		{
+			if (!OkToUseAlignmentHelper(elements))
+			{
+				MessageBox.Show(alignmentHelperWarning);
+				return;
+			}
+
 			var elementsToAlign = new Dictionary<Element, Tuple<TimeSpan, TimeSpan>>();
 			foreach (Element selectedElement in elements)
 			{
@@ -732,6 +770,12 @@ namespace Common.Controls.Timeline
 		/// <param name="referenceElement"></param>
 		public void AlignElementStartToEndTimes(IEnumerable<Element> elements, Element referenceElement)
 		{
+			if (!OkToUseAlignmentHelper(elements))
+			{
+				MessageBox.Show(alignmentHelperWarning);
+				return;
+			}
+
 			var elementsToAlign = new Dictionary<Element, Tuple<TimeSpan, TimeSpan>>();
 			foreach (Element selectedElement in elements)
 			{
@@ -756,6 +800,12 @@ namespace Common.Controls.Timeline
 		/// <param name="referenceElement"></param>
 		public void AlignElementEndToStartTime(IEnumerable<Element> elements, Element referenceElement)
 		{
+			if (!OkToUseAlignmentHelper(elements))
+			{
+				MessageBox.Show(alignmentHelperWarning);
+				return;
+			}
+
 			var elementsToAlign = new Dictionary<Element, Tuple<TimeSpan, TimeSpan>>();
 			foreach (Element selectedElement in elements)
 			{
@@ -784,6 +834,12 @@ namespace Common.Controls.Timeline
 		/// <param name="referenceElement"></param>
 		public void AlignElementCenters(IEnumerable<Element> elements, Element referenceElement)
 		{
+			if (!OkToUseAlignmentHelper(elements))
+			{
+				MessageBox.Show(alignmentHelperWarning);
+				return;
+			}
+
 			var centerPoint = referenceElement.StartTime.TotalSeconds + (referenceElement.Duration.TotalSeconds / 2);
 			var elementsToAlign = new Dictionary<Element, Tuple<TimeSpan, TimeSpan>>();
 			foreach (Element selectedElement in elements)
@@ -880,6 +936,16 @@ namespace Common.Controls.Timeline
 			TimeSpan duration = end - start;
 			return MoveResizeElement(element, start, duration);
 
+		}
+
+		/// <summary>
+		/// Moves the discovered elements within a range by the given amount of time. This is similar to the mouse dragging events, except
+		/// it's a single 'atomic' operation that moves the elements and raises an event to indicate they have moved.
+		/// </summary>
+		public void MoveElementsInRangeByTime(TimeSpan startTime, TimeSpan endTime, TimeSpan offset)
+		{
+			IEnumerable<Element> elementsToMove = ElementsWithinRange(startTime, endTime);
+			MoveElementsByTime(elementsToMove, offset);
 		}
 
 		/// <summary>
@@ -1014,6 +1080,35 @@ namespace Common.Controls.Timeline
 		}
 
 		/// <summary>
+		/// Get a list of elements the exist within the the start and end time inclusive.
+		/// </summary>
+		/// <param name="startTime"></param>
+		/// <param name="endTime"></param>
+		/// <returns></returns>
+		public IEnumerable<Element> ElementsWithinRange(TimeSpan startTime, TimeSpan endTime)
+		{
+			List<Element> result = new List<Element>();
+			foreach (Row row in Rows)
+			{
+				foreach (Element elem in row)
+				{
+					if ((startTime <= elem.StartTime) && (endTime >= elem.StartTime))
+					{
+						result.Add(elem);
+					}
+					else if (elem.StartTime > endTime)
+					{
+						break;
+					}
+						
+				}
+			}
+			//Elements can be in multiple rows, so only return a distinct list
+			return result.Distinct();
+			
+		} 
+
+		/// <summary>
 		/// Get a list of elements that contain the specified time.
 		/// </summary>
 		/// <param name="time"></param>
@@ -1097,7 +1192,10 @@ namespace Common.Controls.Timeline
 			TimeSpan selEnd = pixelsToTime(SelectedArea.Right);
 			int selTop = SelectedArea.Top;
 			int selBottom = selTop + SelectedArea.Height;
+			string moveDirection = (SelectedArea.Left < mouseDownGridLocation.X || !aCadStyleSelectionBox) ? "Left" : "Right";
 
+			SelectionBorder = (moveDirection == "Right") ? Color.Green : Color.Blue;
+			
 			// deselect all elements in the grid first, then only select the ones in the box.
 			ClearSelectedElements();
 
@@ -1131,11 +1229,35 @@ namespace Common.Controls.Timeline
 						int elemBottom = elemTop + elem.DisplayHeight;
 						if (DragBoxFilterEnabled)
 						{
-							elem.Selected = (ShiftPressed && tempSelectedElements.Contains(elem) ? true : ((elem.StartTime < selEnd && elem.EndTime > selStart) && (elemTop < selBottom && elemBottom > selTop) && DragBoxFilterTypes.Contains(elem.EffectNode.Effect.TypeId)));
+							if (moveDirection == "Left")
+							{
+								elem.Selected = (ShiftPressed && tempSelectedElements.Contains(elem)
+									? true
+									: ((elem.StartTime < selEnd && elem.EndTime > selStart) && (elemTop < selBottom && elemBottom > selTop) &&
+									   DragBoxFilterTypes.Contains(elem.EffectNode.Effect.TypeId)));
+							}
+							else
+							{
+								elem.Selected = (ShiftPressed && tempSelectedElements.Contains(elem)
+									? true
+									: ((elem.StartTime > selStart && elem.EndTime < selEnd) && (elemTop > selTop && elemBottom < selBottom) &&
+									   DragBoxFilterTypes.Contains(elem.EffectNode.Effect.TypeId)));
+							}
 						}
 						else
 						{
-							elem.Selected = (ShiftPressed && tempSelectedElements.Contains(elem) ? true : ((elem.StartTime < selEnd && elem.EndTime > selStart) && (elemTop < selBottom && elemBottom > selTop)));
+							if (moveDirection == "Left")
+							{
+								elem.Selected = (ShiftPressed && tempSelectedElements.Contains(elem)
+									? true
+									: ((elem.StartTime < selEnd && elem.EndTime > selStart) && (elemTop < selBottom && elemBottom > selTop)));
+							}
+							else
+							{
+								elem.Selected = (ShiftPressed && tempSelectedElements.Contains(elem)
+									? true
+									: ((elem.StartTime > selStart && elem.EndTime < selEnd) && (elemTop > selTop && elemBottom < selBottom)));
+							}
 						}
 					}
 
@@ -1772,6 +1894,10 @@ namespace Common.Controls.Timeline
 			_RenderProgressChanged(e.ProgressPercentage);
 		}
 
+		private int _renderQueueSize = 0;
+
+        //This whole thing need to be redone as a task once we get to .NET 4.5 where we can easily report progress
+        //from it.
 		private void renderWorker_DoWork(object sender, DoWorkEventArgs e)
 		{
 			BackgroundWorker worker = sender as BackgroundWorker;
@@ -1779,51 +1905,72 @@ namespace Common.Controls.Timeline
 				Logging.Error("renderWorker: sender was null");
 				return;
 			}
+            CancellationTokenSource cts = new CancellationTokenSource();
+            ParallelOptions po = new ParallelOptions();
+            po.CancellationToken = cts.Token;
+            po.MaxDegreeOfParallelism = Environment.ProcessorCount;
 
-			double total = 0;
+			long processed = 0;
 			try
-			{
-				if(_blockingElementQueue !=null) {
-					foreach (Element element in _blockingElementQueue.GetConsumingEnumerable()) {
-						// This will likely never be hit: the blocking element queue above will always block waiting for more
-						// elements, until it completes because CompleteAdding() is called. At which point it will exit the loop,
-						// as it will be empty, and this function will terminate normally.
-						if (worker.CancellationPending) {
-							Logging.Warn("render worker: cancellation detected. Aborting.");
-							break;
-						}
-						try {
-							//Size size = new Size((int) Math.Ceiling(timeToPixels(element.Duration)), element.Row.Height - 1);
-							element.RenderElement();
-							if (!SuppressInvalidate) {
-								if (element.EndTime > VisibleTimeStart && element.StartTime < VisibleTimeEnd) {
-									Invalidate();
-								}
-							}
-							if (!_blockingElementQueue.Any()) {
-								total = 0;
-								if (!SuppressInvalidate) {
-									Invalidate(); //Invalidate when the queue is empty just to make sure everything is up to date.
-								}
-								worker.ReportProgress(100);
-							}
-							else {
-								double currentTotal = _blockingElementQueue.Count;
-								total = Math.Max(currentTotal, total);
-								int progress = (int) (((total - currentTotal) / total) * 100);
-								worker.ReportProgress(progress);
-							}
-						}
-						catch (Exception ex) {
-							Logging.ErrorException("Error in rendering.", ex);
-						}
-					}
-				}
-			} catch (Exception exception) {
-				// there may be some threading exceptions; if so, they're unexpected.  Log them.
-				Logging.ErrorException("background rendering worker exception:", exception);
-			}
-			renderWorkerFinished.Set();
+		    {
+		        if (_blockingElementQueue != null)
+		        {
+                    //Use or fancy multi cpu boxes more effectively.
+		            //foreach (Element element in _blockingElementQueue.GetConsumingEnumerable()) {
+		            Parallel.ForEach(_blockingElementQueue.GetConsumingPartitioner(), po, element =>
+		            {
+			            Interlocked.Increment(ref processed);
+		                // This will likely never be hit: the blocking element queue above will always block waiting for more
+		                // elements, until it completes because CompleteAdding() is called. At which point it will exit the loop,
+		                // as it will be empty, and this function will terminate normally.
+		                if (worker.CancellationPending)
+		                {
+		                    Logging.Warn("render worker: cancellation detected. Aborting.");
+                            cts.Cancel(false);
+		                    //break;
+		                }
+		                try
+		                {
+		                    element.RenderElement();
+		                    if (!SuppressInvalidate)
+		                    {
+		                        if (element.EndTime > VisibleTimeStart && element.StartTime < VisibleTimeEnd)
+		                        {
+		                            Invalidate();
+		                        }
+		                    }
+
+                            //this is a bit of a kludge until we get to .NET 4.5 and can do this whole thing
+                            //in a task. Reporting progress from Tasks is not well supported until 4.5
+                            //With the multi-threading the last element can be processed before the count is 
+                            //fully updated
+							var progress = (int)(((float)(Interlocked.Read(ref processed)) / _renderQueueSize) * 100);
+							worker.ReportProgress(progress);
+			                if (_blockingElementQueue.Count == 0)
+			                {
+				                _renderQueueSize = 0;
+				                Interlocked.Exchange(ref processed, 0);
+				                worker.ReportProgress(100);
+			                }
+			               
+		                }
+		                catch (Exception ex)
+		                {
+		                    Logging.ErrorException("Error in rendering.", ex);
+		                }
+		            });
+		        }
+		    }
+		    catch (OperationCanceledException ce)
+		    {
+                Logging.InfoException("Canceled render thread" , ce);
+		    }
+		    catch (Exception exception)
+		    {
+		        // there may be some threading exceptions; if so, they're unexpected.  Log them.
+		        Logging.ErrorException("background rendering worker exception:", exception);
+		    }
+		    renderWorkerFinished.Set();
 		}
 
 		/// <summary>
@@ -1845,6 +1992,7 @@ namespace Common.Controls.Timeline
 			} else
 			{
 				_blockingElementQueue.Add(element);
+				_renderQueueSize++;
 			}
         }
 
@@ -1863,6 +2011,7 @@ namespace Common.Controls.Timeline
 					if (!element.IsRendered)
 					{
 						_blockingElementQueue.Add(element);
+						_renderQueueSize++;
 					}
 				}
 			}
@@ -1885,6 +2034,7 @@ namespace Common.Controls.Timeline
 				Element element;
 				_blockingElementQueue.TryTake(out element);
 			}
+	        _renderQueueSize = 0;
 			SupressRendering=false;
 			
         }
@@ -1893,10 +2043,24 @@ namespace Common.Controls.Timeline
 
 		private void DrawElement(Graphics g, Row row, Element currentElement, int top)
 		{
-			currentElement.DisplayHeight = (row.Height - 1) / currentElement.StackCount;
+			int width;
+			bool redBorder = false;
+
+			//Sanity check - it is possible for .DisplayHeight to become zero if there are too many effects stacked.
+			//We set the DisplayHeight to the row height for the currentElement, and change the border to red.		
+			currentElement.DisplayHeight = 
+				(currentElement.StackCount != 0) ? ((row.Height - 1) / currentElement.StackCount) : row.Height - 1;
+
 			currentElement.DisplayTop = top + (currentElement.DisplayHeight * currentElement.StackIndex);
 			currentElement.RowTopOffset = currentElement.DisplayHeight * currentElement.StackIndex;
-			int width;
+
+			if (currentElement.DisplayHeight == 0)
+			{
+				redBorder = true;
+				currentElement.DisplayHeight = currentElement.Row.Height;
+			}
+
+			
 			if (currentElement.StartTime >= VisibleTimeStart)
 			{
 				if (currentElement.EndTime < VisibleTimeEnd)
@@ -1921,7 +2085,7 @@ namespace Common.Controls.Timeline
 			if (width <= 0) return;
 			Size size = new Size(width, currentElement.DisplayHeight);
 
-			Bitmap elementImage = currentElement.Draw(size, g, VisibleTimeStart, VisibleTimeEnd, (int)timeToPixels(currentElement.Duration)); 
+			Bitmap elementImage = currentElement.Draw(size, g, VisibleTimeStart, VisibleTimeEnd, (int)timeToPixels(currentElement.Duration),redBorder); 
 			
 			Point finalDrawLocation = new Point((int)Math.Floor(timeToPixels(currentElement.StartTime>VisibleTimeStart?currentElement.StartTime:VisibleTimeStart)), currentElement.DisplayTop);
 			

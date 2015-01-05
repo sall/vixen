@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization.Formatters;
 using System.Text;
 using Vixen.Data.Value;
 using Vixen.Intent;
@@ -61,7 +62,24 @@ namespace VixenModules.Effect.Nutcracker
 				if (node != null)
 					RenderNode(node);
 			}
-			GC.Collect();
+		}
+
+		//Nutcracker is special right now as we only ever generate one intent per element, we can skip a lot of logic
+		//in the base class as if we are active, our intents are always in the relative time.
+		public override ElementIntents GetElementIntents(TimeSpan effectRelativeTime)
+		{
+			_elementIntents.Clear();
+			_AddLocalIntents();
+			return _elementIntents;
+		}
+
+		private void _AddLocalIntents()
+		{
+			EffectIntents effectIntents = Render();
+			foreach (KeyValuePair<Guid, IntentNodeCollection> keyValuePair in effectIntents)
+			{
+				_elementIntents.AddIntentNodeToElement(keyValuePair.Key, keyValuePair.Value.ToArray());
+			}
 		}
 
 		protected override EffectIntents _Render()
@@ -110,25 +128,25 @@ namespace VixenModules.Effect.Nutcracker
 		{
 			get
 			{
+				List<ElementNode> nodes = new List<ElementNode>();
 				int childCount = 0;
-
 				if (TargetNodes.FirstOrDefault() != null)
 				{
-					foreach (ElementNode node in TargetNodes.FirstOrDefault().Children)
+					List<ElementNode> nonLeafElements = TargetNodes.SelectMany(x => x.GetNonLeafEnumerator()).ToList();
+					foreach (var elementNode in TargetNodes)
 					{
-						if (!node.IsLeaf)
+						foreach (var leafNode in elementNode.GetLeafEnumerator())
 						{
-							childCount++;
+							nodes.AddRange(leafNode.Parents);
 						}
 					}
-					if (childCount == 0 && TargetNodes.FirstOrDefault().Children.Any() )
-					{
-						childCount = 1;
-					}
+					//Some nodes can have multiple node parents with odd groupings so this fancy linq query makes sure that the parent
+					//node is part of the Target nodes lineage.
+					childCount = nodes.Distinct().Intersect(nonLeafElements).Count();
 				}
 
-                if (childCount == 0)
-                    childCount = 1;
+				if (childCount == 0)
+					childCount = 1;
 
 				return childCount;
 			}
@@ -194,6 +212,7 @@ namespace VixenModules.Effect.Nutcracker
 			}
 			int nFrames = (int)(TimeSpan.TotalMilliseconds / frameMs);
 			NutcrackerEffects nccore = new NutcrackerEffects(_data.NutcrackerData);
+			nccore.Duration = TimeSpan;
 			nccore.InitBuffer( wid, ht);
 			int totalPixels = nccore.PixelCount();
 			if( totalPixels != wid * ht)
@@ -253,6 +272,7 @@ namespace VixenModules.Effect.Nutcracker
 				_elementData.AddIntentForElement(elements[eidx].Id, intent, startTime);
 			}
 
+			nccore.Dispose();
 			timer.Stop();
 			Logging.Debug(" {0}ms, Frames: {1}, wid: {2}, ht: {3},  pix: {4}, intents: {5}",
 							timer.ElapsedMilliseconds, nFrames, wid, ht, totalPixels, _elementData.Count());

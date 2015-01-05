@@ -20,7 +20,7 @@ namespace Vixen.Module.Effect
 		private ElementNode[] _targetNodes;
 		private TimeSpan _timeSpan;
 		private DefaultValueArrayMember _parameterValues;
-		private ElementIntents _elementIntents;
+		protected ElementIntents _elementIntents;
 		private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
 
 		protected EffectModuleInstanceBase()
@@ -33,6 +33,7 @@ namespace Vixen.Module.Effect
 		}
 
 		public virtual bool IsDirty { get; protected set; }
+		private bool IsRendering;
 
 		public ElementNode[] TargetNodes
 		{
@@ -42,11 +43,14 @@ namespace Vixen.Module.Effect
 				if (value != _targetNodes) {
 					_targetNodes = value;
 					_EnsureTargetNodeProperties();
+					CalculateAffectedElements();
 					TargetNodesChanged();
 					IsDirty = true;
 				}
 			}
 		}
+
+		public IEnumerable<Guid> EffectedElementIds { get; set; }
 
 		public TimeSpan TimeSpan
 		{
@@ -78,9 +82,22 @@ namespace Vixen.Module.Effect
 
 		public EffectIntents Render()
 		{
-			if (IsDirty) {
+			if (IsDirty && !IsRendering)
+			{
+				IsRendering = true;
 				PreRender();
+				IsRendering = false;
 			}
+			else
+			{
+				//To prevent the effect from being rendered multiple times if multiple threads 
+				//try to access it all at the same time. I.E the editor pre rendering process.
+				while (IsRendering)
+				{
+					Thread.Sleep(1);
+				}	
+			}
+			
 			return _Render();
 		}
 
@@ -144,7 +161,7 @@ namespace Vixen.Module.Effect
 				}
 			}
 		}
-		public ElementIntents GetElementIntents(TimeSpan effectRelativeTime)
+		public virtual ElementIntents GetElementIntents(TimeSpan effectRelativeTime)
 		{
 			_elementIntents.Clear();
 
@@ -160,6 +177,12 @@ namespace Vixen.Module.Effect
 				IIntentNode[] elementIntents = effectIntents.GetElementIntentsAtTime(elementId, effectRelativeTime);
 				_elementIntents.AddIntentNodeToElement(elementId, elementIntents);
 			}
+		}
+
+		private void CalculateAffectedElements()
+		{
+			EffectedElementIds =
+				TargetNodes.SelectMany(y => y.GetElementEnumerator()).Select(z => z.Id);
 		}
 
 		private void _EnsureTargetNodeProperties()

@@ -17,7 +17,6 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 		[DataMember] private PreviewPoint _topRight;
 		[DataMember] private PreviewPoint _bottomLeft;
 		[DataMember] private PreviewPoint _bottomRight;
-        //[DataMember] private int _pointCount;
 
 		public enum Directions
 		{
@@ -40,7 +39,7 @@ namespace VixenModules.Preview.VixenPreview.Shapes
             if (selectedNode != null)
             {
                 List<ElementNode> children = PreviewTools.GetLeafNodes(selectedNode);
-                int stringCount = selectedNode.Children.Count();
+                int stringCount = PreviewTools.GetParentNodes(selectedNode).Count();
                 if (stringCount >= 4)
                 {
                     int spokePixelCount = 0;
@@ -64,11 +63,13 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 
 			if (_strings.Count == 0) {
 				// Just add lines, they will be layed out in Layout()
+                StringType = StringTypes.Standard;
 				for (int i = 0; i < 8; i++) {
 					PreviewLine line;
 					line = new PreviewLine(new PreviewPoint(10, 10), new PreviewPoint(20, 20), 10, selectedNode, ZoomLevel);
 					line.PixelColor = Color.White;
-					_strings.Add(line);
+                    line.StringType = StringTypes.Standard;
+                    _strings.Add(line);
 				}
 			}
 
@@ -109,7 +110,7 @@ namespace VixenModules.Preview.VixenPreview.Shapes
         {
             get
             {
-                return _bottomLeft.Y;
+                return _bottomRight.Y;
             }
         }
 
@@ -314,8 +315,10 @@ namespace VixenModules.Preview.VixenPreview.Shapes
             XYRotation = shape.XYRotation;
             _topRight.X = _topLeft.X + (shape._topRight.X - shape._topLeft.X);
             _topRight.Y = _topLeft.Y + (shape._topRight.Y - shape._topLeft.Y);
-            _bottomLeft.X = _topLeft.X + (shape._bottomLeft.X - shape._topLeft.X);
-            _bottomLeft.Y = _topLeft.Y + (shape._bottomLeft.Y - shape._topLeft.Y);
+            //_bottomLeft.X = _topLeft.X + (shape._bottomLeft.X - shape._topLeft.X);
+            //_bottomLeft.Y = _topLeft.Y + (shape._bottomLeft.Y - shape._topLeft.Y);
+            _bottomRight.X = _topLeft.X + (shape._bottomRight.X - shape._topLeft.X);
+            _bottomRight.Y = _topLeft.Y + (shape._bottomRight.Y - shape._topLeft.Y);
             Layout();
         }
 
@@ -323,8 +326,12 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 		{
 			if (_topLeft != null && _bottomRight != null)
 			{
-				int width = Math.Abs(_topRight.X - _topLeft.X);
-				int height = Math.Abs(_bottomLeft.Y - _topLeft.Y);
+                _topRight.X = _bottomRight.X;
+                _topRight.Y = _topLeft.Y;
+                _bottomLeft.X = _topLeft.X;
+                _bottomLeft.Y = _bottomRight.Y;
+				int width = Math.Abs(_bottomRight.X - _topLeft.X);
+				int height = Math.Abs(_bottomRight.Y - _topLeft.Y);
 				int centerX = Right - (width / 2);
 				int centerY = Bottom - (height / 2);
 				List<Point> outerEllipse = PreviewTools.GetEllipsePoints(_topLeft.X,
@@ -364,7 +371,7 @@ namespace VixenModules.Preview.VixenPreview.Shapes
                 if (_selectedPoint == _bottomRight &&
                     System.Windows.Forms.Control.ModifierKeys == System.Windows.Forms.Keys.Control)
                 {
-                    int height = y - _topRight.Y;
+                    int height = point.Y - _topRight.Y;
                     _topRight.X = _topLeft.X + height;
                     _topRight.Y = _topLeft.Y;
                     _bottomLeft.X = _topLeft.X;

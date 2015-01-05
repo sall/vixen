@@ -21,6 +21,7 @@ namespace BaseSequence
 		private bool _loop;
 
 		public event EventHandler<SequenceStartedEventArgs> SequenceStarted;
+		public event EventHandler<SequenceStartedEventArgs> SequenceReStarted;
 		public event EventHandler<SequenceEventArgs> SequenceEnded;
 		public event EventHandler<ExecutorMessageEventArgs> Message;
 		public event EventHandler<ExecutorMessageEventArgs> Error;
@@ -128,6 +129,14 @@ namespace BaseSequence
 			}
 		}
 
+		protected virtual void OnSequenceReStarted(SequenceStartedEventArgs e)
+		{
+			if (SequenceReStarted != null)
+			{
+				SequenceReStarted(null, e);
+			}
+		}
+
 		protected virtual void OnSequenceEnded(SequenceEventArgs e)
 		{
 			if (SequenceEnded != null) {
@@ -196,26 +205,28 @@ namespace BaseSequence
 
 		private void _loopPlay()
 		{
-
-			TimingSource.Stop();
 			// Stop whatever is driving this crazy train.
 			lock (_endCheckTimer)
 			{
-				_endCheckTimer.Stop();
+				_endCheckTimer.Enabled=false;
 			}
-			//Stop running to trigger events to reset the sequence
-			IsRunning = false;
+			
+			TimingSource.Stop();
+			
 			//Reset our position. No need to stop the media, we will just reset its position.
 			TimingSource.Position = StartTime;
+			
+			OnSequenceReStarted(new SequenceStartedEventArgs(Sequence, TimingSource, StartTime, EndTime));
+			
 			//Fire it back up again.
 			TimingSource.Start();
-			IsRunning = true;
+			
 			while (TimingSource.Position == StartTime)
 			{
 				Thread.Sleep(1); //Give the train a chance to get out of the station.
 			}
 
-			_endCheckTimer.Start();
+			_endCheckTimer.Enabled=true;
 		}
 
 		protected virtual void _HookDataListener()
@@ -349,25 +360,26 @@ namespace BaseSequence
 
 		private void _EndCheckTimerElapsed(object sender, ElapsedEventArgs e)
 		{
+
+			// To catch events that may trail after the timer's been disabled
+			// due to it being a threaded timer and Stop being called between the
+			// timer message being posted and acted upon.
+			if (_endCheckTimer == null || !_endCheckTimer.Enabled) return;
+
 			lock (_endCheckTimer) {
-				// To catch events that may trail after the timer's been disabled
-				// due to it being a threaded timer and Stop being called between the
-				// timer message being posted and acted upon.
-				if (_endCheckTimer == null || !_endCheckTimer.Enabled) return;
 
 				_endCheckTimer.Enabled = false;
 
-				_CheckForNaturalEnd();
-
-				if (IsRunning) {
+				if (!_CheckForNaturalEnd() && IsRunning) {
 					_endCheckTimer.Enabled = true;
 				}
 			}
 		}
 
-		private void _CheckForNaturalEnd()
+		private bool _CheckForNaturalEnd()
 		{
-			if (_IsEndOfSequence()) {
+			bool isEnd = _IsEndOfSequence();
+			if (isEnd) {
 				if (_loop)
 				{
 					_syncContext.Post(x => _loopPlay(), null);
@@ -378,6 +390,7 @@ namespace BaseSequence
 				}
 				
 			}
+			return isEnd;
 		}
 
 		private bool _IsEndOfSequence()

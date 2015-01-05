@@ -22,6 +22,7 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 		[DataMember] private int _pointCount;
 		[DataMember] private int _pixelCount;
 		[DataMember] private int _insideSize;
+        [DataMember] private StringDirections _stringDirection;
 
 		private int pixelsPerPoint;
 		private int lineCount;
@@ -45,7 +46,24 @@ namespace VixenModules.Preview.VixenPreview.Shapes
                     StringType = StringTypes.Pixel;
 			}
 
-			if (_pixels.Count == 0) {
+            if (_pixels.Count >= 5 && _pointCount == 0)
+            {
+                if (_pixels.Count % 5 == 0)
+                {
+                    _pointCount = 5;
+                }
+                else if (_pixels.Count % 3 == 0)
+                {
+                    _pointCount = 3;
+                }
+                else if (_pixels.Count % 2 == 0)
+                {
+                    _pointCount = 4;
+                }
+            }
+
+            if (_pixels.Count < 5)
+            {
                 _pixelCount = 40;
                 _pointCount = 5;
                 // Just add the pixels, they will get layed out next
@@ -56,7 +74,9 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 						pixel.Node = selectedNode;
 					}
 				}
-			}
+            }
+
+            //Console.WriteLine("Star Pixel Count: " + _pixelCount + ":" + _pixels.Count());
 
 			// Lay out the pixels
 			Layout();
@@ -100,6 +120,14 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 			Layout();
 		}
 
+        public override int Bottom
+        {
+            get
+            {
+                return (Math.Max(_topLeftPoint.Y, _bottomRightPoint.Y));
+            }
+        }
+
         public override int Top
         {
             get
@@ -123,6 +151,14 @@ namespace VixenModules.Preview.VixenPreview.Shapes
             }
         }
 
+        public override int Right
+        {
+            get
+            {
+                return (Math.Max(_topLeftPoint.X, _bottomRightPoint.X));
+            }
+        }
+
         public override int Left
         {
             get
@@ -142,6 +178,21 @@ namespace VixenModules.Preview.VixenPreview.Shapes
                     _topLeftPoint.X -= delta;
                     _bottomRightPoint.X = value;
                 }
+                Layout();
+            }
+        }
+
+        [CategoryAttribute("Settings"),
+         DisplayName("String Direction"),
+         DescriptionAttribute("Do the lights rotate around the star clockwise or counter-clockwise?")]
+        public StringDirections StringDirection { 
+            get
+            {
+                return _stringDirection;
+            }
+            set
+            {
+                _stringDirection = value;
                 Layout();
             }
         }
@@ -256,6 +307,12 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 			get { return Math.Abs(_bottomRightPoint.Y - _topLeftPoint.Y); }
 		}
 
+        public override void Select(bool selectDragPoints)
+        {
+            base.Select(selectDragPoints);
+            connectStandardStrings = true;
+        }
+
 		private void RecalcPoints()
 		{
 			lineCount = _pointCount*2;
@@ -318,28 +375,55 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 					int heightOffset = ((outerHeight - innerHeight) / 2);
 					int innerLeft = _topLeftPoint.X + widthOffset;
 					int innerTop = _topLeftPoint.Y + heightOffset;
+
+                    int rot = XYRotation;
+                    //if (StringDirection == StringDirections.CounterClockwise)
+                    //    rot = -rot;
 					List<Point> innerEllipse = PreviewTools.GetEllipsePoints(innerLeft,
 																			 innerTop,
 																			 innerWidth,
 																			 innerHeight,
 																			 _pointCount,
 																			 360,
-																			 XYRotation);
+																			 rot);
 
                     int pixelNum = 0;
-                    for (int ellipsePointNum = 0; ellipsePointNum < _pointCount; ellipsePointNum++)
+                    int ellipsePointNum = 0;
+                    for (int i = 0; i < _pointCount; i++)
                     {
-                        Point point1 = innerEllipse[ellipsePointNum];
-                        Point point2 = outerEllipse[ellipsePointNum];
+                        Point point1;
+                        Point point2;
                         Point point3;
-                        if (ellipsePointNum < _pointCount - 1)
+                        if (StringDirection == StringDirections.Clockwise)
                         {
-                            point3 = innerEllipse[ellipsePointNum + 1];
+                            ellipsePointNum = i;
+                            point1 = innerEllipse[ellipsePointNum];
+                            point2 = outerEllipse[ellipsePointNum];
+                            if (ellipsePointNum < _pointCount - 1)
+                            {
+                                point3 = innerEllipse[ellipsePointNum + 1];
+                            }
+                            else
+                            {
+                                point3 = innerEllipse[0];
+                            }
                         }
                         else
                         {
-                            point3 = innerEllipse[0];
+                            ellipsePointNum = (_pointCount) - i;
+                            point1 = innerEllipse[ellipsePointNum];
+                            if (ellipsePointNum > 0)
+                            {
+                                point2 = outerEllipse[ellipsePointNum - 1];
+                                point3 = innerEllipse[ellipsePointNum - 1];
+                            }
+                            else
+                            {
+                                point2 = outerEllipse[_pointCount - 1];
+                                point3 = innerEllipse[_pointCount - 1]; 
+                            }
                         }
+
                         int line1PixelCount = (int)(pixelsPerPoint / 2);
                         int line2PixelCount = line1PixelCount;
                         if (line1PixelCount + line2PixelCount < pixelsPerPoint)

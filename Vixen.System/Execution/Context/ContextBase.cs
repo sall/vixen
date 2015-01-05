@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Vixen.Execution.DataSource;
 using Vixen.Module.Timing;
 using Vixen.Sys;
@@ -11,6 +12,7 @@ namespace Vixen.Execution.Context
 		private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
 		private ElementStateSourceCollection _elementStates;
 		private IContextCurrentEffects _currentEffects;
+		private HashSet<Guid> _affectedElements;
 		private IntentStateBuilder _elementStateBuilder;
 		private bool _disposed;
 
@@ -83,14 +85,12 @@ namespace Vixen.Execution.Context
 
 		public HashSet<Guid> UpdateElementStates(TimeSpan currentTime)
 		{
-			HashSet<Guid> affectedElements = null;
-
 			if (IsRunning && !IsPaused) {
-				affectedElements = _UpdateCurrentEffectList(currentTime);
-				_RepopulateElementBuffer(currentTime, affectedElements);
+				_affectedElements = _UpdateCurrentEffectList(currentTime);
+				_RepopulateElementBuffer(currentTime, _affectedElements);
 			}
 
-			return affectedElements;
+			return _affectedElements;
 		}
 
 		public IStateSource<IIntentStates> GetState(Guid key)
@@ -113,9 +113,7 @@ namespace Vixen.Execution.Context
 
 		private void _DiscoverIntentsFromCurrentEffects(TimeSpan currentTime, IntentDiscoveryAction intentDiscoveryAction)
 		{
-			lock (_currentEffects) {
-				_DiscoverIntentsFromEffects(currentTime, _currentEffects, intentDiscoveryAction);
-			}
+			_DiscoverIntentsFromEffects(currentTime, _currentEffects, intentDiscoveryAction);
 		}
 
 		private void _DiscoverIntentsFromEffects(TimeSpan currentTime, IEnumerable<IEffectNode> effects,
@@ -162,11 +160,10 @@ namespace Vixen.Execution.Context
 
 		private void _ResetElementStates()
 		{
-			lock (_currentEffects) {
-				_currentEffects.Reset();
-				_InitializeElementStateBuilder();
-				_LatchElementStatesFromBuilder(_elementStates.ElementsInCollection);
-			}
+			_currentEffects.Reset();
+			_InitializeElementStateBuilder();
+			_LatchElementStatesFromBuilder(_elementStates.ElementsInCollection);
+			
 		}
 
 		protected abstract IDataSource _DataSource { get; }
@@ -198,7 +195,6 @@ namespace Vixen.Execution.Context
 
 		protected virtual void OnContextEnded(EventArgs e)
 		{
-			_ResetElementStates();
 			if (ContextEnded != null) {
 				ContextEnded(this, e);
 			}

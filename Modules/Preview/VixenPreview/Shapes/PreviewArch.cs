@@ -74,33 +74,38 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 		{
 			get
 			{
-				if (_topRight == null)
-					_topRight = new PreviewPoint(10, 10);
+                if (_topRight == null)
+                    _topRight = new PreviewPoint();
+
+				_topRight.X = _bottomRight.X;
+                _topRight.Y = _topLeft.Y;
 				return _topRight;
 			}
-			set
-			{
-				if (_topRight == null)
-					_topRight = new PreviewPoint(10, 10);
-				_topRight = value;
-			}
+            //set
+            //{
+            //    //if (_topRight == null)
+            //    //    _topRight = new PreviewPoint(10, 10);
+            //    _topRight = value;
+            //}
 		}
 
-		public PreviewPoint BottomLeft
-		{
-			get
-			{
-				if (_bottomLeft == null)
-					_bottomLeft = new PreviewPoint(10, 10);
-				return _bottomLeft;
-			}
-			set
-			{
-				if (_bottomLeft == null)
-					_bottomLeft = new PreviewPoint(10, 10);
-				_bottomLeft = value;
-			}
-		}
+        public PreviewPoint BottomLeft
+        {
+            get
+            {
+                if (_bottomLeft == null)
+                    _bottomLeft = new PreviewPoint();
+                _bottomLeft.X = TopLeft.X;
+                _bottomLeft.Y = BottomRight.Y;
+                return _bottomLeft;
+            }
+            //set
+            //{
+            //    //if (_bottomLeft == null)
+            //    //    _bottomLeft = new PreviewPoint(10, 10);
+            //    _bottomLeft = value;
+            //}
+        }
 
 		[CategoryAttribute("Position"),
 		 DisplayName("Top Left"),
@@ -147,7 +152,7 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 		{
 			get
 			{
-				return _bottomRight.X -_bottomLeft.X;
+				return Math.Abs(_bottomRight.X -_topLeft.X);
 			}
 			set
 			{
@@ -163,7 +168,7 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 		{
 			get
 			{
-				return _bottomLeft.Y - _topLeft.Y;
+				return Math.Abs(_bottomRight.Y - _topLeft.Y);
 			}
 			set
 			{
@@ -200,21 +205,19 @@ namespace VixenModules.Preview.VixenPreview.Shapes
             }
             set
             {
-                if (_topLeft.Y < _bottomLeft.Y)
-                {
-                    int delta = _topLeft.Y - value;
-                    _topLeft.Y = value;
-                    _bottomLeft.Y -= delta;
-                    _bottomRight.Y -= delta;
-                }
-                else
-                {
-                    int delta = _bottomLeft.Y - value;
-                    _topLeft.Y -= delta;
-                    _bottomLeft.Y = value;
-                    _bottomRight.Y = value;
-                }
+                int delta = Top - value;
+
+                _topLeft.Y -= delta;
+                _bottomRight.Y -= delta;
                 Layout();
+            }
+        }
+
+        public override int Bottom
+        {
+            get
+            {
+                return Math.Max(_topLeft.Y, _bottomRight.Y);
             }
         }
 
@@ -222,27 +225,26 @@ namespace VixenModules.Preview.VixenPreview.Shapes
         {
             get
             {
-                return Math.Min(BottomLeft.X, BottomRight.X);
+                return Math.Min(_topLeft.X, _bottomRight.X);
             }
             set
             {
                 int delta = Left - value;
-                if (_topLeft.X < _bottomRight.X)
-                {
-                    _topLeft.X = value;
-                    _bottomRight.X -= delta;
-                    BottomLeft.X -= delta;
-                }
-                else
-                {
-                    _topLeft.X -= delta;
-                    _bottomRight.X = value;
-                    BottomLeft.X = value;
-                }
+                _topLeft.X -= delta;
+                _bottomRight.X -= delta;
                 Layout();
             }
         }
-        
+
+        [Browsable(false)]
+        public override int Right
+        {
+            get
+            {
+                return Math.Max(_topLeft.X, _bottomRight.X);
+            }
+        }
+
         public override void Match(PreviewBaseShape matchShape)
         {
             PreviewArch shape = (matchShape as PreviewArch);
@@ -254,7 +256,7 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 
 		public override void Layout()
 		{
-            if (BottomRight != null && BottomLeft != null)
+            if (BottomRight != null && TopLeft != null)
 			{
 				int width = BottomRight.X - TopLeft.X;
 				int height = BottomRight.Y - TopLeft.Y;
@@ -292,11 +294,6 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 			}
 				// If we get here, we're moving
 			else {
-				//_topLeft.X = p1Start.X + changeX;
-				//_topLeft.Y = p1Start.Y + changeY;
-				//_bottomRight.X = p2Start.X + changeX;
-				//_bottomRight.Y = p2Start.Y + changeY;
-
 				_topLeft.X = Convert.ToInt32(p1Start.X * ZoomLevel) + changeX;
 				_topLeft.Y = Convert.ToInt32(p1Start.Y * ZoomLevel) + changeY;
 				_bottomRight.X = Convert.ToInt32(p2Start.X * ZoomLevel) + changeX;
@@ -304,7 +301,7 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 
 				PointToZoomPointRef(_topLeft);
 				PointToZoomPointRef(_bottomRight);
-			}
+            }
 
 			TopRight.X = _bottomRight.X;
 			TopRight.Y = _topLeft.Y;
@@ -318,9 +315,7 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 			List<PreviewPoint> points = new List<PreviewPoint>();
 			points.Add(_topLeft);
 			points.Add(_bottomRight);
-			TopRight = new PreviewPoint(_bottomRight.X, _topLeft.Y);
 			points.Add(TopRight);
-			BottomLeft = new PreviewPoint(_topLeft.X, _bottomRight.Y);
 			points.Add(BottomLeft);
 			SetSelectPoints(points, null);
 		}
@@ -366,15 +361,16 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 			int deltaX = x - topLeft.X;
 			int deltaY = y - topLeft.Y;
 
-			TopLeft = new Point(TopLeft.X + deltaX, TopLeft.Y + deltaY);
-			BottomRight = new Point(BottomRight.X + deltaX, BottomRight.Y + deltaY);
+            TopLeft = new Point(TopLeft.X + deltaX, TopLeft.Y + deltaY);
+            BottomRight = new Point(BottomRight.X + deltaX, BottomRight.Y + deltaY);
 
-			if (TopRight != null) {
-				TopRight.X = _bottomRight.X;
-				TopRight.Y = _topLeft.Y;
-				BottomLeft.X = _topLeft.X;
-				BottomLeft.Y = _bottomRight.Y;
-			}
+            if (TopRight != null)
+            {
+                TopRight.X = _bottomRight.X;
+                TopRight.Y = _topLeft.Y;
+                BottomLeft.X = _topLeft.X;
+                BottomLeft.Y = _bottomRight.Y;
+            }
 
 			Layout();
 		}

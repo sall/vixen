@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -15,6 +16,7 @@ using Common.Controls.Timeline;
 using Common.Resources.Properties;
 using NLog;
 using Vixen;
+using Vixen.Cache.Sequence;
 using Vixen.Execution;
 using Vixen.Execution.Context;
 using Vixen.Module;
@@ -107,6 +109,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		
 		//Used for color collections
 		private static Random rnd = new Random();
+		private PreCachingSequenceEngine _preCachingSequenceEngine;
 
 		#endregion
 
@@ -205,9 +208,9 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			else
 			{
 				GridForm.Show(dockPanel);
+				ToolsForm.Show(dockPanel, DockState.DockLeft);
 				MarksForm.Show(dockPanel, DockState.DockLeft);
 				EffectsForm.Show(dockPanel, DockState.DockLeft);
-				ToolsForm.Show(dockPanel,DockState.DockBottom);
 			}
 
 			XMLProfileSettings xml = new XMLProfileSettings();
@@ -219,14 +222,15 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			dockPanel.DockLeftPortion = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/DockLeftPortion", Name), 150);
 			dockPanel.DockRightPortion = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/DockRightPortion", Name), 150);
 			autoSaveToolStripMenuItem.Checked = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/AutoSaveEnabled", Name), true);
-			toolStripMenuItem_SnapTo.Checked = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/SnapToSelected", Name), true);
+			toolStripButton_SnapTo.Checked = toolStripMenuItem_SnapTo.Checked = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/SnapToSelected", Name), true);
 			PopulateSnapStrength(xml.GetSetting(XMLProfileSettings.SettingType.AppSettings,	string.Format("{0}/SnapStrength", Name), 2));
 			toolStripMenuItem_ResizeIndicator.Checked = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ResizeIndicatorEnabled", Name),false);
-			TimelineControl.grid.ResizeIndicator_Color = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ResizeIndicatorColor", Name), "Red");
 			toolStripButton_DrawMode.Checked = TimelineControl.grid.EnableDrawMode = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/DrawModeSelected", Name), false);
 			toolStripButton_SelectionMode.Checked = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/SelectionModeSelected", Name), true);
 			ToolsForm.LinkCurves = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteLinkCurves", Name), false);
 			ToolsForm.LinkGradients = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteLinkGradients", Name), false);
+			cADStyleSelectionBoxToolStripMenuItem.Checked = TimelineControl.grid.aCadStyleSelectionBox = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/CadStyleSelectionBox", Name), false);
+			CheckRiColorMenuItem(xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ResizeIndicatorColor", Name), "Red"));
 
 			foreach (ToolStripItem toolStripItem in toolStripDropDownButton_SnapToStrength.DropDownItems)
 			{
@@ -761,8 +765,6 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				TimelineControl.grid.SuppressInvalidate = true; //Hold off invalidating the grid while we bulk load.
 				TimelineControl.grid.SupressRendering = true; //Hold off rendering while we load elements. 
 				// This takes quite a bit of time so queue it up
-				taskQueue.Enqueue(Task.Factory.StartNew(PopulateAudioDropdown));
-				taskQueue.Enqueue(Task.Factory.StartNew(PopulateMarkSnapTimes));
 				taskQueue.Enqueue(Task.Factory.StartNew(() => addElementsForEffectNodes(_sequence.SequenceData.EffectData)));
 				
 
@@ -781,7 +783,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 				//This path is followed for new and existing sequences so we need to determine which we have and set modified accordingly.
 				//Added logic to determine if the sequence has a filepath to set modified JU 8/1/2012. 
-
+				PopulateAudioDropdown();
 				_SetTimingToolStripEnabledState();
 
 				if (String.IsNullOrEmpty(_sequence.FilePath))
@@ -795,11 +797,14 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 				MarksForm.Sequence = _sequence;
 				MarksForm.PopulateMarkCollectionsList(null);
+				PopulateMarkSnapTimes();
 
 				if (_sequence.TimePerPixel > TimeSpan.Zero )
 				{
 					TimelineControl.TimePerPixel = _sequence.TimePerPixel;	
 				}
+
+				
 				
 				Logging.Debug(string.Format("Sequence {0} took {1} to load. ", sequence.Name, loadingWatch.Elapsed));
 			}
@@ -964,11 +969,10 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			{
 				IMediaModuleInstance media = _sequence.GetAllMedia().First();
 				Audio audio = media as Audio;
-
+				toolStripMenuItem_removeAudio.Enabled = true;
 				if (audio.MediaExists)
 				{
-					TimelineControl.Audio = audio;
-					toolStripMenuItem_removeAudio.Enabled = true;
+					TimelineControl.Audio = audio;	
 				} else
 				{
 					string message = String.Format("Audio file not found on the path:\n\n {0}\n\nPlease Check your settings/path.",
@@ -1488,6 +1492,13 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				if (TimelineControl.SelectedElements.Count() > 1)
 				{
 					ToolStripMenuItem itemAlignment = new ToolStripMenuItem("Alignment");
+					//Disables the Alignment menu if too many effects are selected in a row.
+					itemAlignment.Enabled = TimelineControl.grid.OkToUseAlignmentHelper(TimelineControl.SelectedElements);
+					if (!itemAlignment.Enabled)
+					{
+						itemAlignment.ToolTipText = "Disabled, maximum selected effects per row is 4.";
+					}
+
 					ToolStripMenuItem itemAlignStart = new ToolStripMenuItem("Align Start Times (shift)");
 					itemAlignStart.ToolTipText = "Holding shift will align the start times, while holding duration.";
 					itemAlignStart.Click += (mySender, myE) => TimelineControl.grid.AlignElementStartTimes(TimelineControl.SelectedElements, element, ModifierKeys == Keys.Shift);
@@ -1645,32 +1656,47 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		private void toolStripMenuItem_ResizeIndicator_CheckStateChanged(object sender, EventArgs e)
 		{
-			TimelineControl.grid.ResizeIndicator_Enabled = (toolStripMenuItem_ResizeIndicator.Checked ? true : false);
+			TimelineControl.grid.ResizeIndicator_Enabled = toolStripMenuItem_ResizeIndicator.Checked;
 		}
 
+
+		private void CheckRiColorMenuItem(string color)
+		{
+			TimelineControl.grid.ResizeIndicator_Color = color;
+			toolStripMenuItem_RIColor_Blue.Checked = color == "Blue";
+			toolStripMenuItem_RIColor_Yellow.Checked = color == "Yellow";
+			toolStripMenuItem_RIColor_Green.Checked = color == "Green";
+			toolStripMenuItem_RIColor_White.Checked = color == "White";
+			toolStripMenuItem_RIColor_Red.Checked = color == "Red";
+		}
 		private void toolStripMenuItem_RIColor_Blue_Click(object sender, EventArgs e)
 		{
-			TimelineControl.grid.ResizeIndicator_Color = "Blue";
+			CheckRiColorMenuItem("Blue");
+			toolStripMenuItem_ResizeIndicator.Checked = true;
 		}
 
 		private void toolStripMenuItem_RIColor_Yellow_Click(object sender, EventArgs e)
 		{
-			TimelineControl.grid.ResizeIndicator_Color = "Yellow";
+			CheckRiColorMenuItem("Yellow");
+			toolStripMenuItem_ResizeIndicator.Checked = true;
 		}
 
 		private void toolStripMenuItem_RIColor_Green_Click(object sender, EventArgs e)
 		{
-			TimelineControl.grid.ResizeIndicator_Color = "Green";
+			CheckRiColorMenuItem("Green");
+			toolStripMenuItem_ResizeIndicator.Checked = true;
 		}
 
 		private void toolStripMenuItem_RIColor_White_Click(object sender, EventArgs e)
 		{
-			TimelineControl.grid.ResizeIndicator_Color = "White";
+			CheckRiColorMenuItem("White");
+			toolStripMenuItem_ResizeIndicator.Checked = true;
 		}
 
 		private void toolStripMenuItem_RIColor_Red_Click(object sender, EventArgs e)
 		{
-			TimelineControl.grid.ResizeIndicator_Color = "Red";
+			CheckRiColorMenuItem("Red");
+			toolStripMenuItem_ResizeIndicator.Checked = true;
 		}
 
 		private void toolStripButton_DragBoxFilter_CheckedChanged(object sender, EventArgs e)
@@ -1836,6 +1862,12 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		private void DistributeSelectedEffectsEqually()
 		{
+			if (!TimelineControl.grid.OkToUseAlignmentHelper(TimelineControl.SelectedElements))
+			{
+				MessageBox.Show(TimelineControl.grid.alignmentHelperWarning);
+				return;
+			}
+
 			//Before we do anything lets make sure there is time to work with
 			//I don't remember why I put this here, for now its commented out until its verified that its not needed, then it will be removed
 			//if (TimelineControl.SelectedElements.First().EndTime == TimelineControl.SelectedElements.Last().EndTime)
@@ -1899,6 +1931,12 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		private void DistributeSelectedEffects()
 		{
+			if (!TimelineControl.grid.OkToUseAlignmentHelper(TimelineControl.SelectedElements))
+			{
+				MessageBox.Show(TimelineControl.grid.alignmentHelperWarning);
+				return;
+			}
+
 			var startTime = TimelineControl.SelectedElements.First().StartTime;
 			var endTime = TimelineControl.SelectedElements.Last().EndTime;
 			if (startTime > endTime)
@@ -3155,7 +3193,24 @@ namespace VixenModules.Editor.TimedSequenceEditor
 					else if (e.Control)
 						TimelineControl.Zoom(.8);
 					break;
-
+				case Keys.Z:
+					if (e.Control)
+					{
+						if (_undoMgr.NumUndoable > 0)
+						{
+							_undoMgr.Undo();	
+						}
+					}
+					break;
+				case Keys.Y:
+					if (e.Control)
+					{
+						if (_undoMgr.NumRedoable > 0)
+						{
+							_undoMgr.Redo();
+						}
+					}
+					break;
 				default:
 					break;
 			}
@@ -3242,6 +3297,11 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			ClipboardAddData(false);
 		}
 
+		/// <summary>
+		/// Pastes the clipboard data starting at the given time. If pasting to a SelectedRow, the time passed should be TimeSpan.Zero
+		/// </summary>
+		/// <param name="pasteTime"></param>
+		/// <returns></returns>
 		public int ClipboardPaste(TimeSpan pasteTime)
 		{
 			int result = 0;
@@ -3258,15 +3318,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 			if (data == null)
 				return result;
-			TimeSpan offset = data.EarliestStartTime;
+			TimeSpan offset = pasteTime == TimeSpan.Zero ? TimeSpan.Zero : data.EarliestStartTime;
 			Row targetRow = TimelineControl.SelectedRow ?? TimelineControl.ActiveRow ?? TimelineControl.TopVisibleRow;
-			if (targetRow.Selected)
-			{
-				//Full row is selected, so paste as is from the beginning not the cursor position
-				pasteTime = TimeSpan.Zero;
-				//We don't need to offset, just place them where they start
-				offset = TimeSpan.Zero;
-			}
 			List<Row> visibleRows = new List<Row>(TimelineControl.VisibleRows);
 			int topTargetRoxIndex = visibleRows.IndexOf(targetRow);
 			List<EffectNode> nodesToAdd = new List<EffectNode>();
@@ -3294,7 +3347,6 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				newEffect.ModuleData = effectModelCandidate.GetEffectData();
 				
 				nodesToAdd.Add(CreateEffectNode(newEffect, visibleRows[targetRowIndex], targetTime, effectModelCandidate.Duration));
-
 				result++;
 			}
 
@@ -3429,7 +3481,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		private void toolStripMenuItem_Paste_Click(object sender, EventArgs e)
 		{
-			ClipboardPaste(TimelineControl.CursorPosition);
+			Row targetRow = TimelineControl.SelectedRow ?? TimelineControl.ActiveRow ?? TimelineControl.TopVisibleRow;
+			ClipboardPaste(targetRow.Selected ? TimeSpan.Zero : TimelineControl.CursorPosition);
 		}
 
 		private void toolStripMenuItem_deleteElements_Click(object sender, EventArgs e)
@@ -3631,6 +3684,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				if (success)
 				{
 					SequenceLength = time;
+					sequenceModified();
 					break;
 				}
 				else
@@ -3678,8 +3732,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			if (ToolsForm.DockState == DockState.Unknown)
 			{
 				DockState dockState = ToolsForm.DockState;
-				dockState = DockState.DockBottom;
-				if (dockState == DockState.Unknown) dockState = DockState.DockBottom;
+				dockState = DockState.DockLeft;
+				if (dockState == DockState.Unknown) dockState = DockState.DockLeft;
 				ToolsForm.Show(dockPanel, dockState);
 				//We have to re-subscribe to the event handlers
 				ToolsForm.StartColorDrag += ToolPalette_ColorDrag;
@@ -3962,6 +4016,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/WindowState", Name), WindowState.ToString());
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/SnapStrength", Name), TimelineControl.grid.SnapStrength);
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ResizeIndicatorEnabled", Name), TimelineControl.grid.ResizeIndicator_Enabled);
+			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/CadStyleSelectionBox", Name), cADStyleSelectionBoxToolStripMenuItem.Checked);
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ResizeIndicatorColor", Name), TimelineControl.grid.ResizeIndicator_Color);
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteLinkCurves", Name), ToolsForm.LinkCurves);
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteLinkGradients", Name), ToolsForm.LinkGradients);
@@ -4135,8 +4190,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				{
 					_timingSource.Speed = _timingSpeed;
 					toolStripButton_IncreaseTimingSpeed.Enabled =
-						toolStripButton_DecreaseTimingSpeed.Enabled =
 							toolStripLabel_TimingSpeed.Enabled = toolStripLabel_TimingSpeedLabel.Enabled = true;
+					toolStripButton_DecreaseTimingSpeed.Enabled = toolStripButton_DecreaseTimingSpeed.Enabled = _timingSpeed > _timingChangeDelta; ;
 
 				}
 				else
@@ -4254,7 +4309,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
                 mapSelector.Changed = false;
                 sequenceModified();
                 resetLipSyncNodes();
-	}
+                VixenSystem.SaveSystemConfig();
+	        }
         }
 
         private void setDefaultMap_Click(object sender,EventArgs e)
@@ -4343,6 +4399,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
                             ApplicationServices.Get<IEffectModuleInstance>(new LipSyncDescriptor().TypeId);
 
                         ((LipSync)effect).StaticPhoneme = phoneme.TypeName.ToUpper();
+                        ((LipSync)effect).LyricData = phoneme.LyricData;
 
                         TimeSpan startTime = TimeSpan.FromMilliseconds(phoneme.StartMS);
                         TimelineElementsClipboardData.EffectModelCandidate modelCandidate =
@@ -4404,6 +4461,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
                         ApplicationServices.Get<IEffectModuleInstance>(new LipSyncDescriptor().TypeId);
 
                     ((LipSync)effect).StaticPhoneme = data.Phoneme.ToString().ToUpper();
+                    ((LipSync)effect).LyricData = data.LyricData;
 
                     TimelineElementsClipboardData.EffectModelCandidate modelCandidate =
                           new TimelineElementsClipboardData.EffectModelCandidate(effect)
@@ -4425,12 +4483,23 @@ namespace VixenModules.Editor.TimedSequenceEditor
                 Clipboard.SetDataObject(dataObject, true);
                 _TimeLineSequenceClipboardContentsChanged(EventArgs.Empty);
 
-                int pasted = ClipboardPaste((TimeSpan)args.FirstMark);
+                int pasted = 0;
+
+                if (args.Placement == TranslatePlacement.Cursor)
+                {
+                    args.FirstMark += TimelineControl.grid.CursorPosition;
+                }
+
+                if (args.Placement != TranslatePlacement.Clipboard)
+                {
+                    pasted = ClipboardPaste((TimeSpan)args.FirstMark);
+                }
 
                 if (pasted == 0)
                 {
                     MessageBox.Show("Conversion Complete and copied to Clipboard \n Paste at first Mark offset", "Convert Text", MessageBoxButtons.OK);
                 }
+
                 sequenceModified();
 
             }
@@ -4450,11 +4519,14 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
         private void textConverterToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            LipSyncTextConvertForm textConverter = new LipSyncTextConvertForm();
-            textConverter.NewTranslation += new EventHandler<NewTranslationEventArgs>(textConverterHandler);
-            textConverter.TranslateFailure += new EventHandler<TranslateFailureEventArgs>(translateFailureHandler);
-            textConverter.MarkCollections = _sequence.MarkCollections;
-            textConverter.Show(this);
+            if (LipSyncTextConvertForm.Active == false)
+            {
+                LipSyncTextConvertForm textConverter = new LipSyncTextConvertForm();
+                textConverter.NewTranslation += new EventHandler<NewTranslationEventArgs>(textConverterHandler);
+                textConverter.TranslateFailure += new EventHandler<TranslateFailureEventArgs>(translateFailureHandler);
+                textConverter.MarkCollections = _sequence.MarkCollections;
+                textConverter.Show(this);
+            }
         }
 
         private void lipSyncMappingsToolStripMenuItem_DropDownOpening(object sender, EventArgs e)
@@ -4492,6 +4564,37 @@ namespace VixenModules.Editor.TimedSequenceEditor
             });
 
         }
+
+		private void helpDocumentationToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			System.Diagnostics.Process.Start("http://www.vixenlights.com/vixen-3-documentation/sequencer/");
+		}
+		private void exportToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+            ExportDialog ed = new ExportDialog(Sequence);
+            ed.ShowDialog();
+		}
+
+		private void bulkEffectMoveToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+
+			var dialog = new BulkEffectMoveForm(TimelineControl.grid.CursorPosition);
+			using (dialog)
+			{
+				if (dialog.ShowDialog() == DialogResult.OK)
+				{
+					TimelineControl.grid.MoveElementsInRangeByTime(dialog.Start, dialog.End, dialog.IsForward?dialog.Offset:-dialog.Offset);
+				}
+			}
+		}
+
+		private void cADStyleSelectionBoxToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			TimelineControl.grid.aCadStyleSelectionBox = cADStyleSelectionBoxToolStripMenuItem.Checked;
+		}
+
+
+
     }
 
 	[Serializable]

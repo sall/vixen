@@ -34,6 +34,12 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 			//            Flood
 		}
 
+        public enum StringDirections
+        {
+            Clockwise,
+            CounterClockwise
+        }
+
 		private bool _selected = false;
 		[XmlIgnore] public List<PreviewPoint> _selectPoints = null;
 		public const int SelectPointSize = 6;
@@ -60,108 +66,42 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 		 DisplayName("String Name")]
 		public string Name
 		{
-			get { return _name; }
+			get 
+            {
+                if (_name == null) _name = "";
+                return _name; 
+            }
 			set
 			{
 				_name = value;
+                if (_name == null) _name = "";
 				FireOnPropertiesChanged(this, this);
 			}
 		}
 
 		/// <summary>
-		/// Need to override if this is anywhere other than the top left in _pixels
+		/// Top most pixel location
 		/// </summary>
         [Browsable(false)]
         public abstract int Top { get; set; }
-        //public virtual int Top
-        //{
-        //    get
-        //    {
-        //        int y = int.MaxValue;
-        //        foreach (PreviewPixel pixel in Pixels) {
-        //            y = Math.Min(y, pixel.Y);
-        //        }
-        //        return y;
-        //    }
-        //    set
-        //    {
-        //        int y = int.MaxValue;
-        //        foreach (PreviewPixel pixel in Pixels) {
-        //            y = Math.Min(y, pixel.Y);
-        //        }
-        //        int delta = value - y;
-        //        foreach (PreviewPixel pixel in Pixels) {
-        //            pixel.Y += delta;
-        //        }
-        //    }
-        //}
 
 		/// <summary>
-		/// Need to override if this is anywhere other than the bottom in _pixels
+		/// Bottom most pixel location
 		/// </summary>
-		[Browsable(false)]
-		public virtual int Bottom
-		{
-			get
-			{
-				int y = int.MinValue;
-				foreach (PreviewPixel pixel in Pixels) {
-					y = Math.Max(y, pixel.Y);
-				}
-				return y;
-			}
-			set { }
-		}
+        [Browsable(false)]
+        public abstract int Bottom { get; }
 
 		/// <summary>
-		/// Need to override if this is anywhere other than the top left in _pixels
+		/// Left most pixel location
 		/// </summary>
         [Browsable(false)]
         public abstract int Left { get; set; }
-        //public virtual int Left
-        //{
-        //    get
-        //    {
-        //        int x = int.MaxValue;
-        //        foreach (PreviewPixel pixel in Pixels) {
-        //            x = Math.Min(x, pixel.X);
-        //        }
-        //        return x;
-        //    }
-        //    set
-        //    {
-        //        int x = int.MaxValue;
-        //        foreach (PreviewPixel pixel in Pixels) {
-        //            x = Math.Min(x, pixel.X);
-        //        }
-        //        int delta = value - x;
-        //        foreach (PreviewPixel pixel in Pixels) {
-        //            pixel.X += delta;
-        //        }
-        //    }
-        //}
 
 		/// <summary>
-		/// Need to override if this is anywhere other than the right in _pixels
+		/// Right most pixel location
 		/// </summary>
-		[Browsable(false)]
-		public virtual int Right
-		{
-			get
-			{
-				int x = int.MinValue;
-				foreach (PreviewPixel pixel in Pixels) {
-					x = Math.Max(x, pixel.X);
-				}
-				return x;
-			}
-		}
-
-        //[Browsable(false)]
-        //public abstract int Width { get; set; }
-
-        //[Browsable(false)]
-        //public abstract int Height { get; set; }
+        [Browsable(false)]
+        public abstract int Right { get; }
 
         public abstract void Match(PreviewBaseShape matchShape);
 
@@ -177,7 +117,7 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 			{
 				_stringType = value;
 				if (_strings != null) {
-					foreach (PreviewBaseShape line in _strings) {
+					foreach (var line in _strings) {
 						line.StringType = _stringType;
 					}
 				}
@@ -206,6 +146,7 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 			set { _pixels = value; }
 		}
 
+        [Browsable(false)]
         public PreviewBaseShape Parent { get; set; }
 
 		[Editor(typeof (PreviewSetElementsUIEditor), typeof (UITypeEditor)),
@@ -295,9 +236,16 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 			// Zoom
 			foreach (PreviewPixel pixel in _pixels)
 			{
-				pixel.X = Convert.ToInt32((Convert.ToDouble(pixel.X) * ZoomLevel));
-				pixel.Y = Convert.ToInt32((Convert.ToDouble(pixel.Y) * ZoomLevel));
-			}
+                try
+                {
+                    pixel.X = Convert.ToInt32((Convert.ToDouble(pixel.X) * ZoomLevel));
+                    pixel.Y = Convert.ToInt32((Convert.ToDouble(pixel.Y) * ZoomLevel));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("SetPixelZoom: " + ex.Message);
+                }
+            }
 		}
 
 		public void SetPixelNode(int pixelNum, ElementNode node)
@@ -414,7 +362,14 @@ namespace VixenModules.Preview.VixenPreview.Shapes
                     }
                     else
                     {
-                        pixelColor = Color.White;
+                        if (pixel.Node != null)
+                        {
+                            pixelColor = Color.Turquoise;
+                        }
+                        else
+                        {
+                            pixelColor = Color.White;
+                        }
                     }
                 }
                 pixel.Draw(fp, pixelColor);
@@ -466,16 +421,34 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 
 		public virtual bool ShapeInRect(Rectangle rect)
 		{
-			foreach (PreviewPixel pixel in Pixels) {
-				if (pixel.X >= rect.X &&
-				    pixel.X <= rect.X + rect.Width &&
-				    pixel.Y >= rect.Y &&
-				    pixel.Y <= rect.Y + rect.Height) {
-					return true;
-				}
-			}
+            foreach (PreviewPixel pixel in Pixels)
+            {
+                int X1 = Math.Min(rect.X, rect.X + rect.Width);
+                int X2 = Math.Max(rect.X, rect.X + rect.Width);
+                int Y1 = Math.Min(rect.Y, rect.Y + rect.Height);
+                int Y2 = Math.Max(rect.Y, rect.Y + rect.Height);
+                if (pixel.X >= X1 &&
+                    pixel.X <= X2 &&
+                    pixel.Y >= Y1 &&
+                    pixel.Y <= Y2)
+                {
+                    return true;
+                }
+            }
 			return false;
 		}
+
+        public virtual bool ShapeAllInRect(Rectangle rect)
+        {
+            PreviewPoint p1 = PointToZoomPoint(new PreviewPoint(rect.X, rect.Y));
+            PreviewPoint p2 = PointToZoomPoint(new PreviewPoint(rect.X + rect.Width, rect.Y + rect.Height));
+            int X1 = Math.Min(p1.X, p2.X);
+            int X2 = Math.Max(p1.X, p2.X);
+            int Y1 = Math.Min(p1.Y, p2.Y);
+            int Y2 = Math.Max(p1.Y, p2.Y);
+            //Console.WriteLine(Top + ":" + Y1 + "  " + Bottom + ":" + Y2 + "  " + Left + ":" + X1 + "  " + Right + ":" + X2);
+            return (Top >= Y1 && Bottom <= Y2 && Left >= X1 && Right <= X2);
+        }
 
 		public PreviewPoint PointInSelectPoint(PreviewPoint point)
 		{
@@ -536,6 +509,12 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 
 		public abstract void ResizeFromOriginal(double aspect);
 
+        /// <summary>
+        /// This will be true if the shape is being created. Only used in multi-point placement objects
+        /// </summary>
+        [Browsable(false)]
+        public virtual bool Creating { get; set; }
+
 		public DisplayItemBaseControl GetSetupControl()
 		{
 			Shapes.DisplayItemBaseControl setupControl = null;
@@ -587,6 +566,14 @@ namespace VixenModules.Preview.VixenPreview.Shapes
             else if (GetType().ToString() == "VixenModules.Preview.VixenPreview.Shapes.PreviewIcicle")
             {
                 setupControl = new Shapes.PreviewIcicleSetupControl(this);
+            }
+            else if (GetType().ToString() == "VixenModules.Preview.VixenPreview.Shapes.PreviewPolyLine")
+            {
+                setupControl = new Shapes.PreviewPolyLineSetupControl(this);
+            }
+            else if (GetType().ToString() == "VixenModules.Preview.VixenPreview.Shapes.PreviewMultiString")
+            {
+                setupControl = new Shapes.PreviewMultiStringSetupControl(this);
             }
 
 			return setupControl;
