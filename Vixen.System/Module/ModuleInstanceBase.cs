@@ -80,5 +80,12 @@ namespace Vixen.Module
 		{
 			return GetHashCode(this as IModuleInstance);
 		}
+
+
+		public virtual string DataJson
+		{
+			get { return null; }
+
+		}
 	}
 }

@@ -36,6 +36,8 @@ namespace Vixen.Sys
 			IsPreviewThreaded = true; // opt-out
 			AllowFilterEvaluation = true; // opt-out
 			DefaultUpdateInterval = DEFAULT_UPDATE_INTERVAL;
+			FalconPiPlayerIpAddress = "0.0.0.0";
+			FalconPiPlayerAutomaticUpdate = false;
 		}
 
 		public string LoadedFilePath { get; set; }
@@ -159,6 +161,8 @@ namespace Vixen.Sys
 		public bool AllowFilterEvaluation { get; set; }
 
 		public int DefaultUpdateInterval { get; set; }
+		public string FalconPiPlayerIpAddress { get; set; }
+		public bool FalconPiPlayerAutomaticUpdate { get; set; }
 
 		public void Save()
 		{

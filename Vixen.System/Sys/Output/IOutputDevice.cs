@@ -17,5 +17,7 @@ namespace Vixen.Sys.Output
 		void UpdateCommands();
 		int UpdateInterval { get; set; }
 		IOutputDeviceUpdateSignaler UpdateSignaler { get; }
+	
+
 	}
 }

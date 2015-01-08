@@ -17,6 +17,11 @@ namespace Vixen.IO.Xml.SystemConfig
 		private const string ELEMENT_EVAL_FILTERS = "AllowFilterEvaluation";
 		private const string ATTR_IS_CONTEXT = "isContext";
 		private const string ELEMENT_DEFAULT_UPDATE_INTERVAL = "DefaultUpdateInterval";
+		private const string ELEMENT_FPP = "FalconPiPlayer";
+		private const string ELEMENT_IP = "IpAddress";
+		private const string ELEMENT_AUTOUPDATE = "AutomaticUpdate";
+
+
 
 		public XmlSystemConfigFilePolicy(SystemConfig systemConfig, XElement content)
 		{
@@ -27,7 +32,8 @@ namespace Vixen.IO.Xml.SystemConfig
 		protected override void WriteContextFlag()
 		{
 			// If not a context, don't include the flag.
-			if (_systemConfig.IsContext) {
+			if (_systemConfig.IsContext)
+			{
 				_content.Add(new XAttribute(ATTR_IS_CONTEXT, true));
 			}
 		}
@@ -119,10 +125,12 @@ namespace Vixen.IO.Xml.SystemConfig
 		protected override void ReadIdentity()
 		{
 			XElement identityElement = _content.Element(ELEMENT_IDENTITY);
-			if (identityElement != null) {
+			if (identityElement != null)
+			{
 				_systemConfig.Identity = Guid.Parse(identityElement.Value);
 			}
-			else {
+			else
+			{
 				Logging.Warn("System config does not have an identity value.");
 			}
 		}
@@ -195,6 +203,33 @@ namespace Vixen.IO.Xml.SystemConfig
 		{
 			XmlDataFlowPatchCollectionSerializer serializer = new XmlDataFlowPatchCollectionSerializer();
 			_systemConfig.DataFlow = serializer.ReadObject(_content);
+		}
+
+		protected override void WriteFalconSettings()
+		{
+			_content.Add(new XElement(ELEMENT_FPP, 
+				new XElement(ELEMENT_AUTOUPDATE, _systemConfig.FalconPiPlayerAutomaticUpdate), 
+				new XElement(ELEMENT_IP, _systemConfig.FalconPiPlayerIpAddress)));
+
+		}
+
+		protected override void ReadFalconSettings()
+		{
+			XElement fpp = _content.Element(ELEMENT_FPP);
+			// ctor has default if we don't find value here..
+			if (fpp != null)
+			{
+				var ip = fpp.Element(ELEMENT_IP);
+				var update = fpp.Element(ELEMENT_AUTOUPDATE);
+				if (ip != null)
+				{
+					_systemConfig.FalconPiPlayerIpAddress = ip.Value;
+				}
+				if (update != null)
+				{
+					_systemConfig.FalconPiPlayerAutomaticUpdate = bool.Parse(update.Value);
+				}
+			}
 		}
 	}
 }

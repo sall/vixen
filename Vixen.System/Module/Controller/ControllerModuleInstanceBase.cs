@@ -7,10 +7,10 @@ using Vixen.Sys.Output;
 namespace Vixen.Module.Controller
 {
 	public abstract class ControllerModuleInstanceBase : OutputModuleInstanceBase, IControllerModuleInstance,
-	                                                     IEqualityComparer<IControllerModuleInstance>,
-	                                                     IEquatable<IControllerModuleInstance>,
-	                                                     IEqualityComparer<ControllerModuleInstanceBase>,
-	                                                     IEquatable<ControllerModuleInstanceBase>
+														 IEqualityComparer<IControllerModuleInstance>,
+														 IEquatable<IControllerModuleInstance>,
+														 IEqualityComparer<ControllerModuleInstanceBase>,
+														 IEquatable<ControllerModuleInstanceBase>
 	{
 		private IDataPolicyFactory _dataPolicyFactory;
 
@@ -21,7 +21,8 @@ namespace Vixen.Module.Controller
 			get { return _dataPolicyFactory; }
 			protected set
 			{
-				if (_dataPolicyFactory != value) {
+				if (_dataPolicyFactory != value)
+				{
 					_dataPolicyFactory = value;
 					OnDataPolicyFactoryChanged();
 				}
@@ -30,7 +31,8 @@ namespace Vixen.Module.Controller
 
 		protected virtual void OnDataPolicyFactoryChanged()
 		{
-			if (DataPolicyFactoryChanged != null) {
+			if (DataPolicyFactoryChanged != null)
+			{
 				DataPolicyFactoryChanged(this, EventArgs.Empty);
 			}
 		}
@@ -38,6 +40,8 @@ namespace Vixen.Module.Controller
 		public abstract void UpdateState(int chainIndex, ICommand[] outputStates);
 
 		public virtual int OutputCount { get; set; }
+
+	
 
 		#region Equality
 

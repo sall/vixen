@@ -33,6 +33,9 @@
 			this.label1 = new System.Windows.Forms.Label();
 			this.label2 = new System.Windows.Forms.Label();
 			this.ctlUpdateInteral = new System.Windows.Forms.NumericUpDown();
+			this.ctlIpFalcon = new Common.Controls.IpTextBox();
+			this.label3 = new System.Windows.Forms.Label();
+			this.ctlChkAutoUpdateFalcon = new System.Windows.Forms.CheckBox();
 			((System.ComponentModel.ISupportInitialize)(this.ctlUpdateInteral)).BeginInit();
 			this.SuspendLayout();
 			// 
@@ -97,6 +100,34 @@
             0,
             0});
 			// 
+			// ctlIpFalcon
+			// 
+			this.ctlIpFalcon.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.ctlIpFalcon.Location = new System.Drawing.Point(102, 95);
+			this.ctlIpFalcon.Name = "ctlIpFalcon";
+			this.ctlIpFalcon.Size = new System.Drawing.Size(112, 20);
+			this.ctlIpFalcon.TabIndex = 4;
+			this.ctlIpFalcon.Text = "0.0.0.0";
+			// 
+			// label3
+			// 
+			this.label3.AutoSize = true;
+			this.label3.Location = new System.Drawing.Point(15, 102);
+			this.label3.Name = "label3";
+			this.label3.Size = new System.Drawing.Size(83, 13);
+			this.label3.TabIndex = 5;
+			this.label3.Text = "Falcon Pi Player";
+			// 
+			// ctlChkAutoUpdateFalcon
+			// 
+			this.ctlChkAutoUpdateFalcon.AutoSize = true;
+			this.ctlChkAutoUpdateFalcon.Location = new System.Drawing.Point(221, 97);
+			this.ctlChkAutoUpdateFalcon.Name = "ctlChkAutoUpdateFalcon";
+			this.ctlChkAutoUpdateFalcon.Size = new System.Drawing.Size(89, 17);
+			this.ctlChkAutoUpdateFalcon.TabIndex = 6;
+			this.ctlChkAutoUpdateFalcon.Text = "Auto Update ";
+			this.ctlChkAutoUpdateFalcon.UseVisualStyleBackColor = true;
+			// 
 			// OptionsDialog
 			// 
 			this.AcceptButton = this.btnOK;
@@ -104,6 +135,9 @@
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.CancelButton = this.btnCancel;
 			this.ClientSize = new System.Drawing.Size(336, 264);
+			this.Controls.Add(this.ctlChkAutoUpdateFalcon);
+			this.Controls.Add(this.label3);
+			this.Controls.Add(this.ctlIpFalcon);
 			this.Controls.Add(this.ctlUpdateInteral);
 			this.Controls.Add(this.label2);
 			this.Controls.Add(this.label1);
@@ -129,5 +163,8 @@
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.Label label2;
 		private System.Windows.Forms.NumericUpDown ctlUpdateInteral;
+		private Common.Controls.IpTextBox ctlIpFalcon;
+		private System.Windows.Forms.Label label3;
+		private System.Windows.Forms.CheckBox ctlChkAutoUpdateFalcon;
 	}
 }

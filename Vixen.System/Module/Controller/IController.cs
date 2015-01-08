@@ -15,5 +15,8 @@ namespace Vixen.Module.Controller
 		// a descriptor or module, this could change at runtime.
 		IDataPolicyFactory DataPolicyFactory { get; }
 		event EventHandler DataPolicyFactoryChanged;
+		//Used for passing data back in JSON format
+		
+
 	}
 }

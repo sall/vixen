@@ -17,6 +17,7 @@
 			WriteFilters();
 			WriteDataFlowPatching();
 			WriteDisabledDevices();
+			WriteFalconSettings();
 		}
 
 		protected abstract void WriteContextFlag();
@@ -32,7 +33,7 @@
 		protected abstract void WriteFilters();
 		protected abstract void WriteDataFlowPatching();
 		protected abstract void WriteDisabledDevices();
-
+		protected abstract void WriteFalconSettings();
 		public void Read()
 		{
 			ReadContextFlag();
@@ -48,6 +49,7 @@
 			ReadFilters();
 			ReadDataFlowPatching();
 			ReadDisabledDevices();
+			ReadFalconSettings();
 		}
 
 		protected abstract void ReadContextFlag();
@@ -63,5 +65,6 @@
 		protected abstract void ReadFilters();
 		protected abstract void ReadDataFlowPatching();
 		protected abstract void ReadDisabledDevices();
+		protected abstract void ReadFalconSettings();
 	}
 }
