@@ -1056,6 +1056,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 					case "Nutcracker":
 					case "Set Level":
 					case "Launcher":
+                    case "Audio":
 					case "RDS":
 						strayElement = true;
 						break;
@@ -1111,6 +1112,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 					case "Set Level":
 					case "Twinkle":
 					case "Launcher":
+                    case "Audio":
 					case "RDS":
 						strayElement = true;
 						break;
@@ -1201,6 +1203,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 					case "LipSync":
 					case "Nutcracker":
 					case "Launcher":
+                    case "Audio":
 					case "RDS":
 						strayElement = true;
 						break;

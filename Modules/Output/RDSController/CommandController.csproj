@@ -36,21 +36,26 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="NLog, Version=3.1.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\..\..\packages\NLog.3.1.0.0\lib\net45\NLog.dll</HintPath>
-       <Private>False</Private>
+    <Reference Include="NLog">
+      <HintPath>..\..\..\packages\NLog.3.2.0.0\lib\net45\NLog.dll</HintPath>
     </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="UIAutomationProvider" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommandHandler.cs" />
@@ -76,6 +81,15 @@
       <DependentUpon>SetupForm.cs</DependentUpon>
     </Compile>
     <Compile Include="TData.cs" />
+    <Compile Include="VideoPlayer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="VideoPlayer.Designer.cs">
+      <DependentUpon>VideoPlayer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="VPlayer.xaml.cs">
+      <DependentUpon>VPlayer.xaml</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Vixen.System\Vixen.csproj">
@@ -92,12 +106,21 @@
     <EmbeddedResource Include="SetupForm.resx">
       <DependentUpon>SetupForm.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="VideoPlayer.resx">
+      <DependentUpon>VideoPlayer.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Content Include="rds logo.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="VPlayer.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
