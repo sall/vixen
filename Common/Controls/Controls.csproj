@@ -137,6 +137,7 @@
     <Compile Include="ElementTree.Designer.cs">
       <DependentUpon>ElementTree.cs</DependentUpon>
     </Compile>
+    <Compile Include="GlobalUI.cs" />
     <Compile Include="IPTextBox.cs">
       <SubType>Component</SubType>
     </Compile>

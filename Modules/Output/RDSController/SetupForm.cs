@@ -58,6 +58,7 @@ namespace VixenModules.Output.CommandController
 
             chkHideLaunchedWindows.Checked = data.HideLaunchedWindows;
             cboMonitorList.Items.Clear();
+            chkVideoPlaybackEnabled.Checked = data.VideoPlaybackEnabled;
 
             Screen.AllScreens.ToList().ForEach(screen =>
             {
@@ -270,41 +271,28 @@ namespace VixenModules.Output.CommandController
         {
 
         }
-        VideoPlayer _player;
-        private void txtPlayMedia_Click(object sender, EventArgs e)
+        
+         private void txtPlayMedia_Click(object sender, EventArgs e)
         {
-            Uri fileUri = new Uri(txtMediaFileNAme.Text, UriKind.Absolute);
 
-            _player = new VideoPlayer(fileUri);
-            
-            _player.MediaEnded += _player_MediaEnded;
-            _player.SetScreen(Screen.AllScreens.Where(s => s.DeviceName == this.txtPlaybackMonitor.Text).FirstOrDefault());
-            _player.SetSourceUri(fileUri);
-            _player.SetRepeat(this.chkRepeatPlayback.Checked);
-            _player.SetFullScreen(this.chkPlaybackFullScreen.Checked);
-            _player.Show();
-            _player.Play();
+            VixenModules.Output.CommandController.Module.Play(Guid.Empty, null, txtMediaFileNAme.Text, this.chkRepeatPlayback.Checked, TimeSpan.FromMilliseconds(0), TimeSpan.FromMinutes(100), 50, false, this.txtPlaybackMonitor.Text);
+           
             txtMediaFileNAme.Enabled = txtPlayMedia.Enabled = false;
             txtStopMedia.Enabled = true;
         }
 
         void _player_MediaEnded(object sender, EventArgs e)
         {
-            
-            _player.Close();
-            _player.Stop();
-            _player.Dispose();
-            _player = null;
+
+          
             txtMediaFileNAme.Enabled = txtPlayMedia.Enabled = true;
             txtStopMedia.Enabled = false;
         }
 
         private void txtStopMedia_Click(object sender, EventArgs e)
         {
-            _player.Stop();
-            _player.Close();
-            _player.Dispose();
-            _player = null;
+            VixenModules.Output.CommandController.Module.Play(Guid.Empty, null, string.Empty, false, TimeSpan.FromMilliseconds(0), TimeSpan.FromMinutes(100), 50, true);
+
             txtMediaFileNAme.Enabled = txtPlayMedia.Enabled = true;
             txtStopMedia.Enabled = false;
         }
@@ -317,6 +305,11 @@ namespace VixenModules.Output.CommandController
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
             RdsData.VideoShowFullScreen = chkPlaybackFullScreen.Checked;
+        }
+
+        private void chkVideoPlaybackEnabled_CheckedChanged(object sender, EventArgs e)
+        {
+            RdsData.VideoPlaybackEnabled = chkVideoPlaybackEnabled.Checked;
         }
 
 

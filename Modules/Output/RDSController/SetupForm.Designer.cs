@@ -46,6 +46,9 @@
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.chkHideLaunchedWindows = new System.Windows.Forms.CheckBox();
             this.groupBox5 = new System.Windows.Forms.GroupBox();
+            this.chkVideoPlaybackEnabled = new System.Windows.Forms.CheckBox();
+            this.chkPlaybackFullScreen = new System.Windows.Forms.CheckBox();
+            this.chkRepeatPlayback = new System.Windows.Forms.CheckBox();
             this.txtStopMedia = new System.Windows.Forms.Button();
             this.txtPlayMedia = new System.Windows.Forms.Button();
             this.btnGetMediaFileName = new System.Windows.Forms.Button();
@@ -54,8 +57,6 @@
             this.txtPlaybackMonitor = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.cboMonitorList = new System.Windows.Forms.ComboBox();
-            this.chkRepeatPlayback = new System.Windows.Forms.CheckBox();
-            this.chkPlaybackFullScreen = new System.Windows.Forms.CheckBox();
             this.groupBox3.SuspendLayout();
             this.groupBox4.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -318,9 +319,9 @@
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.StatusLbl1});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 438);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 439);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(630, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(670, 22);
             this.statusStrip1.TabIndex = 24;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -335,9 +336,9 @@
             // 
             this.button1.DialogResult = System.Windows.Forms.DialogResult.OK;
             this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button1.Location = new System.Drawing.Point(512, 270);
+            this.button1.Location = new System.Drawing.Point(544, 338);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(109, 65);
+            this.button1.Size = new System.Drawing.Size(126, 97);
             this.button1.TabIndex = 25;
             this.button1.Text = "Save Configuration Settings";
             this.button1.UseVisualStyleBackColor = true;
@@ -365,6 +366,7 @@
             // 
             // groupBox5
             // 
+            this.groupBox5.Controls.Add(this.chkVideoPlaybackEnabled);
             this.groupBox5.Controls.Add(this.chkPlaybackFullScreen);
             this.groupBox5.Controls.Add(this.chkRepeatPlayback);
             this.groupBox5.Controls.Add(this.txtStopMedia);
@@ -377,11 +379,44 @@
             this.groupBox5.Controls.Add(this.cboMonitorList);
             this.groupBox5.Location = new System.Drawing.Point(12, 338);
             this.groupBox5.Name = "groupBox5";
-            this.groupBox5.Size = new System.Drawing.Size(609, 97);
+            this.groupBox5.Size = new System.Drawing.Size(526, 97);
             this.groupBox5.TabIndex = 27;
             this.groupBox5.TabStop = false;
             this.groupBox5.Text = "Video Playback";
             this.groupBox5.Enter += new System.EventHandler(this.groupBox5_Enter);
+            // 
+            // chkVideoPlaybackEnabled
+            // 
+            this.chkVideoPlaybackEnabled.AutoSize = true;
+            this.chkVideoPlaybackEnabled.Location = new System.Drawing.Point(12, 46);
+            this.chkVideoPlaybackEnabled.Name = "chkVideoPlaybackEnabled";
+            this.chkVideoPlaybackEnabled.Size = new System.Drawing.Size(65, 17);
+            this.chkVideoPlaybackEnabled.TabIndex = 22;
+            this.chkVideoPlaybackEnabled.Text = "Enabled";
+            this.chkVideoPlaybackEnabled.UseVisualStyleBackColor = true;
+            this.chkVideoPlaybackEnabled.CheckedChanged += new System.EventHandler(this.chkVideoPlaybackEnabled_CheckedChanged);
+            // 
+            // chkPlaybackFullScreen
+            // 
+            this.chkPlaybackFullScreen.AutoSize = true;
+            this.chkPlaybackFullScreen.Location = new System.Drawing.Point(310, 46);
+            this.chkPlaybackFullScreen.Name = "chkPlaybackFullScreen";
+            this.chkPlaybackFullScreen.Size = new System.Drawing.Size(126, 17);
+            this.chkPlaybackFullScreen.TabIndex = 21;
+            this.chkPlaybackFullScreen.Text = "Playback Full Screen";
+            this.chkPlaybackFullScreen.UseVisualStyleBackColor = true;
+            this.chkPlaybackFullScreen.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
+            // 
+            // chkRepeatPlayback
+            // 
+            this.chkRepeatPlayback.AutoSize = true;
+            this.chkRepeatPlayback.Location = new System.Drawing.Point(197, 46);
+            this.chkRepeatPlayback.Name = "chkRepeatPlayback";
+            this.chkRepeatPlayback.Size = new System.Drawing.Size(108, 17);
+            this.chkRepeatPlayback.TabIndex = 20;
+            this.chkRepeatPlayback.Text = "Repeat Playback";
+            this.chkRepeatPlayback.UseVisualStyleBackColor = true;
+            this.chkRepeatPlayback.CheckedChanged += new System.EventHandler(this.chkRepeatPlayback_CheckedChanged);
             // 
             // txtStopMedia
             // 
@@ -455,33 +490,11 @@
             this.cboMonitorList.Size = new System.Drawing.Size(158, 21);
             this.cboMonitorList.TabIndex = 0;
             // 
-            // chkRepeatPlayback
-            // 
-            this.chkRepeatPlayback.AutoSize = true;
-            this.chkRepeatPlayback.Location = new System.Drawing.Point(12, 46);
-            this.chkRepeatPlayback.Name = "chkRepeatPlayback";
-            this.chkRepeatPlayback.Size = new System.Drawing.Size(108, 17);
-            this.chkRepeatPlayback.TabIndex = 20;
-            this.chkRepeatPlayback.Text = "Repeat Playback";
-            this.chkRepeatPlayback.UseVisualStyleBackColor = true;
-            this.chkRepeatPlayback.CheckedChanged += new System.EventHandler(this.chkRepeatPlayback_CheckedChanged);
-            // 
-            // checkBox1
-            // 
-            this.chkPlaybackFullScreen.AutoSize = true;
-            this.chkPlaybackFullScreen.Location = new System.Drawing.Point(125, 46);
-            this.chkPlaybackFullScreen.Name = "checkBox1";
-            this.chkPlaybackFullScreen.Size = new System.Drawing.Size(126, 17);
-            this.chkPlaybackFullScreen.TabIndex = 21;
-            this.chkPlaybackFullScreen.Text = "Playback Full Screen";
-            this.chkPlaybackFullScreen.UseVisualStyleBackColor = true;
-            this.chkPlaybackFullScreen.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
-            // 
             // SetupForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(630, 460);
+            this.ClientSize = new System.Drawing.Size(670, 461);
             this.Controls.Add(this.groupBox5);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.pictureBox1);
@@ -552,5 +565,6 @@
         private System.Windows.Forms.Button txtStopMedia;
         private System.Windows.Forms.CheckBox chkRepeatPlayback;
         private System.Windows.Forms.CheckBox chkPlaybackFullScreen;
+        private System.Windows.Forms.CheckBox chkVideoPlaybackEnabled;
 	}
 }

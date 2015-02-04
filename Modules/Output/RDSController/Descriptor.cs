@@ -14,7 +14,7 @@ namespace VixenModules.Output.CommandController
 
 		public override string Description
 		{
-			get { return "Generic Windows Command and RDS hardware module"; }
+			get { return "Media Player, Windows Command,  and RDS hardware module"; }
 		}
 
 		public override Type ModuleClass
@@ -34,12 +34,12 @@ namespace VixenModules.Output.CommandController
 
 		public override string TypeName
 		{
-			get { return "Command Controller"; }
+			get { return "Command and Media Controller"; }
 		}
 
 		public override string Version
 		{
-			get { return "1.0"; }
+			get { return "1.1"; }
 		}
 	}
 }

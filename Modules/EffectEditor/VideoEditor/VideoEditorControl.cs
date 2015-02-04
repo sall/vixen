@@ -77,7 +77,7 @@ namespace VideoEditor
                 if (res == DialogResult.OK)
                 {
                     this.txtFileName.Text = dlg.FileName;
-                    this.vPlayer1.SourceUri = new Uri(dlg.FileName);
+                    this.vPlayer1.SetSourceUri(new Uri(dlg.FileName));
 
                 }
             }
@@ -90,7 +90,7 @@ namespace VideoEditor
             {
                 this.txtFileName.Text = value;
                 if (!string.IsNullOrWhiteSpace(value))
-                    this.vPlayer1.SourceUri = new Uri(value);
+                    this.vPlayer1.SetSourceUri(new Uri(value));
 
             }
         }
@@ -105,7 +105,7 @@ namespace VideoEditor
 
         private void trkVolume_Scroll(object sender, EventArgs e)
         {
-            vPlayer1.Volume = (double)trkVolume.Value;
+            vPlayer1.SetVolume((double)trkVolume.Value);
         }
 
         private void trkVideoLength_Scroll(object sender, EventArgs e)

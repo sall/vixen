@@ -78,8 +78,7 @@ namespace Video
                         g.FillRectangle(backgroundBrush, clipRectangle);
                     }
                     g.DrawString(DisplayValue, AdjustedFont, StringBrush, 4, 4);
-                    //base.GenerateVisualRepresentation(g, clipRectangle);
-                }
+                 }
 
             }
             catch (Exception e)

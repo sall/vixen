@@ -128,6 +128,7 @@
             this.label4.Size = new System.Drawing.Size(26, 13);
             this.label4.TabIndex = 13;
             this.label4.Text = "End";
+            this.label4.Visible = false;
             // 
             // label5
             // 
@@ -137,6 +138,7 @@
             this.label5.Size = new System.Drawing.Size(29, 13);
             this.label5.TabIndex = 12;
             this.label5.Text = "Start";
+            this.label5.Visible = false;
             // 
             // tsStartTime
             // 
@@ -147,6 +149,7 @@
             this.tsStartTime.TabIndex = 14;
             this.tsStartTime.Text = "0000000";
             this.tsStartTime.TimeSpan = System.TimeSpan.Parse("00:00:00");
+            this.tsStartTime.Visible = false;
             // 
             // tsEndTime
             // 
@@ -157,6 +160,7 @@
             this.tsEndTime.TabIndex = 15;
             this.tsEndTime.Text = "0000000";
             this.tsEndTime.TimeSpan = System.TimeSpan.Parse("00:00:00");
+            this.tsEndTime.Visible = false;
             // 
             // btnPlayMedia
             // 
@@ -208,7 +212,7 @@
             this.Controls.Add(this.txtFileName);
             this.Controls.Add(this.label1);
             this.Name = "VideoEditorControl";
-            this.Size = new System.Drawing.Size(780, 288);
+            this.Size = new System.Drawing.Size(780, 239);
             ((System.ComponentModel.ISupportInitialize)(this.trkVolume)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

@@ -52,6 +52,9 @@ namespace VixenModules.Output.CommandController
         [DataMember]
         public bool VideoShowFullScreen { get; set; }
 
+        [DataMember]
+        public bool VideoPlaybackEnabled { get; set; }
+
         public override IModuleDataModel Clone()
         {
             return this.MemberwiseClone() as IModuleDataModel;

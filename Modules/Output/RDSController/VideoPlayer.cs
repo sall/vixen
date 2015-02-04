@@ -14,26 +14,35 @@ namespace VixenModules.Output.CommandController
 {
     public partial class VideoPlayer : Form
     {
-         
+
+
+        public VideoPlayer()
+        {
+            InitializeComponent();
+            this.vPlayer1.MediaEnded += vPlayer1_MediaEnded;
+            this.WindowState = FormWindowState.Normal;
+            this.vPlayer1.Loaded += vPlayer1_Loaded;
+        }
         public VideoPlayer(Uri mediaFile)
         {
 
             InitializeComponent();
-            this.vPlayer1.SourceUri = mediaFile;
+            this.vPlayer1.SetSourceUri(mediaFile);
             this.vPlayer1.MediaEnded += vPlayer1_MediaEnded;
             this.WindowState = FormWindowState.Normal;
             this.vPlayer1.Loaded += vPlayer1_Loaded;
-
-
         }
 
+        //internal static Dictionary<Guid, VideoPlayer> _players = new Dictionary<Guid, VideoPlayer>();
+        internal static Guid CurrentVideoID { get; set; }
         void vPlayer1_MediaEnded(object sender, EventArgs e)
         {
-            this.Close();
+            //  this.Close();
             if (MediaEnded != null)
                 MediaEnded(sender, e);
 
         }
+
         public Duration VideoDuration { get { return this.vPlayer1.NaturalDuration; } }
         public event EventHandler MediaEnded;
         public event EventHandler MediaLoaded;
@@ -47,7 +56,9 @@ namespace VixenModules.Output.CommandController
                 return;
             }
             Loaded = false;
-            this.vPlayer1.SourceUri = value;
+
+            this.vPlayer1.Dispatcher.BeginInvoke(new Action<Uri>(this.vPlayer1.SetSourceUri), new object[] { value });
+
         }
         public bool Loaded { get; private set; }
         void vPlayer1_Loaded(object sender, RoutedEventArgs e)
@@ -78,7 +89,7 @@ namespace VixenModules.Output.CommandController
                 this.BeginInvoke(new Action<double>(SetVolume), new object[] { value });
                 return;
             }
-            this.vPlayer1.Volume = value;
+            this.vPlayer1.SetVolume(value);
         }
         public void SetSpeed(double value)
         {
@@ -87,7 +98,7 @@ namespace VixenModules.Output.CommandController
                 this.BeginInvoke(new Action<double>(SetSpeed), new object[] { value });
                 return;
             }
-            this.vPlayer1.SpeedRatio = value;
+            this.vPlayer1.SetSpeedRatio(value);
         }
         public void SetRepeat(bool value)
         {
@@ -96,7 +107,7 @@ namespace VixenModules.Output.CommandController
                 this.BeginInvoke(new Action<bool>(SetRepeat), new object[] { value });
                 return;
             }
-            this.vPlayer1.Repeat = value;
+            this.vPlayer1.SetRepeat(value);
         }
         public void SetPosition(TimeSpan value)
         {
@@ -105,7 +116,7 @@ namespace VixenModules.Output.CommandController
                 this.BeginInvoke(new Action<TimeSpan>(SetPosition), new object[] { value });
                 return;
             }
-            this.vPlayer1.Position = value;
+            this.vPlayer1.SetPosition(value);
         }
         public void SetStartPosition(TimeSpan value)
         {
@@ -125,7 +136,7 @@ namespace VixenModules.Output.CommandController
             }
             this.vPlayer1.StopPosition = value;
         }
-      
+
         public void Play()
         {
             if (this.InvokeRequired)
@@ -134,8 +145,7 @@ namespace VixenModules.Output.CommandController
                 this.BeginInvoke(new Action(Play));
                 return;
             }
-            Stopwatch w = Stopwatch.StartNew();
-            
+
             this.vPlayer1.Play();
 
         }

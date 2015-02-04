@@ -24,7 +24,7 @@ namespace VixenModules.Output.CommandController
         public VPlayer()
         {
             InitializeComponent();
-            Repeat = true;
+            SetRepeat(true);
             mePlayer.UnloadedBehavior = MediaState.Stop;
 
         }
@@ -51,32 +51,110 @@ namespace VixenModules.Output.CommandController
 
         public void Play()
         {
-            mePlayer.MediaEnded -= mePlayer_MediaEnded;
-            mePlayer.MediaEnded += mePlayer_MediaEnded;
 
-            this.mePlayer.Play();
+            Dispatcher.Invoke((Action)(() =>
+            {
+                mePlayer.MediaEnded -= mePlayer_MediaEnded;
+                mePlayer.MediaEnded += mePlayer_MediaEnded;
+
+                this.mePlayer.Play();
+            }));
 
         }
 
 
         public void Stop()
         {
-            this.mePlayer.Stop();
-            if (playingStatusTimer != null)
-                playingStatusTimer.Stop();
-            playingStatusTimer = null;
+            this.Dispatcher.Invoke((Action)(() =>
+                {
+                    this.mePlayer.Stop();
+                    if (playingStatusTimer != null)
+                        playingStatusTimer.Stop();
+                    playingStatusTimer = null;
+                }));
+
         }
-        public bool Repeat { get; set; }
-        public double Volume { get { return this.mePlayer.Volume; } set { this.mePlayer.Volume = value; } }
-        public Uri SourceUri { get { return this.mePlayer.Source; } set { this.mePlayer.Source = value; } }
+        bool _repeat;
+        public void SetRepeat(bool value)
+        {
+            this.Dispatcher.Invoke((Action)(() =>
+            {
+
+                _repeat = value;
+            }));
+        }
+
+        public bool Repeat
+        {
+            get { return _repeat; }
+
+        }
+        public void SetVolume(double value)
+        {
+            this.Dispatcher.Invoke((Action)(() =>
+            {
+                this.mePlayer.Volume = value;
+            }));
+        }
+
+        public double Volume
+        {
+            get { return this.mePlayer.Volume; }
+
+        }
+        public void SetSourceUri(Uri value)
+        {
+            this.Dispatcher.Invoke((Action)(() =>
+                         {
+
+                             this.mePlayer.Source = value;
+                         }));
+        }
+        public Uri SourceUri
+        {
+            get { return this.mePlayer.Source; }
+
+        }
         public TimeSpan StartPosition { get; set; }
         public TimeSpan StopPosition { get; set; }
-        public TimeSpan Position { get { return this.mePlayer.Position; } set { this.mePlayer.Position = value; } }
-        public double DownloadProgress { get { return this.mePlayer.DownloadProgress; } }
+        public void SetPosition(TimeSpan value)
+        {
+            this.Dispatcher.Invoke((Action)(() =>
+            {
+
+                this.mePlayer.Position = value;
+            }));
+        }
+        public TimeSpan Position
+        {
+            get { return this.mePlayer.Position; }
+
+        }
+        public double DownloadProgress
+        {
+            get
+            {
+                return this.mePlayer.DownloadProgress;
+            }
+        }
+
         public bool HasAudio { get { return this.mePlayer.HasAudio; } }
         public bool HasVideo { get { return this.mePlayer.HasVideo; } }
         public Duration NaturalDuration { get { return this.mePlayer.NaturalDuration; } }
-        public double SpeedRatio { get { return this.mePlayer.SpeedRatio; } set { this.mePlayer.SpeedRatio = value; } }
+
+        public void SetSpeedRatio(double value)
+        {
+            this.Dispatcher.Invoke((Action)(() =>
+            {
+
+                this.mePlayer.SpeedRatio = value;
+            }));
+        }
+        public double SpeedRatio
+        {
+            get { return this.mePlayer.SpeedRatio; }
+
+        }
 
         private Timer playingStatusTimer;
     }

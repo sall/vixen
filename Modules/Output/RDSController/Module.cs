@@ -14,23 +14,25 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using System.Threading;
 
 namespace VixenModules.Output.CommandController
 {
+
     public class Module : ControllerModuleInstanceBase
     {
         private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
-
+        private static VideoPlayer player = null;
         private Data _Data;
         private CommandHandler _commandHandler;
+
         public Module()
         {
             DataPolicyFactory = new DataPolicyFactory();
             _commandHandler = new CommandHandler();
         }
 
-        static Dictionary<string, object> _state = new Dictionary<string, object>();
-
+        internal static Dictionary<string, object> _state = new Dictionary<string, object>();
         internal static bool Send(Data RdsData, string rdsText, string rdsArtist = null, bool sendps = false)
         {
             // Darren... is this still needed?
@@ -155,42 +157,55 @@ namespace VixenModules.Output.CommandController
             return false;
         }
 
-        internal static bool Play(Data playData, string mediaFileName, bool repeat, TimeSpan startTime, TimeSpan endTime, double volume, bool forceStop = false)
+        [STAThread]
+        internal static void Play(Guid id, Data playData, string mediaFileName, bool repeat, TimeSpan startTime, TimeSpan endTime, double volume, bool forceStop = false, string videoPlaybackMonitor = null)
         {
-            if (File.Exists(mediaFileName))
+            if (player == null)
+                player = new VideoPlayer();
+
+            if (File.Exists(mediaFileName) || forceStop)
             {
                 try
                 {
-                    VideoPlayer player = _state[mediaFileName] as VideoPlayer;
-                    if (!forceStop )
+
+                    var currentVideo = VideoPlayer.CurrentVideoID;
+
+                    if (!forceStop && ((currentVideo != id) || id == Guid.Empty))
                     {
-                        if (player == null)
-                        {
-                            player = new VideoPlayer(new Uri(mediaFileName));
-                            Logging.Info(string.Format("Playing Media: {0}", mediaFileName));
+                        VideoPlayer.CurrentVideoID = id;
+
+                        // player = new VideoPlayer(new Uri(mediaFileName));
+                        Logging.Info(string.Format("Playing Media: {0}", mediaFileName));
 
 
-                            var screen = Screen.AllScreens.ToList().Where(w => w.DeviceName.Equals(playData.VideoPlaybackMonitor)).FirstOrDefault();
-                            if (screen == null)
-                                screen = Screen.AllScreens.Where(w => w.Primary).First();
-                            player.SetScreen(screen);
-                            player.SetPosition(TimeSpan.FromMilliseconds(0));
-                            player.SetRepeat(repeat);
-                            player.SetStartPosition(startTime);
-                            player.SetStopPosition(endTime);
-                            _state[mediaFileName] = player;
-                        }
+                        var screen = Screen.AllScreens.ToList().Where(w => w.DeviceName.Equals(videoPlaybackMonitor)).FirstOrDefault();
+                        if (screen == null)
+                            screen = Screen.AllScreens.Where(w => w.Primary).First();
+                        player.SetSourceUri(new Uri(mediaFileName));
+                        player.SetScreen(screen);
+                        player.SetPosition(TimeSpan.FromMilliseconds(0));
+                        player.SetRepeat(repeat);
+                        player.SetStartPosition(startTime);
+                        player.SetStopPosition(endTime);
+                        player.Show();
+
+                        player.Play();
+
+                        //   VideoPlayer._players.Add(id, player);
+
+
                     }
                     else
                     {
-                        if (player != null)
+                        if (player != null && currentVideo == id)
                         {
+                            player.Hide();
                             player.Stop();
-                            player.Dispose();
-                            player = null;
-                            _state.Remove(mediaFileName);
+                            //player.Dispose();
+                            //player = null;
+                            //_state.Remove(id.ToString());
                             Logging.Info(string.Format("Video Stopped: {0}", mediaFileName));
-                        
+
                         }
                     }
 
@@ -204,7 +219,8 @@ namespace VixenModules.Output.CommandController
             }
             else
                 Logging.Error(string.Format("Media File Not found: [{0}]", mediaFileName));
-            return false;
+
+
         }
 
         private Dictionary<int, string> lastCommandValues = new Dictionary<int, string>();
@@ -225,6 +241,7 @@ namespace VixenModules.Output.CommandController
 
                 lastCommandValues[idx] = cmd.CommandValue;
                 var dataArray = cmd.CommandValue.Split('|');
+
                 var cmdType = dataArray[0];
                 switch (cmdType.ToUpper())
                 {
@@ -246,25 +263,25 @@ namespace VixenModules.Output.CommandController
                         break;
                     case "VIDEO":
 
-                        Module.Play(
-                            _Data, dataArray[1],
-                            bool.Parse(dataArray[2]),
-                            TimeSpan.FromMilliseconds(double.Parse(dataArray[3])),
-                            TimeSpan.FromMilliseconds(double.Parse(dataArray[4])),
-                            double.Parse(dataArray[5]),
-                            false
-                            );
+                        Play(cmd.CommandID,
+                           _Data, dataArray[1],
+                           bool.Parse(dataArray[2]),
+                           TimeSpan.FromMilliseconds(double.Parse(dataArray[3])),
+                           TimeSpan.FromMilliseconds(double.Parse(dataArray[4])),
+                           double.Parse(dataArray[5]),
+                           false
+                           );
                         break;
 
                     case "VIDEOSTOP":
-                        Module.Play(
-                            _Data, dataArray[1],
-                            bool.Parse(dataArray[2]),
-                            TimeSpan.FromMilliseconds(double.Parse(dataArray[3])),
-                            TimeSpan.FromMilliseconds(double.Parse(dataArray[4])),
-                            double.Parse(dataArray[5]),
-                            true
-                            );
+                        Play(cmd.CommandID,
+                           _Data, dataArray[1],
+                           bool.Parse(dataArray[2]),
+                           TimeSpan.FromMilliseconds(double.Parse(dataArray[3])),
+                           TimeSpan.FromMilliseconds(double.Parse(dataArray[4])),
+                           double.Parse(dataArray[5]),
+                           true
+                           );
                         break;
                 }
 
@@ -283,7 +300,7 @@ namespace VixenModules.Output.CommandController
                 if (setupForm.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
                     _Data = setupForm.RdsData;
-
+                    VideoPlayerStateChange(_Data.VideoPlaybackEnabled);
                     return true;
                 }
                 return false;
@@ -302,14 +319,41 @@ namespace VixenModules.Output.CommandController
         public override void Start()
         {
             base.Start();
-
+            VideoPlayerStateChange(true);
         }
 
         public override void Stop()
         {
 
             base.Stop();
+            VideoPlayerStateChange(false);
         }
 
+        [STAThread]
+        internal void VideoPlayerStateChange(bool start)
+        {
+
+            if (_Data.VideoPlaybackEnabled)
+            {
+                if (start)
+                {
+                    if (player == null) player = new VideoPlayer();
+
+
+                    var screen = Screen.AllScreens.ToList().Where(w => w.DeviceName.Equals(_Data.VideoPlaybackMonitor)).FirstOrDefault();
+                    if (screen == null)
+                        screen = Screen.AllScreens.Where(w => w.Primary).First();
+                    player.SetScreen(screen);
+
+                    //   player.Show();
+                }
+                else if (!start && player != null)
+                {
+                    player.Stop();
+                    player.Dispose();
+                    player = null;
+                }
+            }
+        }
     }
 }
