@@ -9,7 +9,7 @@ namespace VixenModules.Controller.E131
     using System.Text;
     using System.Windows.Forms;
 
-    using VixenModules.Controller.E131.Controls;
+	using Common.Controls;
 
     public partial class UnicastForm
     {
@@ -24,7 +24,7 @@ namespace VixenModules.Controller.E131
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UnicastForm));
 			this.okButton = new System.Windows.Forms.Button();
 			this.cancelButton = new System.Windows.Forms.Button();
-			this.ipTextBox = new VixenModules.Controller.E131.Controls.IpTextBox();
+			this.ipTextBox = new Common.Controls.IpTextBox();
 			this.SuspendLayout();
 			// 
 			// okButton

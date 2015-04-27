@@ -60,6 +60,8 @@ namespace Vixen.Sys.Output
 			//Needs implementation
 		}
 
+		public string DataJson { get { return null; } }
+
 		public void Update()
 		{
 			_outputMediator.LockOutputs();

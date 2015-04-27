@@ -1290,6 +1290,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 					case "LipSync":
 					case "Nutcracker":
 					case "Launcher":
+                    case "Audio":
 					case "RDS":
 						strayElement = true;
 						break;

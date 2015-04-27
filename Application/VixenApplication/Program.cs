@@ -12,6 +12,7 @@ namespace VixenApplication
 		private const string ErrorMsg = "An application error occurred. Please contact the Vixen Dev Team " +
 									"with the following information:\n\n";
 
+      
 		/// <summary>
 		/// The main entry point for the application.
 		/// </summary>

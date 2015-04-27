@@ -246,6 +246,38 @@ namespace Vixen.Sys
 			}
 			set { SystemConfig.DefaultUpdateInterval = value; }
 		}
+		public static string FalconPiPlayerIpAddress
+		{
+
+			get
+			{
+				// turns out we might need the default before we have SystemConfig set up...
+				return SystemConfig == null
+					? "0.0.0.0"
+					: SystemConfig.FalconPiPlayerIpAddress;
+			}
+
+			set
+			{
+				SystemConfig.FalconPiPlayerIpAddress = value;
+			}
+		}
+		public static bool FalconPiPlayerAutomaticUpdate
+		{
+			get
+			{
+				// turns out we might need the default before we have SystemConfig set up...
+				return SystemConfig == null
+					? false
+					: SystemConfig.FalconPiPlayerAutomaticUpdate;
+			}
+
+			set
+			{
+				SystemConfig.FalconPiPlayerAutomaticUpdate = value;
+			}
+		}
+
 
 		public static ElementManager Elements { get; private set; }
 		public static NodeManager Nodes { get; private set; }

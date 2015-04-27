@@ -34,5 +34,10 @@ namespace Vixen.Module
 		/// </summary>
 		/// <returns></returns>
 		IModuleInstance Clone();
+
+		/// <summary>
+		/// Data Shared in JSON Format between modules
+		/// </summary>
+		string DataJson { get; }
 	}
 }

@@ -23,8 +23,8 @@ namespace Vixen.Sys.Output
 		private IOutputDataPolicyProvider _dataPolicyProvider;
 
 		internal OutputController(Guid id, string name, IOutputMediator<CommandOutput> outputMediator,
-		                          IHardware executionControl,
-		                          IOutputModuleConsumer<IControllerModuleInstance> outputModuleConsumer)
+								  IHardware executionControl,
+								  IOutputModuleConsumer<IControllerModuleInstance> outputModuleConsumer)
 		{
 			if (outputMediator == null) throw new ArgumentNullException("outputMediator");
 			if (executionControl == null) throw new ArgumentNullException("executionControl");
@@ -56,7 +56,8 @@ namespace Vixen.Sys.Output
 
 		public IEnumerator<OutputController> GetEnumerator()
 		{
-			if (VixenSystem.ControllerLinking.IsRootController(this)) {
+			if (VixenSystem.ControllerLinking.IsRootController(this))
+			{
 				return new ChainEnumerator(this);
 			}
 			return Enumerable.Empty<OutputController>().GetEnumerator();
@@ -99,7 +100,8 @@ namespace Vixen.Sys.Output
 
 			public bool MoveNext()
 			{
-				if (_next != null) {
+				if (_next != null)
+				{
 					_current = _next;
 					_next = VixenSystem.OutputControllers.GetNext(_current);
 					return true;
@@ -165,21 +167,25 @@ namespace Vixen.Sys.Output
 							x.Command = _GenerateOutputCommand(x);
 						}
 					}
-				} finally
+				}
+				finally
 				{
 					_outputMediator.UnlockOutputs();
 				}
 			}
 
 		}
-	
+
 		public void Update()
 		{
 			var sw = System.Diagnostics.Stopwatch.StartNew();
-			if (VixenSystem.ControllerLinking.IsRootController(this) && _ControllerChainModule != null) {
+			if (VixenSystem.ControllerLinking.IsRootController(this) && _ControllerChainModule != null)
+			{
 				_outputMediator.LockOutputs();
-				try {
-					foreach (OutputController controller in this) {
+				try
+				{
+					foreach (OutputController controller in this)
+					{
 						//if (true)
 						//{
 						//	controller.Outputs.AsParallel().ForAll(x =>
@@ -190,11 +196,11 @@ namespace Vixen.Sys.Output
 						//}
 						//else
 						//{
-							foreach( var x in controller.Outputs)
-							{
-								x.Update();								
-								x.Command = _GenerateOutputCommand(x);
-							}
+						foreach (var x in controller.Outputs)
+						{
+							x.Update();
+							x.Command = _GenerateOutputCommand(x);
+						}
 						//}
 					}
 
@@ -205,7 +211,8 @@ namespace Vixen.Sys.Output
 					// Latch out the new state.
 					// This must be done in order of the chain links so that data
 					// goes out the port in the correct order.
-					foreach (OutputController controller in this) {
+					foreach (OutputController controller in this)
+					{
 						// A single port may be used to service multiple physical controllers,
 						// such as daisy-chained Renard controllers.  Tell the module where
 						// it is in that chain.
@@ -219,7 +226,8 @@ namespace Vixen.Sys.Output
 						_deviceMs += t3 - t2;
 					}
 				}
-				finally {
+				finally
+				{
 					_outputMediator.UnlockOutputs();
 				}
 			}
@@ -277,10 +285,12 @@ namespace Vixen.Sys.Output
 			set
 			{
 				CommandOutputFactory outputFactory = new CommandOutputFactory();
-				while (OutputCount < value) {
+				while (OutputCount < value)
+				{
 					AddOutput(outputFactory.CreateOutput(string.Format("Output {0}", OutputCount + 1), OutputCount));
 				}
-				while (OutputCount > value) {
+				while (OutputCount > value)
+				{
 					RemoveOutput(Outputs[OutputCount - 1]);
 				}
 			}
@@ -296,7 +306,7 @@ namespace Vixen.Sys.Output
 
 		public void AddOutput(Output output)
 		{
-			AddOutput((CommandOutput) output);
+			AddOutput((CommandOutput)output);
 		}
 
 		public void RemoveOutput(CommandOutput output)
@@ -309,7 +319,7 @@ namespace Vixen.Sys.Output
 
 		public void RemoveOutput(Output output)
 		{
-			RemoveOutput((CommandOutput) output);
+			RemoveOutput((CommandOutput)output);
 		}
 
 		public CommandOutput[] Outputs
@@ -334,7 +344,8 @@ namespace Vixen.Sys.Output
 
 		private ICommand _GenerateOutputCommand(CommandOutput output)
 		{
-			if (output.State != null) {
+			if (output.State != null)
+			{
 
 				IDataPolicy effectiveDataPolicy = _dataPolicyProvider.GetDataPolicyForOutput(output);
 				ICommand command = effectiveDataPolicy.GenerateCommand(output.State);
@@ -349,7 +360,7 @@ namespace Vixen.Sys.Output
 			}
 			return null;
 		}
-
+		public string DataJson { get { return _ControllerModule.DataJson; } }
 		private IControllerModuleInstance _ControllerModule
 		{
 			get { return _outputModuleConsumer.Module; }
