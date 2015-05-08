@@ -219,6 +219,14 @@ namespace VixenModules.EffectEditor.NutcrackerEffectEditor
 			foreach (TabPage tab in tabEffectProperties.TabPages) {
 				if (tab.Text == tabName) {
 					tabEffectProperties.SelectedTab = tab;
+					if (tab.Text.Equals("Fire"))
+					{
+						groupBoxColors.Enabled = false;
+					}
+					else
+					{
+						groupBoxColors.Enabled = true;
+					}
 					break;
 				}
 			}
@@ -651,6 +659,12 @@ namespace VixenModules.EffectEditor.NutcrackerEffectEditor
 		private void LoadFire()
 		{
 			trackFireHeight.Value = Data.Fire_Height;
+			trackFireHueShift.Value = Data.Fire_Hue;
+		}
+
+		private void trackFireHueShift_ValueChanged(Common.Controls.ControlsEx.ValueControls.ValueControl sender, Common.Controls.ControlsEx.ValueControls.ValueChangedEventArgs e)
+		{
+			Data.Fire_Hue = trackFireHueShift.Value;
 		}
 
 		private void trackFireHeight_ValueChanged(Common.Controls.ControlsEx.ValueControls.ValueControl sender,
@@ -949,7 +963,7 @@ namespace VixenModules.EffectEditor.NutcrackerEffectEditor
 
 		private void LoadPicture()
 		{
-			textPictureFileName.Text = Data.Picture_FileName;
+			textPictureFileName.Text = Path.Combine(NutcrackerDescriptor.ModulePath, Data.Picture_FileName); 
 			comboBoxPictureDirection.SelectedIndex = Data.Picture_Direction;
 			trackPictureGifSpeed.Value = Data.Picture_GifSpeed;
 			trackPictureGifSpeed.Enabled = true;
@@ -964,15 +978,15 @@ namespace VixenModules.EffectEditor.NutcrackerEffectEditor
 			fileDialog.Filter = "All Files|*.*|jpg|*.jpg|jpeg|*.jpeg|gif|.gif|png|*.png|bmp|*.bmp";
 			if (fileDialog.ShowDialog() == DialogResult.OK) {
 				// Copy the file to the Vixen folder
-				var imageFile = new System.IO.FileInfo(fileDialog.FileName);
-				var destFileName = System.IO.Path.Combine(NutcrackerDescriptor.ModulePath, imageFile.Name);
+				var imageFile = new FileInfo(fileDialog.FileName);
+				var destFileName = Path.Combine(NutcrackerDescriptor.ModulePath, imageFile.Name);
 				var sourceFileName = imageFile.FullName;
 				if (sourceFileName != destFileName) {
-					System.IO.File.Copy(sourceFileName, destFileName, true);
+					File.Copy(sourceFileName, destFileName, true);
 				}
 
 				textPictureFileName.Text = destFileName;
-				Data.Picture_FileName = destFileName;
+				Data.Picture_FileName = imageFile.Name;
 			}
 		}
 
@@ -1214,15 +1228,15 @@ namespace VixenModules.EffectEditor.NutcrackerEffectEditor
 			fileDialog.Filter = "All Files|*.*|jpg|*.jpg|jpeg|*.jpeg|gif|.gif|png|*.png|bmp|*.bmp";
 			if (fileDialog.ShowDialog() == DialogResult.OK) {
 				// Copy the file to the Vixen folder
-				var imageFile = new System.IO.FileInfo(fileDialog.FileName);
-				var destFileName = System.IO.Path.Combine(NutcrackerDescriptor.ModulePath, imageFile.Name);
+				var imageFile = new FileInfo(fileDialog.FileName);
+				var destFileName = Path.Combine(NutcrackerDescriptor.ModulePath, imageFile.Name);
 				var sourceFileName = imageFile.FullName;
 				if (sourceFileName != destFileName) {
-					System.IO.File.Copy(sourceFileName, destFileName, true);
+					File.Copy(sourceFileName, destFileName, true);
 				}
 
 				textPictureTileFileName.Text = destFileName;
-				Data.PictureTile_FileName = destFileName;
+				Data.PictureTile_FileName = imageFile.Name;
 			}
 		}
 
@@ -1250,7 +1264,7 @@ namespace VixenModules.EffectEditor.NutcrackerEffectEditor
 				}
 
 				textGlediatorFileName.Text = destFileName;
-				Data.Glediator_FileName = destFileName;
+				Data.Glediator_FileName = gledFile.Name;
 			}
 		}
 
