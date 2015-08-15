@@ -91,16 +91,7 @@ namespace Common.Controls
 				AddControllerToTree(treeview.Nodes, controller);
 			}
 
-			// go through all the data we saved, and try to update the treeview to look
-			// like it used to (expanded nodes, selected nodes, node at the top)
-
-			foreach (string node in _expandedNodes) {
-				TreeNode resultNode = FindNodeInTreeAtPath(treeview, node);
-
-				if (resultNode != null) {
-					resultNode.Expand();
-				}
-			}
+			
 
 			// if a new controller has been passed in to select, select it instead.
 			if (treeNodesToSelect != null) {
@@ -112,6 +103,26 @@ namespace Common.Controls
 
 				if (resultNode != null) {
 					treeview.AddSelectedNode(resultNode);
+					//ensure selected are visible
+					var parent = resultNode.Parent;
+					while (parent != null)
+					{
+						parent.Expand();
+						parent = parent.Parent;
+					}
+				}
+			}
+
+			// go through all the data we saved, and try to update the treeview to look
+			// like it used to (expanded nodes, selected nodes, node at the top)
+
+			foreach (string node in _expandedNodes)
+			{
+				TreeNode resultNode = FindNodeInTreeAtPath(treeview, node);
+
+				if (resultNode != null)
+				{
+					resultNode.Expand();
 				}
 			}
 
@@ -159,12 +170,18 @@ namespace Common.Controls
 
 		private string GenerateEquivalentTreeNodeFullPathFromControllerAndOutput(IControllerDevice controller, int output)
 		{
-			return controller.Id.ToString() + treeview.PathSeparator + "#" + (output + 1);
+			return controller.Id + treeview.PathSeparator + controller.Outputs[output].Name;//treeview.PathSeparator + "#" + (output + 1);
 		}
 
+		private TreeNode FindTopParentInTreeAtPath(TreeView tree, string path)
+		{
+			string[] subnodes = path.Split(new string[] { tree.PathSeparator }, StringSplitOptions.None);
+			return FindNodeInTreeAtPath(tree, subnodes[0]);
+		}
 
 		private TreeNode FindNodeInTreeAtPath(TreeView tree, string path)
 		{
+			
 			string[] subnodes = path.Split(new string[] { tree.PathSeparator }, StringSplitOptions.None);
 			TreeNodeCollection searchNodes = tree.Nodes;
 			TreeNode currentNode = null;
@@ -235,8 +252,8 @@ namespace Common.Controls
 
 			for (int i = 0; i < controller.OutputCount; i++) {
 				TreeNode channelNode = new TreeNode();
-				channelNode.Name = "#" + (i+1);
-				channelNode.Text = "#" + (i+1);
+                channelNode.Name = controller.Outputs[i].Name;
+                channelNode.Text = controller.Outputs[i].Name;
 				channelNode.Tag = i;
 
 				IDataFlowComponentReference source = controller.Outputs[i].Source;
@@ -393,8 +410,11 @@ namespace Common.Controls
 			bool result = false;
 			if (controller.HasSetup) {
 				result = controller.Setup();
-				if (result)
-					OnControllersChanged();
+                if (result)
+                {
+                    OnControllersChanged();
+                    PopulateControllerTree();
+                }
 			}
 			return result;
 		}

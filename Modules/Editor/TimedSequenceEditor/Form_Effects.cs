@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using System.Drawing;
+using Common.Controls.Theme;
 using Common.Controls.Timeline;
-using Vixen.Module.App;
 using Vixen.Module.Effect;
 using Vixen.Services;
 using WeifenLuo.WinFormsUI.Docking;
@@ -26,10 +25,9 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		private void Form_Effects_Load(object sender, EventArgs e)
 		{
-			// Remove "Advanced Lighting" for now
-			treeEffects.Nodes.RemoveAt(1);
-			treeEffects.Sorted = true;
+			
 			LoadAvailableEffects();
+			
 		}
 
 
@@ -51,7 +49,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 					case EffectGroups.Basic:
 						parentNode = treeEffects.Nodes["treeBasic"];
 						break;
-					case EffectGroups.Advanced:
+					case EffectGroups.Pixel:
 						parentNode = treeEffects.Nodes["treeAdvanced"];
 						break;
 					case EffectGroups.Device:
@@ -59,6 +57,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 						break;
 				}
 				TreeNode node = new TreeNode(effectDesriptor.EffectName) {Tag = effectDesriptor.TypeId};
+				node.ForeColor = DarkThemeColorTable.ForeColor;
 				parentNode.Nodes.Add(node);
 				// Set the image
 				Image image = effectDesriptor.GetRepresentativeImage(48, 48);
@@ -79,6 +78,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 					treeEffects.Nodes[0].Expand();
 					treeEffects.Nodes[1].Expand();
 				}
+				treeEffects.Nodes[0].EnsureVisible();
+			
 			}
 		}
 
@@ -100,7 +101,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			if (e.Button == MouseButtons.Left && _beginDragDrop)
 			{
 				_beginDragDrop = false;
-				DataObject data = new DataObject(DataFormats.Serializable, _mNode.Tag);
+				DataObject data = new DataObject(_mNode.Tag);
 				DoDragDrop(data, DragDropEffects.Copy);
 			}
 		}
@@ -143,12 +144,12 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		private void treeEffects_AfterExpand(object sender, TreeViewEventArgs e)
 		{
-			SetNodeImage(e.Node, "bullet_arrow_down.png");
+			SetNodeImage(e.Node, "downarrow.png");
 		}
 
 		private void treeEffects_AfterCollapse(object sender, TreeViewEventArgs e)
 		{
-			SetNodeImage(e.Node, "bullet_arrow_Right.png");
+			SetNodeImage(e.Node, "rightarrow.png");
 		}
 
 		private void treeEffects_AfterSelect(object sender, TreeViewEventArgs e)

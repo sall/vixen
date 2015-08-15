@@ -88,11 +88,13 @@ SetCompressorDictSize 64
 	!define BITS 32
 	!define BITS_READABLE "32-bit"
 	!define PROG_FILES $PROGRAMFILES
+	!define VC++_REDIST_NAME "vcredist_x86.exe"
 !else
 	!define BUILD_DIR ".\Release64"
 	!define BITS 64
 	!define BITS_READABLE "64-bit"
 	!define PROG_FILES $PROGRAMFILES64
+	!define VC++_REDIST_NAME "vcredist_x64.exe"
 !endif
 
 
@@ -121,7 +123,7 @@ VIAddVersionKey "FileVersion" "${AssemblyVersion_1}.${AssemblyVersion_2}.${Assem
 !else
 	!define PRODUCT_NAME_FULL "Vixen"
 	InstallDir "${PROG_FILES}\Vixen"
-	!if ${AssemblyVersion_1} == 0
+	!if ${PATCHNUMBER} == 0
 		Name "${PRODUCT_NAME} ${MAJORVERSION}.${MINORVERSION} (${BITS_READABLE})"
 		OutFile ".\${PRODUCT_NAME}-${MAJORVERSION}.${MINORVERSION}-Setup-${BITS}bit.exe"
 	!else
@@ -148,15 +150,6 @@ VIAddVersionKey "FileVersion" "${AssemblyVersion_1}.${AssemblyVersion_2}.${Assem
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
 !define PRODUCT_STARTMENU_REGVAL "NSIS:StartMenuDir"
-
-
-
-
-
-
-
-
-
 
 ; for logging
 !define LVM_GETITEMCOUNT 0x1004
@@ -260,12 +253,35 @@ Section "Application" SEC01
 		ExecWait "$TEMP\NDP452-KB2901907-x86-x64-AllOS-ENU.exe"
 		Delete "$TEMP\NDP452-KB2901907-x86-x64-AllOS-ENU.exe"
 	${EndIf}
+	
+	; Remove any old modules that are no longer used in case someone installs over an old version
+  Delete "$INSTDIR\Modules\SequenceType\Script.dll"
+  Delete "$INSTDIR\Modules\EffectEditor\RDSEditor.dll"
+  Delete "$INSTDIR\Modules\EffectEditor\LipSyncEditor.dll"
+  Delete "$INSTDIR\Modules\EffectEditor\LauncherEditor.dll"
+  Delete "$INSTDIR\Modules\EffectEditor\AlternatingEditor.dll"
+  Delete "$INSTDIR\Modules\EffectEditor\CustomValueEditor.dll"
+  Delete "$INSTDIR\Modules\EffectEditor\TwinkleEffectEditor.dll"
+  Delete "$INSTDIR\Modules\EffectEditor\SpinEffectEditor.dll"
+  Delete "$INSTDIR\Modules\EffectEditor\PercentageTypeEditor.dll"
+  Delete "$INSTDIR\Modules\EffectEditor\LevelTypeEditor.dll"
+  Delete "$INSTDIR\Modules\EffectEditor\IntUpDownEditor.dll"
+  Delete "$INSTDIR\Modules\EffectEditor\FilePathTypeEditor.dll"
+  Delete "$INSTDIR\Modules\EffectEditor\CurveTypeEditor.dll"
+  Delete "$INSTDIR\Modules\EffectEditor\ColorTypeEditor.dll"
+  Delete "$INSTDIR\Modules\EffectEditor\ColorGradientTypeEditor.dll"
+  Delete "$INSTDIR\Modules\EffectEditor\ChaseEffectEditor.dll"
+  Delete "$INSTDIR\Modules\EffectEditor\WipeEditor.dll"
+  Delete "$INSTDIR\Modules\Editor\VixenModules.Editor.EffectEditor.dll"
 
   ; only overwrite these if this installer has a newer version
   SetOverwrite ifnewer
   SetOutPath "$INSTDIR"
   File /r /x *.res /x *.obj /x *.pch /x *.pdb "${BUILD_DIR}\*.*"
 
+  ;Save the VC++ Redistributable files as part of the install image
+  File /oname=$TEMP\${VC++_REDIST_NAME} "${INSTALLERDIR}\Redist\${VC++_REDIST_NAME}"
+  ExecWait "$TEMP\${VC++_REDIST_NAME} /install /quiet"
 
   ; Shortcuts
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
@@ -354,6 +370,8 @@ Section Uninstall
   Delete /REBOOTOK "$INSTDIR\Modules\OutputFilter\DimmingCurve.dll"
   Delete /REBOOTOK "$INSTDIR\Modules\OutputFilter\ColorBreakdown.dll"
   Delete /REBOOTOK "$INSTDIR\Modules\Media\Audio.dll"
+  Delete /REBOOTOK "$INSTDIR\Modules\Analysis\BeatsAndBars.dll"
+  Delete /REBOOTOK "$INSTDIR\Modules\Analysis\QMLibrary.dll"
   Delete /REBOOTOK "$INSTDIR\Modules\EffectEditor\ValueTypes.dll"
   Delete /REBOOTOK "$INSTDIR\Modules\EffectEditor\TwinkleEffectEditor.dll"
   Delete /REBOOTOK "$INSTDIR\Modules\EffectEditor\SpinEffectEditor.dll"
@@ -365,6 +383,8 @@ Section Uninstall
   Delete /REBOOTOK "$INSTDIR\Modules\EffectEditor\ColorTypeEditor.dll"
   Delete /REBOOTOK "$INSTDIR\Modules\EffectEditor\ColorGradientTypeEditor.dll"
   Delete /REBOOTOK "$INSTDIR\Modules\EffectEditor\ChaseEffectEditor.dll"
+  Delete /REBOOTOK "$INSTDIR\Modules\EffectEditor\NutcrackerEffectEditor.dll"
+  Delete /REBOOTOK "$INSTDIR\Modules\EffectEditor\EffectDescriptorAttributes.dll"
   Delete /REBOOTOK "$INSTDIR\Modules\Effect\Twinkle.dll"
   Delete /REBOOTOK "$INSTDIR\Modules\Effect\Spin.dll"
   Delete /REBOOTOK "$INSTDIR\Modules\Effect\SetPosition.dll"
@@ -375,6 +395,8 @@ Section Uninstall
   Delete /REBOOTOK "$INSTDIR\Modules\Editor\TimedSequenceEditor.dll"
   Delete /REBOOTOK "$INSTDIR\Modules\Editor\ScriptEditor.dll"
   Delete /REBOOTOK "$INSTDIR\Modules\Editor\ScintillaNET.dll"
+  Delete /REBOOTOK "$INSTDIR\Modules\Editor\VixenModules.Editor.EffectEditor.dll"
+  Delete /REBOOTOK "$INSTDIR\Modules\Editor\EffectEditor.dll"
   Delete /REBOOTOK "$INSTDIR\Modules\Controller\Renard.dll"
   Delete /REBOOTOK "$INSTDIR\Modules\Controller\PSC.dll"
   Delete /REBOOTOK "$INSTDIR\Modules\Controller\OpenDMX.dll"

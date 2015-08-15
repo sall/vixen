@@ -1,14 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 using Common.Controls;
+using Timer = System.Timers.Timer;
 
 namespace VixenModules.Editor.TimedSequenceEditor
 {
 	public partial class FormParameterPicker : Form
 	{
-		public FormParameterPicker(IEnumerable<EffectParameterPickerControl> controls)
+		private readonly Timer _timer = new Timer();
+
+		/// <summary>
+		/// Shows are parameter picker window.
+		/// </summary>
+		/// <param name="controls">The controls to render the items in the picker.</param>
+		/// <param name="closeInterval">The auto cancel interval.</param>
+		public FormParameterPicker(IEnumerable<EffectParameterPickerControl> controls, double closeInterval=4000)
 		{
 			InitializeComponent();
 
@@ -17,20 +26,36 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				control.Click += ParameterControl_Clicked;
 				flowLayoutPanel1.Controls.Add(control);
 			}
+			_timer.Interval = closeInterval;
+			_timer.Elapsed += _timer_Elapsed;
+			_timer.Start();
 		}
-		
-		private void ParameterControl_Clicked(object sender, EventArgs e)
+
+		private void _timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
 		{
-			EffectParameterPickerControl control = (EffectParameterPickerControl)sender;
-			ParameterIndex = control.ParameterIndex;
-			ParameterListIndex = control.ParameterListIndex;
-			DialogResult = DialogResult.OK;
+			CloseForm(DialogResult.Cancel);
+		}
+
+		private void CloseForm(DialogResult result)
+		{
+			DialogResult = result;
 			Close();
 		}
 
+		private void ParameterControl_Clicked(object sender, EventArgs e)
+		{
+			_timer.Stop();
+			EffectParameterPickerControl control = (EffectParameterPickerControl)sender;
+			PropertyInfo = control.PropertyInfo;
+			SelectedControl = control;
+			CloseForm(DialogResult.OK);
+		}
+
+		public PropertyDescriptor PropertyInfo { get; private set; }
+
 		public int ParameterIndex { get; set; }
 
-		public int ParameterListIndex { get; set; }
+		public EffectParameterPickerControl SelectedControl { get; private set; }
 
 		private void flowLayoutPanel1_Paint(object sender, PaintEventArgs e)
 		{
@@ -50,8 +75,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		{
 			if (keyData == Keys.Escape)
 			{
-				DialogResult = DialogResult.Cancel;
-				Close();
+				CloseForm(DialogResult.Cancel);
 			}
 			
 			return base.ProcessCmdKey(ref msg, keyData);

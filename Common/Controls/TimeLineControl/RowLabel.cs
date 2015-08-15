@@ -6,6 +6,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using Common.Controls.Theme;
 
 namespace Common.Controls.Timeline
 {
@@ -163,13 +164,15 @@ namespace Common.Controls.Timeline
 
 		protected override void OnPaint(PaintEventArgs e)
 		{
-			using (SolidBrush backgroundBrush = new SolidBrush(SystemColors.ControlLight)) {
-				using (SolidBrush toggleBrush = new SolidBrush(SystemColors.ActiveCaption)) {
-					using (SolidBrush nodeIconBrush = new SolidBrush(SystemColors.ControlDark)) {
-						using (SolidBrush textBrush = new SolidBrush(Color.Black)) {
-							using (Pen wholeBorderPen = new Pen(SystemColors.ControlDarkDark, 1)) {
+			using (SolidBrush backgroundBrush = new SolidBrush(DarkThemeColorTable.BackgroundColor)) {
+				using (SolidBrush toggleBrush = new SolidBrush(DarkThemeColorTable.BackgroundColor))
+				{
+					using (SolidBrush nodeIconBrush = new SolidBrush(DarkThemeColorTable.BackgroundColor))
+					{
+						using (SolidBrush textBrush = new SolidBrush(Color.Silver)) {
+							using (Pen wholeBorderPen = new Pen(Color.Black, 1)) {
 								wholeBorderPen.Alignment = System.Drawing.Drawing2D.PenAlignment.Inset;
-								using (Pen toggleBorderPen = new Pen(SystemColors.ControlDark, 1)) {
+								using (Pen toggleBorderPen = new Pen(Color.DimGray, 1)) {
 									toggleBorderPen.Alignment = System.Drawing.Drawing2D.PenAlignment.Inset;
 
 									int fontHeight = 12;

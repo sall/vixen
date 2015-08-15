@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.Collections.Generic;
 using Common.Controls;
+using Common.Controls.Theme;
 using Common.Controls.Timeline;
 using Vixen.Module.Effect;
 using Vixen.Services;
@@ -18,6 +19,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		{
 			InitializeComponent();
 			TimelineControl = timelineControl;
+			toolStrip1.Renderer = new DarkThemeToolStripRenderer();
 		}
 
 		private void Form_Marks_Load(object sender, EventArgs e)
@@ -26,28 +28,37 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			numericUpDownStandardNudge.Value = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/StandardNudge", Name), 10);
 			numericUpDownSuperNudge.Value = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/SuperNudge", Name), 20); ;
 			//xml = null;
-
 		}
 
 		public TimelineControl TimelineControl { get; set; }
 
 		public void PopulateMarkCollectionsList(MarkCollection selectedCollection)
 		{
+			
 			listViewMarkCollections.Items.Clear();
 			foreach (MarkCollection mc in Sequence.MarkCollections)
 			{
 				ListViewItem item = new ListViewItem();
 				item.Text = mc.Name;
-				item.SubItems.Add(mc.Level.ToString());
-				item.SubItems.Add(mc.MarkCount.ToString());
-				item.BackColor = (mc.Enabled) ? mc.MarkColor : SystemColors.Window;
-				item.ForeColor = (mc.Enabled)
-									? ((GetGrayValueForColor(mc.MarkColor) > 128) ? Color.Black : Color.White)
-									: SystemColors.InactiveCaptionText;
+				item.ForeColor = mc.MarkColor;// : Color.FromArgb(221,221,221);
+				//item.ForeColor = (mc.Enabled)
+				//					? ((GetGrayValueForColor(mc.MarkColor) > 128) ? Color.Black : Color.White)
+				//					: SystemColors.InactiveCaptionText;
 				item.Tag = mc;
 				item.Checked = mc.Enabled;
 				listViewMarkCollections.Items.Add(item);
 				item.Selected = (mc == selectedCollection);
+			}
+
+			ResizeColumnHeaders();
+		}
+
+		private void ResizeColumnHeaders()
+		{
+			
+			for (int i = 0; i < listViewMarkCollections.Columns.Count; i++)
+			{
+				listViewMarkCollections.Columns[i].AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
 			}
 		}
 
@@ -166,10 +177,10 @@ namespace VixenModules.Editor.TimedSequenceEditor
 					foreach (ListViewItem item in listViewMarkCollections.SelectedItems)
 					{
 						listViewMarkCollections.SelectedItems[0].Remove();
-						OnChangedMarkCollection(new MarkCollectionArgs(null));
 						MarkCollection mc = item.Tag as MarkCollection;
 						Sequence.MarkCollections.Remove(mc);
 					}
+					OnChangedMarkCollection(new MarkCollectionArgs(null));
 				}
 			}
 			else

@@ -17,24 +17,32 @@ namespace Common.Controls
 			InitializeComponent();
 		}
 
-		public string ParameterName
+		private PropertyDescriptor _propertyInfo;
+
+		public PropertyDescriptor PropertyInfo
 		{
-			get { return labelParameterName.Text; }
-			set { labelParameterName.Text = value; }
+			get { return _propertyInfo; }
+			set
+			{
+				_propertyInfo = value;
+				if (_propertyInfo != null)
+				{
+					DisplayName = _propertyInfo.DisplayName;
+				}
+			}
 		}
 
-		public int ParameterIndex { get; set; }
-
-		
-		/// <summary>
-		/// The index of the value when the target parameter is a List
-		/// </summary>
-		public int ParameterListIndex { get; set; }
+		public String DisplayName
+		{
+			set { labelParameterName.Text = value; } 
+		}
 
 		public Bitmap ParameterImage
 		{
 			set { pictureParameterImage.Image = value; }
 		}
+
+		public int Index { get; set; }
 
 		private void pictureParameterImage_Click(object sender, EventArgs e)
 		{
