@@ -114,6 +114,9 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		private static Random rnd = new Random();
 		private PreCachingSequenceEngine _preCachingSequenceEngine;
 
+		//Used for setting a mouse location to do repeat actions on.
+		private Point _mouseOriginalPoint = new Point(0,0);
+
 		#endregion
 
 		#region Constructor / Initialization
@@ -3063,7 +3066,10 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			else
 			{
 				Logging.Error("Missing node on remove attempt in RemoveEffectNodeAndElement.");
-				MessageBox.Show("Node to remove not found, the editor is  in a bad state! Please close the editor and restart it.");
+				//messageBox Arguments are (Text, Title, No Button Visible, Cancel Button Visible)
+				MessageBoxForm.msgIcon = SystemIcons.Error; //this is used if you want to add a system icon to the message form.
+				var messageBox = new MessageBoxForm("Node to remove not found, the editor is in a bad state! Please close the editor and restart it.", "Error", false, false);
+				messageBox.ShowDialog();
 			}
 		}
 
@@ -3389,11 +3395,11 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			FormParameterPicker parameterPicker = new FormParameterPicker(parameterPickerControls)
 			{
 				StartPosition = FormStartPosition.Manual,
-				Top = MousePosition.Y
+				Top = _mouseOriginalPoint.Y
 			};
-			parameterPicker.Left = ((MousePosition.X + parameterPicker.Width) < Screen.FromControl(this).Bounds.Width)
-				? MousePosition.X
-				: MousePosition.X - parameterPicker.Width;
+			parameterPicker.Left = ((_mouseOriginalPoint.X + parameterPicker.Width) < Screen.FromControl(this).Bounds.Width)
+				? _mouseOriginalPoint.X
+				: _mouseOriginalPoint.X - parameterPicker.Width;
 			return parameterPicker;
 		}
 
@@ -3465,6 +3471,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		private void HandleColorDrop(Element element, Color color)
 		{
+			_mouseOriginalPoint = new Point(MousePosition.X, MousePosition.Y);
+
 			var elements = GetElementsForDrop(element);
 
 			if (ValidateMultipleEffects(element, elements)) return;	
@@ -3475,6 +3483,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		private void HandleColorDropOnElements(IEnumerable<Element> elements, Color color)
 		{
 			if (elements == null || !elements.Any()) return;
+
 			var element = elements.First();
 
 			var properties = MetadataRepository.GetProperties(element.EffectNode.Effect).Where(x => (x.PropertyType == typeof(Color)) && x.IsBrowsable);
@@ -3588,6 +3597,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		
 		private void HandleCurveDrop(Element element, Curve curve)
 		{
+			_mouseOriginalPoint = new Point(MousePosition.X, MousePosition.Y);
+
 			var elements = GetElementsForDrop(element);
 
 			if (ValidateMultipleEffects(element, elements)) return;	
@@ -3705,6 +3716,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		private void HandleGradientDrop(Element element, ColorGradient color)
 		{
+			_mouseOriginalPoint = new Point(MousePosition.X, MousePosition.Y);
+
 			var elements = GetElementsForDrop(element);
 
 			if (ValidateMultipleEffects(element, elements)) return;	
@@ -3943,6 +3956,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		protected override void OnKeyDown(KeyEventArgs e)
 		{
+			Element element;
 			// do anything special we want to here: keyboard shortcuts that are in
 			// the menu will be handled by them instead.
 			switch (e.KeyCode)
@@ -3979,25 +3993,49 @@ namespace VixenModules.Editor.TimedSequenceEditor
 					break;
 
 				case Keys.Space:
-					if (!_context.IsRunning)
-						PlaySequence();
-					else
-					{
-						if (_context.IsPaused)
-							PlaySequence();
-						else
-							StopSequence();
-					}
+					HandleSpacebarAction();
 					break;
 
 				case Keys.Left:
 					if (e.Control)
+					{
 						TimelineControl.MoveSelectedElementsByTime(TimelineControl.TimePerPixel.Scale(-2));
+					}
+					
 					break;
 
 				case Keys.Right:
 					if (e.Control)
+					{
 						TimelineControl.MoveSelectedElementsByTime(TimelineControl.TimePerPixel.Scale(2));
+					}
+					
+					break;
+				
+				case Keys.S:
+					element = TimelineControl.grid.ElementAtPosition(MousePosition);
+					if (element != null && TimelineControl.SelectedElements.Count() > 1 && TimelineControl.SelectedElements.Contains(element))
+					{
+						TimelineControl.grid.AlignElementStartTimes(TimelineControl.SelectedElements, element, e.Shift);
+					}
+					break;
+				case Keys.E:
+					
+					element = TimelineControl.grid.ElementAtPosition(MousePosition);
+					if (element != null && TimelineControl.SelectedElements.Count() > 1 && TimelineControl.SelectedElements.Contains(element))
+					{
+						TimelineControl.grid.AlignElementEndTimes(TimelineControl.SelectedElements, element, e.Shift);
+					}
+					break;
+					
+				case Keys.B:
+					
+					element = TimelineControl.grid.ElementAtPosition(MousePosition);
+					if (element != null && TimelineControl.SelectedElements.Count() > 1 && TimelineControl.SelectedElements.Contains(element))
+					{
+						TimelineControl.grid.AlignElementStartEndTimes(TimelineControl.SelectedElements, element);
+					}
+					
 					break;
 
 				case Keys.Escape:
@@ -4030,6 +4068,19 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			// This was causing serious slowdowns if random keys were pressed.
 			//e.SuppressKeyPress = true;
 			base.OnKeyDown(e);
+		}
+
+		internal void HandleSpacebarAction()
+		{
+			if (!_context.IsRunning)
+				PlaySequence();
+			else
+			{
+				if (_context.IsPaused)
+					PlaySequence();
+				else
+					StopSequence();
+			}
 		}
 
 		protected override void OnFormClosed(FormClosedEventArgs e)
@@ -4080,7 +4131,6 @@ namespace VixenModules.Editor.TimedSequenceEditor
 					if (cutElements)
 					{
 						RemoveEffectNodeAndElement(elem.EffectNode);
-						TimelineControl.grid.ClearSelectedElements();
 						SequenceModified();
 					}
 				}
