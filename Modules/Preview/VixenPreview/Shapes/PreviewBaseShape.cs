@@ -66,9 +66,9 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 		 DisplayName("String Name")]
 		public string Name
 		{
-			get 
-            {
-                if (_name == null) _name = "";
+			get
+			{
+				if (_name == null) _name = VixenPreviewSetup3.DrawShape;
                 return _name; 
             }
 			set
@@ -103,7 +103,7 @@ namespace VixenModules.Preview.VixenPreview.Shapes
         [Browsable(false)]
         public abstract int Right { get; }
 
-        public abstract void Match(PreviewBaseShape matchShape);
+		public abstract void Match(PreviewBaseShape matchShape);
 
 		public abstract void Layout();
 
