@@ -12,3 +12,6 @@ _ReSharper*
 Vixen 3*
 Vixen.sdf
 Vixen.opensdf
+/Modules/Analysis/QMLibrary/Debug
+/Modules/Analysis/QMLibrary/x64/Debug
+/x64/Debug
