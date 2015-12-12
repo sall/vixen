@@ -16,7 +16,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.Concurrent;
-using Common.Controls;
 using VixenModules.Property.Location;
 using Common.Resources.Properties;
 

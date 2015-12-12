@@ -756,7 +756,7 @@ namespace VixenApplication
 					_perfCountersAvailable = true;
 				}
 			}
-			catch (Exception ex)
+			catch (Exception )
 			{
 				Logging.Error("Cannot access performance counters. Refresh the counter list with lodctr /R");
 			}

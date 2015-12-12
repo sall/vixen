@@ -8,7 +8,6 @@ using System.IO;
 using System.Windows.Forms;
 using Common.Controls;
 using Common.Controls.Theme;
-using Common.Controls;
 using Common.Controls.ControlsEx.ListControls;
 using Common.Controls.Timeline;
 using Vixen.Data.Value;

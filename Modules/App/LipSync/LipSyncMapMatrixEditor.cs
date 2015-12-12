@@ -267,7 +267,7 @@ namespace VixenModules.App.LipSyncApp
             {
                 _newMapping.MapItems.ForEach(x => _rowNames.Add(x.Name));
             }
-            catch (Exception e) { };
+            catch (Exception) { };
 
         }
 

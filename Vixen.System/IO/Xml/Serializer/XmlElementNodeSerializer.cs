@@ -11,7 +11,7 @@ namespace Vixen.IO.Xml.Serializer
 	{
 		private static NLog.Logger logging = NLog.LogManager.GetCurrentClassLogger();
 
-		private IEnumerable<Element> _underlyingElements;
+		
 		private Dictionary<Guid, Element> _underlyingElementMap; 
 		private const string ELEMENT_NODE = "Node";
 		private const string ATTR_ID = "id";

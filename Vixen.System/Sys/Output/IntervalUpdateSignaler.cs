@@ -6,13 +6,13 @@ namespace Vixen.Sys.Output
 	internal class IntervalUpdateSignaler : IOutputDeviceUpdateSignaler
 	{
 		private Stopwatch _stopwatch;
-		private long _lastUpdateTime;
+		
 		private long _nextUpdateTime;
 
 		public IntervalUpdateSignaler()
 		{
 			_stopwatch = Stopwatch.StartNew();
-			_lastUpdateTime = 0;
+		
 			_nextUpdateTime = 0;
 		}
 

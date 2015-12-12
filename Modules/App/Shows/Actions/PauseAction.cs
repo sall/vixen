@@ -9,7 +9,7 @@ namespace VixenModules.App.Shows
 {
 	public class PauseAction: Action
 	{
-		private Process process = null;
+		
 		private Timer timer;
 
 		public PauseAction(ShowItem showItem)
