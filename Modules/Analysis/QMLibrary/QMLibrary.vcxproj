@@ -96,7 +96,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;_USE_MATH_DEFINES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\Administrator\Documents\Projects\Code\QMSandbox2\libsndfile\include;C:\Users\Administrator\Documents\Projects\Code\QMSandbox2\QMFiles;C:\Users\Administrator\Documents\Projects\Code\QMSandbox2\QMFiles\vamp-plugin-sdk-2.5\vamp-sdk;C:\Users\Administrator\Documents\Projects\Code\QMSandbox2\QMFiles\vamp-plugin-sdk-2.5;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\WrapperFiles;.\QMLibrary;.\QMFiles\vamp-plugin-sdk-2.5\vamp-sdk;.\QMFiles\vamp-plugin-sdk-2.5;.\QMFiles;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -104,7 +104,7 @@
       <AdditionalLibraryDirectories>C:\Users\Administrator\Documents\Projects\Code\QMSandbox2\libsndfile\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <LinkStatus>true</LinkStatus>
-      <OutputFile>C:\Users\Administrator\Documents\Projects\Code\QMSandbox2CSharp\bin\$(TargetedSDKConfiguration)\$(TargetFileName)</OutputFile>
+      <OutputFile>$(OutDir)\$(TargetFileName)</OutputFile>
     </Link>
     <ProjectReference>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
@@ -118,7 +118,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;_USE_MATH_DEFINES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\Administrator\Documents\Projects\Code\QMSandbox2\libsndfile\include;C:\Users\Administrator\Documents\Projects\Code\QMSandbox2\QMFiles;C:\Users\Administrator\Documents\Projects\Code\QMSandbox2\QMFiles\vamp-plugin-sdk-2.5\vamp-sdk;C:\Users\Administrator\Documents\Projects\Code\QMSandbox2\QMFiles\vamp-plugin-sdk-2.5;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\WrapperFiles;.\QMLibrary;.\QMFiles\vamp-plugin-sdk-2.5\vamp-sdk;.\QMFiles\vamp-plugin-sdk-2.5;.\QMFiles;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -126,7 +126,7 @@
       <AdditionalLibraryDirectories>C:\Users\Administrator\Documents\Projects\Code\QMSandbox2\libsndfile\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <LinkStatus>true</LinkStatus>
-      <OutputFile>C:\Users\Administrator\Documents\Projects\Code\QMSandbox2CSharp\bin\$(TargetedSDKConfiguration)\$(TargetFileName)</OutputFile>
+      <OutputFile>$(OutDir)\$(TargetFileName)</OutputFile>
     </Link>
     <ProjectReference>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
