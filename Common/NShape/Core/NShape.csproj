@@ -72,7 +72,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>..\..\bin\Debug64\Common\</OutputPath>
+    <OutputPath>..\..\..\bin\Debug64\Common\</OutputPath>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x64</PlatformTarget>
@@ -123,9 +123,7 @@
     <Compile Include="FuzzyLogic.cs" />
     <Compile Include="Layer.cs" />
     <Compile Include="MenuItemDef.cs" />
-    <Compile Include="AdoNetStore.cs">
-      <SubType>Component</SubType>
-    </Compile>
+    <Compile Include="AdoNetStore.cs" />
     <Compile Include="DiagramPresenter.cs" />
     <Compile Include="Exceptions.cs" />
     <Compile Include="GdiHelpers.cs" />

@@ -38,7 +38,7 @@
     <OutputPath>bin\x86\Debug\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <OutputPath>..\..\bin\Debug64\Common\Modules\Controller\</OutputPath>
+    <OutputPath>..\..\..\bin\Debug64\Modules\Controller\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)\Vixen.System\Vixen.csproj">
