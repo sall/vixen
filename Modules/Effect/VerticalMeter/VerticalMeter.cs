@@ -55,92 +55,117 @@ namespace VixenModules.Effect.VerticalMeter
             _audioHelper = new AudioHelper(this);
         }
 
-		// renders the given node to the internal ElementData dictionary. If the given node is
-		// not a element, will recursively descend until we render its elements.
-		protected override void RenderNode(ElementNode node)
-		{
+        protected override void RenderNode(ElementNode node)
+        {
             _elementData.Clear();
 
-            int currentElement = 0;
-            bool lastValue = false;
-            bool currentValue = false;
-            TimeSpan lastTime;
-            TimeSpan start;
+            int group = GroupLevel;
+            var nodes = node.GetLeafEnumerator();
 
-            int ElementCount = node.GetLeafEnumerator().Count();
-            
-            int spacing = 15; //smoothness. Intent length in ms
-            double threshold;
-            LightingValue color;
+            if (group == 0)
+                group = nodes.Count();
 
-			foreach (ElementNode elementNode in node.GetLeafEnumerator()) {
-				// this is probably always going to be a single element for the given node, as
-				// we have iterated down to leaf nodes in RenderNode() above. May as well do
-				// it this way, though, in case something changes in future.
-				if (elementNode == null || elementNode.Element == null)
-					continue;
+            var elements = nodes.Select((x, index) => new { x, index })
+                    .GroupBy(x => x.index / group, y => y.x);
 
-                if (!_audioHelper.AudioLoaded)
-                    return;
+            foreach (IGrouping<int, ElementNode> elementGroup in elements)
+            {
+                int currentElement = 0;
+                bool lastValue = false;
+                bool currentValue = false;
+                TimeSpan lastTime;
+                TimeSpan start;
 
-			    if (elementNode.Element != null)
-			    {
-                    lastTime = TimeSpan.FromMilliseconds(0);
+                int ElementCount = elementGroup.Count();
 
-                    double GradientPosition = (double)(currentElement) / ElementCount;
+                int spacing = 15; //smoothness. Intent length in ms
+                double threshold;
+                LightingValue color;
 
-                    //Some odd corner cases
-                    if (GradientPosition == 0)
-                        GradientPosition = .001;
-                    if (GradientPosition == 1)
-                        GradientPosition = .999;
 
-                    //Audio max is at 0db. The threshold gets shifted from 0 to 1 to -1 to 0 and then scaled.
-                    if (!((VerticalMeterData)_data).Inverted)
+
+
+                foreach(var elementNode in elementGroup)
+                {
+                    // this is probably always going to be a single element for the given node, as
+                    // we have iterated down to leaf nodes in RenderNode() above. May as well do
+                    // it this way, though, in case something changes in future.
+                    if (elementNode == null || elementNode.Element == null)
+                        continue;
+
+                    if (!_audioHelper.AudioLoaded)
+                        return;
+
+
+
+                    if (elementNode.Element != null)
                     {
-                        threshold = (((double)(ElementCount - currentElement)) / ElementCount - 1) * _data.Range;
-                        GradientPosition = 1 - GradientPosition;
-                    }
-                    else
-                    {
-                        threshold = (((double)currentElement) / ElementCount - 1) * _data.Range;
-                        
-                    }
-                    color = new LightingValue(GetColorAt(GradientPosition), MeterIntensityCurve.GetValue(GradientPosition*100)/100);
-                   
-                    lastValue = _audioHelper.VolumeAtTime(0) >= threshold;
+                        lastTime = TimeSpan.FromMilliseconds(0);
 
-                    for(int i = 1;i<(int)(TimeSpan.TotalMilliseconds/spacing);i++)
-                    {
-                        //Current time in ms = i*spacing
-                        currentValue = _audioHelper.VolumeAtTime(i * spacing) >= threshold;
+                        double GradientPosition = (double)(currentElement) / ElementCount;
 
-                        if( currentValue != lastValue) {
-                            start = lastTime;
+                        //Some odd corner cases
+                        if (GradientPosition == 0)
+                            GradientPosition = .001;
+                        if (GradientPosition == 1)
+                            GradientPosition = .999;
 
-                            if(lastValue) {
-                                IIntent intent = new LightingIntent(color, color, TimeSpan.FromMilliseconds(i*spacing) - lastTime );
-                                _elementData.AddIntentForElement(elementNode.Element.Id, intent, start);
+                        //Audio max is at 0db. The threshold gets shifted from 0 to 1 to -1 to 0 and then scaled.
+                        if (!((VerticalMeterData)_data).Inverted)
+                        {
+                            threshold = (((double)(ElementCount - currentElement)) / ElementCount - 1) * _data.Range;
+                            GradientPosition = 1 - GradientPosition;
+                        }
+                        else
+                        {
+                            threshold = (((double)currentElement) / ElementCount - 1) * _data.Range;
+
+                        }
+                        color = new LightingValue(GetColorAt(GradientPosition), MeterIntensityCurve.GetValue(GradientPosition * 100) / 100);
+
+                        lastValue = _audioHelper.VolumeAtTime(0) >= threshold;
+
+                        for (int i = 1; i < (int)(TimeSpan.TotalMilliseconds / spacing); i++)
+                        {
+                            //Current time in ms = i*spacing
+                            currentValue = _audioHelper.VolumeAtTime(i * spacing) >= threshold;
+
+                            if (currentValue != lastValue)
+                            {
+                                start = lastTime;
+
+                                if (lastValue)
+                                {
+                                    IIntent intent = new LightingIntent(color, color, TimeSpan.FromMilliseconds(i * spacing) - lastTime);
+                                    _elementData.AddIntentForElement(elementNode.Element.Id, intent, start);
+                                }
+
+                                lastTime = TimeSpan.FromMilliseconds(i * spacing);
+                                lastValue = currentValue;
                             }
 
-                            lastTime = TimeSpan.FromMilliseconds(i * spacing);
-                            lastValue = currentValue;
                         }
 
-                    }
+                        if (lastValue)
+                        {
+                            start = lastTime;
+                            IIntent finalIntent = new LightingIntent(color, color, TimeSpan - lastTime);
+                            _elementData.AddIntentForElement(elementNode.Element.Id, finalIntent, start);
+                        }
 
-                    if (lastValue)
-                    {
-                        start = lastTime;
-                        IIntent finalIntent = new LightingIntent(color, color, TimeSpan - lastTime);
-                        _elementData.AddIntentForElement(elementNode.Element.Id, finalIntent, start);
+                        currentElement++;
                     }
-
-                    currentElement++;
                 }
-		    }
 
-		}
+            }
+
+
+
+            
+        }
+        // renders the given node to the internal ElementData dictionary. If the given node is
+        // not a element, will recursively descend until we render its elements.
+        
 
 
 	}

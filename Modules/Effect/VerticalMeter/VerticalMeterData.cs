@@ -26,6 +26,9 @@ namespace VixenModules.Effect.VerticalMeter
         public int AttackTime { get; set; }
 
         [DataMember]
+        public int GroupLevel { get; set; }
+
+        [DataMember]
         public bool Normalize { get; set; }
 
         [DataMember]
@@ -77,6 +80,8 @@ namespace VixenModules.Effect.VerticalMeter
             LowPassFreq = 100;
             HighPass = false;
             HighPassFreq = 500;
+
+            GroupLevel = 0;
 
             Color[] myColors = { Color.Lime, Color.Yellow, Color.Red };
             float[] myPositions = { (float)0.00000000000001, (float)GreenColorPosition / 100, (float)RedColorPosition / 100 };

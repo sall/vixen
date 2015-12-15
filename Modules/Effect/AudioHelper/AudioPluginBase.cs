@@ -127,6 +127,23 @@ namespace VixenModules.Effect.AudioHelp
         }
 
         [Value]
+        [ProviderCategory(@"Config", 1)]
+        [ProviderDisplayName(@"GroupLevel")]
+        [ProviderDescription(@"GroupLevel")]
+        [NumberRange(0, 5000, 1)]
+        [PropertyOrder(1)]
+        public int GroupLevel
+        {
+            get { return _data.GroupLevel; }
+            set
+            {
+                _data.GroupLevel = value > 0 ? value : 0;
+                IsDirty = true;
+                OnPropertyChanged();
+            }
+        }
+
+        [Value]
         [ProviderCategory(@"Audio Sensitivity Range")]
         [PropertyOrder(6)]
         [ProviderDisplayName(@"Zoom")]

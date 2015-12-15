@@ -29,5 +29,6 @@ namespace VixenModules.Effect.AudioHelp
         Curve IntensityCurve { get; set; }
         ColorGradient MeterColorGradient { get; set; }
         MeterColorTypes MeterColorStyle { get; set; }
+        int GroupLevel { get; set; }
     }
 }
