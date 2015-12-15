@@ -48,7 +48,7 @@
     <UseVSHostingProcess>true</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>$(SolutionDir)\bin\Release64\</OutputPath>
+    <OutputPath>$(SolutionDir)\bin\x64\Release\</OutputPath>
     <DefineConstants>TRACE;AUTOBUILD</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
