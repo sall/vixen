@@ -68,7 +68,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <OutputPath>..\..\bin\Debug64\</OutputPath>
+    <OutputPath>$(SolutionDir)\bin\Debug64\</OutputPath>
     <DefineConstants>DEBUG;TRACE;AUTOBUILD</DefineConstants>
     <Optimize>false</Optimize>
     <DebugType>pdbonly</DebugType>
