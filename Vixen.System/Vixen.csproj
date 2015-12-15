@@ -888,6 +888,10 @@
   <ItemGroup>
     <EmbeddedResource Include="Fonts\DigitalDream.ttf" />
     <EmbeddedResource Include="Fonts\RadioLand.ttf" />
+    <None Include="..\Release Notes.docx">
+      <Link>Release Notes.docx</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
     <None Include="Resources\Effect48.png" />
   </ItemGroup>
@@ -900,10 +904,16 @@
   <ItemGroup>
     <Compile Include="Commands\StringCommand.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="..\Release Notes.txt">
+      <Link>Release Notes.txt</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy "$(SolutionDir)\Release Notes.txt" "$(OutDir)"</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
