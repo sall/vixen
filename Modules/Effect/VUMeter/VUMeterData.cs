@@ -22,9 +22,7 @@ namespace VixenModules.Effect.VUMeter
         [DataMember]
         public int AttackTime { get; set; }
 
-        [DataMember]
-        public int GroupLevel { get; set; }
-
+        
         [DataMember]
         public bool Normalize { get; set; }
 
@@ -77,7 +75,7 @@ namespace VixenModules.Effect.VUMeter
             HighPass = false;
             HighPassFreq = 500;
 
-            GroupLevel = 1;
+            
 
             /*
             Color[] myColors = { Color.Lime, Color.Yellow, Color.Red };

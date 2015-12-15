@@ -45,6 +45,23 @@ namespace VixenModules.Effect.VerticalMeter
             }
         }
 
+        [Value]
+        [ProviderCategory(@"Config", 1)]
+        [ProviderDisplayName(@"GroupLevel")]
+        [ProviderDescription(@"GroupLevel")]
+        [NumberRange(0, 5000, 1)]
+        [PropertyOrder(1)]
+        public int GroupLevel
+        {
+            get { return ((VerticalMeterData)_data).GroupLevel; }
+            set
+            {
+                ((VerticalMeterData)_data).GroupLevel = value > 0 ? value : 0;
+                IsDirty = true;
+                OnPropertyChanged();
+            }
+        }
+
         protected override void TargetNodesChanged()
         {
 

@@ -28,8 +28,7 @@ namespace VixenModules.Effect.Waveform
         [DataMember]
         public int AttackTime { get; set; }
 
-        [DataMember]
-        public int GroupLevel { get; set; }
+        
 
         [DataMember]
         public bool Normalize { get; set; }
@@ -84,8 +83,6 @@ namespace VixenModules.Effect.Waveform
             LowPassFreq = 100;
             HighPass = false;
             HighPassFreq = 500;
-
-            GroupLevel = 1;
 
             Color[] myColors = { Color.Lime, Color.Yellow, Color.Red };
             float[] myPositions = { (float)0.00000000000001, (float)GreenColorPosition / 100, (float)RedColorPosition / 100 };
