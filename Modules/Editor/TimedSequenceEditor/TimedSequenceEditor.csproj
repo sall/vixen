@@ -34,7 +34,7 @@
     <StartupObject />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <OutputPath>$(SolutionDir)\Release\Modules\Editor\</OutputPath>
+    <OutputPath>$(SolutionDir)\bin\x86\Release\Modules\Editor\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>

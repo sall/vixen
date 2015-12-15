@@ -19,7 +19,7 @@
     <StartupObject />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <OutputPath>$(SolutionDir)\Release\Modules\SequenceType\</OutputPath>
+    <OutputPath>$(SolutionDir)\bin\x86\Release\Modules\SequenceType\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>

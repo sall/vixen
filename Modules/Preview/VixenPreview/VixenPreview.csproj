@@ -19,7 +19,7 @@
     <StartupObject />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <OutputPath>$(SolutionDir)\Release\Modules\Preview\</OutputPath>
+    <OutputPath>$(SolutionDir)\bin\x86\Release\Modules\Preview\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>

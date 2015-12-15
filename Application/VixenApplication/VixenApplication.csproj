@@ -37,7 +37,7 @@
     <ApplicationIcon>..\..\Common\Resources\Vixen3.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <OutputPath>$(SolutionDir)\Release\</OutputPath>
+    <OutputPath>$(SolutionDir)\bin\x86\Release\</OutputPath>
     <DefineConstants>TRACE;AUTOBUILD</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
