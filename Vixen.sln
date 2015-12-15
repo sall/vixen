@@ -1,4 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vixen", "Vixen.System\Vixen.csproj", "{50B78623-FCF4-48AF-93FF-FA87C937028F}"
 EndProject
@@ -1436,8 +1438,8 @@ Global
 		{C240B197-A6FB-442D-BFD0-F95C146758FE}.Debug|Any CPU.ActiveCfg = Release|x86
 		{C240B197-A6FB-442D-BFD0-F95C146758FE}.Debug|Mixed Platforms.ActiveCfg = Release|x86
 		{C240B197-A6FB-442D-BFD0-F95C146758FE}.Debug|Mixed Platforms.Build.0 = Release|x86
-		{C240B197-A6FB-442D-BFD0-F95C146758FE}.Debug|x64.ActiveCfg = Release|x64
-		{C240B197-A6FB-442D-BFD0-F95C146758FE}.Debug|x64.Build.0 = Release|x64
+		{C240B197-A6FB-442D-BFD0-F95C146758FE}.Debug|x64.ActiveCfg = Debug|x64
+		{C240B197-A6FB-442D-BFD0-F95C146758FE}.Debug|x64.Build.0 = Debug|x64
 		{C240B197-A6FB-442D-BFD0-F95C146758FE}.Debug|x86.ActiveCfg = Release|x86
 		{C240B197-A6FB-442D-BFD0-F95C146758FE}.Debug|x86.Build.0 = Release|x86
 		{C240B197-A6FB-442D-BFD0-F95C146758FE}.Release|Any CPU.ActiveCfg = Release|x86
@@ -1450,8 +1452,8 @@ Global
 		{C1BFAA1E-A6D3-40DC-B663-3E37215EAFFE}.Debug|Any CPU.ActiveCfg = Release|x86
 		{C1BFAA1E-A6D3-40DC-B663-3E37215EAFFE}.Debug|Mixed Platforms.ActiveCfg = Release|x86
 		{C1BFAA1E-A6D3-40DC-B663-3E37215EAFFE}.Debug|Mixed Platforms.Build.0 = Release|x86
-		{C1BFAA1E-A6D3-40DC-B663-3E37215EAFFE}.Debug|x64.ActiveCfg = Release|x64
-		{C1BFAA1E-A6D3-40DC-B663-3E37215EAFFE}.Debug|x64.Build.0 = Release|x64
+		{C1BFAA1E-A6D3-40DC-B663-3E37215EAFFE}.Debug|x64.ActiveCfg = Debug|x64
+		{C1BFAA1E-A6D3-40DC-B663-3E37215EAFFE}.Debug|x64.Build.0 = Debug|x64
 		{C1BFAA1E-A6D3-40DC-B663-3E37215EAFFE}.Debug|x86.ActiveCfg = Release|x86
 		{C1BFAA1E-A6D3-40DC-B663-3E37215EAFFE}.Debug|x86.Build.0 = Release|x86
 		{C1BFAA1E-A6D3-40DC-B663-3E37215EAFFE}.Release|Any CPU.ActiveCfg = Release|x86
@@ -1464,8 +1466,8 @@ Global
 		{FDB91428-9BD4-47DD-9A7D-D33FF955985B}.Debug|Any CPU.ActiveCfg = Release|x86
 		{FDB91428-9BD4-47DD-9A7D-D33FF955985B}.Debug|Mixed Platforms.ActiveCfg = Release|x86
 		{FDB91428-9BD4-47DD-9A7D-D33FF955985B}.Debug|Mixed Platforms.Build.0 = Release|x86
-		{FDB91428-9BD4-47DD-9A7D-D33FF955985B}.Debug|x64.ActiveCfg = Release|x64
-		{FDB91428-9BD4-47DD-9A7D-D33FF955985B}.Debug|x64.Build.0 = Release|x64
+		{FDB91428-9BD4-47DD-9A7D-D33FF955985B}.Debug|x64.ActiveCfg = Debug|x64
+		{FDB91428-9BD4-47DD-9A7D-D33FF955985B}.Debug|x64.Build.0 = Debug|x64
 		{FDB91428-9BD4-47DD-9A7D-D33FF955985B}.Debug|x86.ActiveCfg = Release|x86
 		{FDB91428-9BD4-47DD-9A7D-D33FF955985B}.Debug|x86.Build.0 = Release|x86
 		{FDB91428-9BD4-47DD-9A7D-D33FF955985B}.Release|Any CPU.ActiveCfg = Release|x86
