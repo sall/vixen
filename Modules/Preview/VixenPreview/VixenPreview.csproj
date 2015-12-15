@@ -54,7 +54,7 @@
     <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <OutputPath>$(SolutionDir)\bin\Debug64\Modules\Preview\</OutputPath>
+    <OutputPath>$(SolutionDir)\bin\x64\Debug\Modules\Preview\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
