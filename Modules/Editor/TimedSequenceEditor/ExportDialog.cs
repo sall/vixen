@@ -130,7 +130,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
             outputFormatComboBox.Items.AddRange(_exportOps.FormatTypes);
             outputFormatComboBox.Sorted = true;
 
-            outputFormatComboBox.SelectedIndex = 0;
+            outputFormatComboBox.SelectedIndex = 2;
             resolutionComboBox.SelectedIndex = 1;
 
             buttonStop.Enabled = false;
