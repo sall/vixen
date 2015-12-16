@@ -91,7 +91,13 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		private TimeSpan? _mPrevPlaybackStart;
 		private TimeSpan? _mPrevPlaybackEnd;
 
-		private bool _mModified;
+        //List containing the rows to expand automatically when loading
+        List<Guid> _expandedRows = new List<Guid>();
+
+        //Default height to set the rows when opening
+        int _defaultRowHeight = 0;
+
+        private bool _mModified;
 
 		private float _timingSpeed = 1;
 
@@ -336,7 +342,25 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				Size = new Size(desktopBounds.Width, desktopBounds.Height);
 			}
 
-			_effectNodeToElement = new Dictionary<EffectNode, Element>();
+            _defaultRowHeight = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/DefaultRowHeight", Name), 0);
+
+            _expandedRows.Clear();
+
+            int expandedRowsCount = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ExpandedRowsCount", Name), 0);
+
+            
+            for (int i = 0; i < expandedRowsCount; i++)
+            {
+                string id = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ExpandedRows{1}", Name, i), "");
+
+                if(string.IsNullOrEmpty(id)==false)
+                {
+                    _expandedRows.Add(new Guid(id));
+                }
+            }
+
+
+            _effectNodeToElement = new Dictionary<EffectNode, Element>();
 			_elementNodeToRows = new Dictionary<ElementNode, List<Row>>();
 
 			TimelineControl.grid.RenderProgressChanged += OnRenderProgressChanged;
@@ -392,11 +416,6 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			_library = ApplicationServices.Get<IAppModuleInstance>(LipSyncMapDescriptor.ModuleID) as LipSyncMapLibrary;
 			Cursor.Current = Cursors.Default;
 
-#if DEBUG
-			ToolStripButton b = new ToolStripButton("[Debug Break]");
-			b.Click += b_Click;
-			toolStripOperations.Items.Add(b);
-#endif
 		}
 
 		private void SetDockDefaults()
@@ -3299,6 +3318,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 
 		private int _doEventsCounter;
+        
 
 		/// <summary>
 		/// Adds a single given element node as a row in the timeline control. Recursively adds all
@@ -3313,6 +3333,12 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			Row newRow = TimelineControl.AddRow(label, parentRow, 32);
 			newRow.ElementRemoved += ElementRemovedFromRowHandler;
 			newRow.ElementAdded += ElementAddedToRowHandler;
+
+            if (_expandedRows.Contains(node.Id) )
+                newRow.TreeOpen = true;
+
+            if (_defaultRowHeight != 0)
+                newRow.Height = _defaultRowHeight;
 
 			// Tag it with the node it refers to, and take note of which row the given element node will refer to.
 			newRow.Tag = node;
@@ -4847,8 +4873,26 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteLinkCurves", Name), ToolsForm.LinkCurves);
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteLinkGradients", Name), ToolsForm.LinkGradients);
 
-			//This .Close is here because we need to save some of the settings from the form before it is closed.
-			ToolsForm.Close();
+            if(TimelineControl.Rows.Count() > 0)
+                xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/DefaultRowHeight", Name), TimelineControl.Rows.ElementAt(0).Height);
+
+            //Save the expanded 
+            _expandedRows.Clear();
+            foreach (var row in TimelineControl.Rows)
+            {
+                if(row.TreeOpen == true)
+                    _expandedRows.Add(((ElementNode)row.Tag).Id);
+            }
+
+            xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ExpandedRowsCount", Name), _expandedRows.Count);
+
+            for (int i = 0; i < _expandedRows.Count; i++)
+            {
+                xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ExpandedRows{1}", Name, i), _expandedRows[i].ToString());
+            }
+
+            //This .Close is here because we need to save some of the settings from the form before it is closed.
+            ToolsForm.Close();
 
 			//These are only saved in options
 			//xml.PutPreference(string.Format("{0}/AutoSaveInterval", Name), _autoSaveTimer.Interval);
@@ -5515,9 +5559,25 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			}
 		}
 
-	}
+        private void toolStripMenuItem_expandAllRows_Click(object sender, EventArgs e)
+        {
+            foreach(var row in TimelineControl.Rows)
+            {
+                if(row.ParentDepth == 0)
+                    row.TreeOpen = true;
+            }
+        }
 
-	[Serializable]
+        private void toolStripMenuItem_contractAllRows_Click(object sender, EventArgs e)
+        {
+            foreach (var row in TimelineControl.Rows)
+            {
+                row.TreeOpen = false;
+            }
+        }
+    }
+
+    [Serializable]
 	internal class TimelineElementsClipboardData
 	{
 		public TimelineElementsClipboardData()
