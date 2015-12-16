@@ -93,7 +93,7 @@ namespace VixenModules.Editor.EffectEditor.Internal
 				{
 					str = ConvertValueToString(Value);
 				}
-				catch (Exception exception)
+				catch (Exception)
 				{
 
 				}

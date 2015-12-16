@@ -16,8 +16,8 @@ namespace Vixen.Export
 {
     public class Vir2Writer : IExportWriter
     {
-        private Vix2XMLData _xmlData;
-        private List<Byte> _eventData;
+        
+        
         private Byte[] _periodData;
         private int _curPeriod;
         private SequenceSessionData _sessionData;
@@ -104,7 +104,7 @@ namespace Vixen.Export
                     _outfs = null;
 
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                 }
             }

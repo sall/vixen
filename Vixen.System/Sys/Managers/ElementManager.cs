@@ -71,7 +71,7 @@ namespace Vixen.Sys.Managers
 
 		public void RemoveElement(Element element)
 		{
-			Element e;
+			
 			ElementNode en;
 			lock (_instances)
 			{

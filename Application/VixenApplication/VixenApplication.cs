@@ -166,14 +166,20 @@ namespace VixenApplication
 				}
 			}
 
-			if (version.Build > 0)
+
+
+            if (version.Build > 0)
 			{
 				labelDebugVersion.Text = string.Format("Build #{0}", version.Build);
 			}
 			else
 			{
-				labelDebugVersion.Text = @"Test Build";
-				labelDebugVersion.ForeColor = Color.Yellow;
+#if DEBUG
+                labelDebugVersion.Text = @"Debug Build";
+#else
+                labelDebugVersion.Text = @"Test Build";
+#endif
+                labelDebugVersion.ForeColor = Color.Yellow;
 			}
 			
 			labelDebugVersion.Visible = true;
@@ -756,7 +762,7 @@ namespace VixenApplication
 					_perfCountersAvailable = true;
 				}
 			}
-			catch (Exception ex)
+			catch (Exception )
 			{
 				Logging.Error("Cannot access performance counters. Refresh the counter list with lodctr /R");
 			}

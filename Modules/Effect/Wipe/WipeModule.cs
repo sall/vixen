@@ -187,7 +187,7 @@ namespace VixenModules.Effect.Wipe
 
 					return;
 
-					break;
+					
 				default:
 					break;
 			}
@@ -291,7 +291,7 @@ namespace VixenModules.Effect.Wipe
 					break;
 				default:
 					throw new InvalidOperationException("the RenderBurst method should only be called for Wipe Directions In and Out");
-					break;
+					
 			}
 			var burstNodes = TargetNodes.SelectMany(x => x.GetLeafEnumerator())
 													   .Select(s =>

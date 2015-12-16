@@ -86,7 +86,7 @@ namespace Vixen.Sys.Managers
 		}
 
 		private long _lastMs = 0;
-		private long _lastMs2 = 0;
+		
 
 		private void _ThreadFunc()
 		{

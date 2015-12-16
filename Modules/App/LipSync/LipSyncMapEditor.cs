@@ -185,7 +185,7 @@ namespace VixenModules.App.LipSyncApp
                         }
                     }
                 }
-                catch (Exception e) { };
+                catch (Exception) { };
                 
                 currentDataTable = BuildDialogFromMap(value);
                 updatedataGridView1();
