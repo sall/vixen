@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using Common.Controls;
 using Common.Controls.Theme;
 using Common.Resources.Properties;
 using Vixen.Services;
@@ -14,7 +15,7 @@ using Vixen.Module;
 
 namespace VixenApplication
 {
-	public partial class InstalledModules : Form
+	public partial class InstalledModules : BaseForm
 	{
 		private const string NOT_PROVIDED = "(Not Provided)";
 
@@ -25,6 +26,7 @@ namespace VixenApplication
 			BackColor = ThemeColorTable.BackgroundColor;
 			ThemeUpdateControls.UpdateControls(this);
 			Icon = Resources.Icon_Vixen3;
+			listViewModules.AllowRowReorder = false;
 		}
 
 		private void InstalledModules_Load(object sender, EventArgs e)
@@ -47,6 +49,8 @@ namespace VixenApplication
 						listViewModules.Items.Add(item);
 					}
 				}
+
+				listViewModules.ColumnAutoSize();
 			}
 			catch (Exception ex) {
 				MessageBox.Show(ex.Message);
@@ -109,5 +113,6 @@ namespace VixenApplication
 			btn.BackgroundImage = Resources.ButtonBackgroundImage;
 
 		}
+
 	}
 }

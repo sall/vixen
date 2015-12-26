@@ -6,13 +6,14 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using Common.Controls;
 using Common.Controls.Theme;
 using Common.Resources;
 using Common.Resources.Properties;
 
 namespace VixenModules.App.SuperScheduler
 {
-	public partial class StatusForm : Form
+	public partial class StatusForm : BaseForm
 	{
 		private SuperSchedulerData SchedulerData;
 		private ScheduleExecutor Executor;
@@ -23,7 +24,7 @@ namespace VixenModules.App.SuperScheduler
 
 			ForeColor = ThemeColorTable.ForeColor;
 			BackColor = ThemeColorTable.BackgroundColor;
-			ThemeUpdateControls.UpdateControls(this);
+			
 			buttonPauseShow.Image = Tools.GetIcon(Resources.control_pause, 24);
 			buttonPauseShow.Text = "";
 			buttonNextSong.Image = Tools.GetIcon(Resources.control_end, 24);
@@ -41,6 +42,8 @@ namespace VixenModules.App.SuperScheduler
 			buttonPlayShowGracefully.Image = Tools.GetIcon(Resources.clock_play, 24);
 			buttonPlayShowGracefully.Text = "";
 
+			ThemeUpdateControls.UpdateControls(this);
+
 			ControlBox = false;
 			SchedulerData = data;
 			Executor = executor;
@@ -48,10 +51,33 @@ namespace VixenModules.App.SuperScheduler
 
 		private void StatusForm_Load(object sender, EventArgs e)
 		{
-			Location = SchedulerData.StatusForm_Position;
+			RestoreScreenLocation(SchedulerData.StatusForm_Position);
 			PopulateShowList();
 			CheckButtons();
 		}
+
+		private void RestoreScreenLocation(Point location)
+		{
+			WindowState = FormWindowState.Normal;
+
+			var desktopBounds = new Rectangle(location, Size);
+			if (IsVisibleOnAnyScreen(desktopBounds))
+			{
+				StartPosition = FormStartPosition.Manual;
+				DesktopBounds = desktopBounds;
+			}
+			else
+			{
+				// this resets the upper left corner of the window to windows standards
+				StartPosition = FormStartPosition.WindowsDefaultLocation;
+			}
+		}
+
+		private bool IsVisibleOnAnyScreen(Rectangle rect)
+		{
+			return Screen.AllScreens.Any(screen => screen.WorkingArea.IntersectsWith(rect));
+		}
+
 
 		private void PopulateShowList()
 		{

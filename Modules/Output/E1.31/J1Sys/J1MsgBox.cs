@@ -40,6 +40,8 @@
 //
 // =====================================================================
 
+using Common.Controls;
+
 namespace VixenModules.Controller.E131.J1Sys
 {
 	using System;
@@ -47,7 +49,7 @@ namespace VixenModules.Controller.E131.J1Sys
 	using System.Reflection;
 	using System.Windows.Forms;
 
-	public class J1MsgBox : Form
+	public class J1MsgBox : BaseForm
 	{
 		private static Icon _messageBoxIconExclamation;
 
@@ -522,10 +524,12 @@ namespace VixenModules.Controller.E131.J1Sys
 			// 
 			// J1MsgBox
 			// 
+			this.AutoSize = true;
 			this.ClientSize = new System.Drawing.Size(284, 262);
 			this.Name = "J1MsgBox";
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
 			this.ResumeLayout(false);
+
 		}
 	}
 }
