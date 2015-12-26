@@ -27,6 +27,13 @@ namespace VixenApplication.Setup
 			ForeColor = ThemeColorTable.ForeColor;
 			BackColor = ThemeColorTable.BackgroundColor;
 			ThemeUpdateControls.UpdateControls(this);
+			
+			labelPatchPointCount.Font = new Font(Font.FontFamily, Font.Size, FontStyle.Bold);
+			label5.Font = new Font(Font.FontFamily, Font.Size, FontStyle.Bold);
+			labelOutputCount.Font = new Font(Font.FontFamily, Font.Size, FontStyle.Bold);
+			label20.Font = new Font(Font.FontFamily, Font.Size, FontStyle.Bold);
+			buttonDoPatching.Font = new Font(Font.FontFamily, 12F);
+			labelPatchWarning.ForeColor = Color.FromArgb(255,255,0);
 			_UpdateEverything(Enumerable.Empty<ElementNode>(), new ControllersAndOutputsSet(), false);
 		}
 
@@ -528,6 +535,7 @@ namespace VixenApplication.Setup
 		{
 			ThemeGroupBoxRenderer.GroupBoxesDrawBorder(sender, e, Font);
 		}
+
 	}
 
 	public class PatchStatusItem<T>

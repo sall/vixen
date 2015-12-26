@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using Common.Controls;
 using Common.Controls.Theme;
 using Common.Controls.Timeline;
 using QMLibrary;
@@ -13,7 +14,7 @@ using VixenModules.Sequence.Timed;
 namespace VixenModules.Analysis.BeatsAndBars
 {
 	
-	public partial class BeatsAndBarsDialog : Form
+	public partial class BeatsAndBarsDialog : BaseForm
 	{
 		private ToolTip m_toolTip;
 		private static BeatBarSettingsData m_settingsData = null;
@@ -28,7 +29,12 @@ namespace VixenModules.Analysis.BeatsAndBars
 
 			ForeColor = ThemeColorTable.ForeColor;
 			BackColor = ThemeColorTable.BackgroundColor;
-			ThemeUpdateControls.UpdateControls(this);
+			var excludes = new List<Control>();
+			excludes.Add(BarsColorPanel);
+			excludes.Add(BeatCountsColorPanel);
+			excludes.Add(AllColorPanel);
+			excludes.Add(BeatSplitsColorPanel);
+			ThemeUpdateControls.UpdateControls(this, excludes);
 
 			m_allowUpdates = false;
 

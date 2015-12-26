@@ -71,11 +71,18 @@ namespace VixenModules.SequenceType.Vixen2x
 			ProfileName = root.Element("Profile").Value;
 			}
 
+			//If in a rare case a profile name is set AND we have channels, discard the profile name so the import will use the sequence channel data
+			if (!String.IsNullOrEmpty(ProfileName) && root.Element("Channels").HasElements)
+			{
+				ProfileName = string.Empty;
+			}
+
+
 			foreach (XElement e in root.Elements("Channels").Elements("Channel"))
 			{
 				XAttribute nameAttrib = e.Attribute("name");
 				XAttribute colorAttrib = e.Attribute("color");
-
+				
 				//This exists in the 2.5.x versions of Vixen
 				//<Channel name="Mini Tree Red 1" color="-65536" output="0" id="5576725746726704001" enabled="True" />
 				if (nameAttrib != null)
@@ -89,6 +96,7 @@ namespace VixenModules.SequenceType.Vixen2x
 					CreateMappingList(e, 1);
 				}
 			}
+
 
 			if (!String.IsNullOrEmpty(SongFileName))
 				MessageBox.Show(
@@ -181,17 +189,30 @@ namespace VixenModules.SequenceType.Vixen2x
 
 		private void CreateMappingList(XElement element, int version)
 		{
+			var channelname = string.Empty;
 			//if version == 1 then we have an old profile that we are dealing with so we have
 			//to get the node value for the channel name
-			var channelname = string.Empty;
 			if (version == 1)
 			{
-				channelname = element.FirstNode.ToString();
+				try
+				{
+					channelname = element.FirstNode.ToString();
+				}
+				catch (NullReferenceException)
+				{
+					//do nothing
+				}
 			}
 			//must be version 2.5 so get the channel name from attribute 'name'
 			else if (version == 2)
 			{
-				channelname = element.Attribute("name").Value;
+					channelname = element.Attribute("name").Value;
+			}
+
+			//If for some reason we don't have a channel name, fill one in
+			if (String.IsNullOrEmpty(channelname))
+			{
+				channelname = "Unnamed Output " + element.Attribute("output").Value;
 			}
 
 			mappings.Add(new ChannelMapping(channelname,

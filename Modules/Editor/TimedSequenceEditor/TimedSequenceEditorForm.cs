@@ -13,6 +13,7 @@ using System.Timers;
 using System.Windows.Forms;
 using System.Xml;
 using Common.Controls;
+using Common.Controls.ControlsEx.ValueControls;
 using Common.Controls.Theme;
 using Common.Controls.Timeline;
 using Common.Resources;
@@ -48,7 +49,7 @@ using VixenModules.Property.Color;
 namespace VixenModules.Editor.TimedSequenceEditor
 {
 
-	public partial class TimedSequenceEditorForm : Form, IEditorUserInterface, ITiming
+	public partial class TimedSequenceEditorForm : BaseForm, IEditorUserInterface, ITiming
 	{
 
 		#region Member Variables
@@ -113,6 +114,9 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		//Used for color collections
 		private static Random rnd = new Random();
 		private PreCachingSequenceEngine _preCachingSequenceEngine;
+
+		//Used for setting a mouse location to do repeat actions on.
+		private Point _mouseOriginalPoint = new Point(0,0);
 
 		#endregion
 
@@ -230,15 +234,21 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 			if (File.Exists(_settingsPath))
 			{
-				dockPanel.LoadFromXml(_settingsPath, DockingPanels_GetContentFromPersistString);
+				try
+				{
+					//Try to load the dock settings fro ma file. Somehow users manage to corrupt this file, so if it can be used
+					//Then just reconfigure to the defaults.
+					dockPanel.LoadFromXml(_settingsPath, DockingPanels_GetContentFromPersistString);
+				}
+				catch (Exception ex)
+				{
+					Logging.Error("Error loading dock panel config. Restoring to the default.", ex);
+					SetDockDefaults();
+				}
 			}
 			else
 			{
-				GridForm.Show(dockPanel, DockState.Document);
-				ToolsForm.Show(dockPanel, DockState.DockLeft);
-				MarksForm.Show(dockPanel, DockState.DockLeft);
-				EffectsForm.Show(dockPanel, DockState.DockLeft);
-				EffectEditorForm.Show(dockPanel, DockState.DockRight);
+				SetDockDefaults();
 			}
 
 			if (GridForm.IsHidden)
@@ -389,7 +399,16 @@ namespace VixenModules.Editor.TimedSequenceEditor
 #endif
 		}
 
-		
+		private void SetDockDefaults()
+		{
+			GridForm.Show(dockPanel, DockState.Document);
+			ToolsForm.Show(dockPanel, DockState.DockLeft);
+			MarksForm.Show(dockPanel, DockState.DockLeft);
+			EffectsForm.Show(dockPanel, DockState.DockLeft);
+			EffectEditorForm.Show(dockPanel, DockState.DockRight);
+		}
+
+
 #if DEBUGDataDropped
 		private void b_Click(object sender, EventArgs e)
 		{
@@ -1025,6 +1044,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 								Logging.Info("TimedSequenceEditor: <SaveSequence> - Incorrect extension provided for timed sequence, appending one.");
 							}
 							_sequence.Save(name);
+							SetTitleBarText();
 						}
 						else
 						{
@@ -1040,6 +1060,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				else
 				{
 					_sequence.Save(filePath);
+					SetTitleBarText();
 				}
 
 			}
@@ -2210,12 +2231,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				}
 				if (newEffects.Count > 0)
 				{
-					if (eDialog.SelectEffects || eDialog.EditEffects) SelectEffectNodes(newEffects);
-					if (eDialog.EditEffects && TimelineControl.SelectedElements.Any())
-					{
-						EditElements(TimelineControl.SelectedElements.Cast<TimedSequenceElement>());
-					}
-
+					if (eDialog.SelectEffects) SelectEffectNodes(newEffects);
 				}
 			}
 		}
@@ -3029,12 +3045,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		private void SelectEffectNodes(IEnumerable<EffectNode> nodes)
 		{
 			TimelineControl.grid.ClearSelectedElements();
-
-			foreach (EffectNode element in nodes)
-			{
-				TimedSequenceElement tse = (TimedSequenceElement)_effectNodeToElement[element];
-				tse.Selected = true;
-			}
+			TimelineControl.grid.SelectElements(nodes.Select(x => _effectNodeToElement[x]));
 		}
 		
 		/// <summary>
@@ -3046,17 +3057,28 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			//Debug.WriteLine("{0}   RemoveEffectNodeAndElement(InstanceId={1})", (int)DateTime.Now.TimeOfDay.TotalMilliseconds, node.Effect.InstanceId);
 
 			// Lookup this effect node's Timeline Element
-			TimedSequenceElement tse = (TimedSequenceElement)_effectNodeToElement[node];
+			if (_effectNodeToElement.ContainsKey(node))
+			{
+				TimedSequenceElement tse = (TimedSequenceElement) _effectNodeToElement[node];
 
-			foreach (Row row in TimelineControl) // Remove the element from all rows
-				row.RemoveElement(tse);
+				foreach (Row row in TimelineControl) // Remove the element from all rows
+					row.RemoveElement(tse);
 
-			// TODO: Unnecessary?
-			tse.ContentChanged -= ElementContentChangedHandler; // Unregister event handlers
-			tse.TimeChanged -= ElementTimeChangedHandler;
+				// TODO: Unnecessary?
+				tse.ContentChanged -= ElementContentChangedHandler; // Unregister event handlers
+				tse.TimeChanged -= ElementTimeChangedHandler;
 
-			_effectNodeToElement.Remove(node); // Remove the effect node from the map
-			_sequence.RemoveData(node); // Remove the effect node from sequence
+				_effectNodeToElement.Remove(node); // Remove the effect node from the map
+				_sequence.RemoveData(node); // Remove the effect node from sequence
+			}
+			else
+			{
+				Logging.Error("Missing node on remove attempt in RemoveEffectNodeAndElement.");
+				//messageBox Arguments are (Text, Title, No Button Visible, Cancel Button Visible)
+				MessageBoxForm.msgIcon = SystemIcons.Error; //this is used if you want to add a system icon to the message form.
+				var messageBox = new MessageBoxForm("Node to remove not found, the editor is in a bad state! Please close the editor and restart it.", "Error", false, false);
+				messageBox.ShowDialog();
+			}
 		}
 
 
@@ -3381,11 +3403,11 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			FormParameterPicker parameterPicker = new FormParameterPicker(parameterPickerControls)
 			{
 				StartPosition = FormStartPosition.Manual,
-				Top = MousePosition.Y
+				Top = _mouseOriginalPoint.Y
 			};
-			parameterPicker.Left = ((MousePosition.X + parameterPicker.Width) < Screen.FromControl(this).Bounds.Width)
-				? MousePosition.X
-				: MousePosition.X - parameterPicker.Width;
+			parameterPicker.Left = ((_mouseOriginalPoint.X + parameterPicker.Width) < Screen.FromControl(this).Bounds.Width)
+				? _mouseOriginalPoint.X
+				: _mouseOriginalPoint.X - parameterPicker.Width;
 			return parameterPicker;
 		}
 
@@ -3439,7 +3461,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			UpdateToolStrip4("Choose the property to set, press Escape to cancel.", 4);
 		}
 
-		private void CompleteDrop(Dictionary<Element, Tuple<object, PropertyDescriptor>> elementValues, Element element)
+		private void CompleteDrop(Dictionary<Element, Tuple<object, PropertyDescriptor>> elementValues, Element element, string type)
 		{
 			if (elementValues.Any())
 			{
@@ -3448,7 +3470,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				TimelineControl.grid.ClearSelectedElements();
 				TimelineControl.SelectElement(element);
 				UpdateToolStrip4(
-					string.Format("Gradient applied to {0} {1} effect(s).", elementValues.Count(), element.EffectNode.Effect.EffectName), 30);
+					string.Format("{2} applied to {0} {1} effect(s).", elementValues.Count(), element.EffectNode.Effect.EffectName, type), 30);
 			}
 		}
 
@@ -3457,6 +3479,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		private void HandleColorDrop(Element element, Color color)
 		{
+			_mouseOriginalPoint = new Point(MousePosition.X, MousePosition.Y);
+
 			var elements = GetElementsForDrop(element);
 
 			if (ValidateMultipleEffects(element, elements)) return;	
@@ -3467,6 +3491,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		private void HandleColorDropOnElements(IEnumerable<Element> elements, Color color)
 		{
 			if (elements == null || !elements.Any()) return;
+
 			var element = elements.First();
 
 			var properties = MetadataRepository.GetProperties(element.EffectNode.Effect).Where(x => (x.PropertyType == typeof(Color)) && x.IsBrowsable);
@@ -3563,7 +3588,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				}
 
 			}
-			CompleteDrop(elementValues, element);
+			CompleteDrop(elementValues, element, "Color");
 			
 		}
 
@@ -3580,6 +3605,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		
 		private void HandleCurveDrop(Element element, Curve curve)
 		{
+			_mouseOriginalPoint = new Point(MousePosition.X, MousePosition.Y);
+
 			var elements = GetElementsForDrop(element);
 
 			if (ValidateMultipleEffects(element, elements)) return;	
@@ -3666,7 +3693,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				}
 
 			}
-			CompleteDrop(elementValues, element);
+			CompleteDrop(elementValues, element, "Curve");
 			
 		}
 
@@ -3697,6 +3724,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		private void HandleGradientDrop(Element element, ColorGradient color)
 		{
+			_mouseOriginalPoint = new Point(MousePosition.X, MousePosition.Y);
+
 			var elements = GetElementsForDrop(element);
 
 			if (ValidateMultipleEffects(element, elements)) return;	
@@ -3811,7 +3840,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 
 			}
-			CompleteDrop(elementValues, element);
+			CompleteDrop(elementValues, element, "Gradient");
 
 		}
 
@@ -3935,6 +3964,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		protected override void OnKeyDown(KeyEventArgs e)
 		{
+			Element element;
 			// do anything special we want to here: keyboard shortcuts that are in
 			// the menu will be handled by them instead.
 			switch (e.KeyCode)
@@ -3971,25 +4001,49 @@ namespace VixenModules.Editor.TimedSequenceEditor
 					break;
 
 				case Keys.Space:
-					if (!_context.IsRunning)
-						PlaySequence();
-					else
-					{
-						if (_context.IsPaused)
-							PlaySequence();
-						else
-							StopSequence();
-					}
+					HandleSpacebarAction();
 					break;
 
 				case Keys.Left:
 					if (e.Control)
+					{
 						TimelineControl.MoveSelectedElementsByTime(TimelineControl.TimePerPixel.Scale(-2));
+					}
+					
 					break;
 
 				case Keys.Right:
 					if (e.Control)
+					{
 						TimelineControl.MoveSelectedElementsByTime(TimelineControl.TimePerPixel.Scale(2));
+					}
+					
+					break;
+				
+				case Keys.S:
+					element = TimelineControl.grid.ElementAtPosition(MousePosition);
+					if (element != null && TimelineControl.SelectedElements.Count() > 1 && TimelineControl.SelectedElements.Contains(element))
+					{
+						TimelineControl.grid.AlignElementStartTimes(TimelineControl.SelectedElements, element, e.Shift);
+					}
+					break;
+				case Keys.E:
+					
+					element = TimelineControl.grid.ElementAtPosition(MousePosition);
+					if (element != null && TimelineControl.SelectedElements.Count() > 1 && TimelineControl.SelectedElements.Contains(element))
+					{
+						TimelineControl.grid.AlignElementEndTimes(TimelineControl.SelectedElements, element, e.Shift);
+					}
+					break;
+					
+				case Keys.B:
+					
+					element = TimelineControl.grid.ElementAtPosition(MousePosition);
+					if (element != null && TimelineControl.SelectedElements.Count() > 1 && TimelineControl.SelectedElements.Contains(element))
+					{
+						TimelineControl.grid.AlignElementStartEndTimes(TimelineControl.SelectedElements, element);
+					}
+					
 					break;
 
 				case Keys.Escape:
@@ -4022,6 +4076,19 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			// This was causing serious slowdowns if random keys were pressed.
 			//e.SuppressKeyPress = true;
 			base.OnKeyDown(e);
+		}
+
+		internal void HandleSpacebarAction()
+		{
+			if (!_context.IsRunning)
+				PlaySequence();
+			else
+			{
+				if (_context.IsPaused)
+					PlaySequence();
+				else
+					StopSequence();
+			}
 		}
 
 		protected override void OnFormClosed(FormClosedEventArgs e)
@@ -4071,8 +4138,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 					if (cutElements)
 					{
-						row.RemoveElement(elem);
-						_sequence.RemoveData(elem.EffectNode);
+						RemoveEffectNodeAndElement(elem.EffectNode);
 						SequenceModified();
 					}
 				}

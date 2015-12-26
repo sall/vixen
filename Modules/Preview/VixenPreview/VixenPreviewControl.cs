@@ -1503,7 +1503,7 @@ namespace VixenModules.Preview.VixenPreview
 					item.Shape.Left -= deltaX;
 					item.Shape.Top -= deltaY;
 				}
-				StartMove(moveToPoint.X, moveToPoint.Y);
+				StartMove(mousePoint.X, mousePoint.Y);
 			}
 		}
 
@@ -1627,6 +1627,8 @@ namespace VixenModules.Preview.VixenPreview
 
 		public DisplayItem CreateGroup()
 		{
+			if (!SelectedDisplayItems.Any()) return null;
+
 			foreach (DisplayItem item in SelectedDisplayItems)
 			{
 				if (item.Shape.GetType().ToString().Contains("PreviewCustom"))
@@ -1641,14 +1643,14 @@ namespace VixenModules.Preview.VixenPreview
 			}
 			DisplayItem newDisplayItem;
 
-			addNewGroup(out newDisplayItem, null);
+			AddNewGroup(out newDisplayItem, null);
 			SelectedDisplayItems.Clear();
 			var action = new PreviewItemsGroupAddedUndoAction(this, newDisplayItem);//Start Undo Action.
 			UndoManager.AddUndoAction(action);
 			return newDisplayItem;
 		}
 
-		public void addNewGroup(out DisplayItem newDisplayItem, List<DisplayItem> selectedShapes)
+		internal void AddNewGroup(out DisplayItem newDisplayItem, List<DisplayItem> selectedShapes)
 		{
 			//Sets the start TopLeft point of the new group
 			List<int> topPoint = new List<int>();
