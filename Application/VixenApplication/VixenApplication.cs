@@ -17,11 +17,12 @@ using Vixen.Sys;
 using NLog;
 using Common.Resources.Properties;
 using Common.Controls;
+using Common.Controls.Scaling;
 using Common.Controls.Theme;
 
 namespace VixenApplication
 {
-	public partial class VixenApplication : Form, IApplication
+	public partial class VixenApplication : BaseForm, IApplication
 	{
 		private static NLog.Logger Logging = LogManager.GetCurrentClassLogger();
 
@@ -32,18 +33,30 @@ namespace VixenApplication
 		private bool _devBuild = false;
 		private string _rootDataDirectory;
 		private CpuUsage _cpuUsage;
+		private bool _perfCountersAvailable;
 
 		private VixenApplicationData _applicationData;
 
 		public VixenApplication()
 		{
 			InitializeComponent();
+			labelVersion.Font = new Font("Segoe UI", 14);
 			//Get rid of the ugly grip that we dont want to show anyway. 
 			//Workaround for a MS bug
 			statusStrip.Padding = new Padding(statusStrip.Padding.Left,
 			statusStrip.Padding.Top, statusStrip.Padding.Left, statusStrip.Padding.Bottom);
+			statusStrip.Font = SystemFonts.StatusFont;
 
 			Icon = Resources.Icon_Vixen3;
+			ForeColor = ThemeColorTable.ForeColor;
+			BackColor = ThemeColorTable.BackgroundColor;
+			ThemeUpdateControls.UpdateControls(this);
+			statusStrip.BackColor = ThemeColorTable.BackgroundColor;
+			statusStrip.ForeColor = ThemeColorTable.ForeColor;
+			toolStripStatusLabel1.ForeColor = ThemeColorTable.ForeColor;
+			toolStripStatusLabelExecutionLight.ForeColor = ThemeColorTable.ForeColor;
+			toolStripStatusLabelExecutionState.ForeColor = ThemeColorTable.ForeColor;
+			toolStripStatusLabel_memory.ForeColor = ThemeColorTable.ForeColor;
 
 			string[] args = Environment.GetCommandLineArgs();
 			foreach (string arg in args) {
@@ -113,16 +126,7 @@ namespace VixenApplication
 		{
 			initializeEditorTypes();
 			menuStripMain.Renderer = new ThemeToolStripRenderer();
-			ForeColor = ThemeColorTable.ForeColor;
-			BackColor = ThemeColorTable.BackgroundColor;
-			ThemeUpdateControls.UpdateControls(this);
-			statusStrip.BackColor = ThemeColorTable.BackgroundColor;
-			statusStrip.ForeColor = ThemeColorTable.ForeColor;
-			toolStripStatusLabel1.ForeColor = ThemeColorTable.ForeColor;
-			toolStripStatusLabelExecutionLight.ForeColor = ThemeColorTable.ForeColor;
-			toolStripStatusLabelExecutionState.ForeColor = ThemeColorTable.ForeColor;
-			toolStripStatusLabel_memory.ForeColor = ThemeColorTable.ForeColor;
-			labelVixen.BackColor = Color.Transparent;
+			
 			openFileDialog.InitialDirectory = SequenceService.SequenceDirectory;
 
 			// Add menu items for the logs.
@@ -162,7 +166,16 @@ namespace VixenApplication
 				}
 			}
 
-			labelDebugVersion.Text = string.Format("Build #{0}", version.Build);
+			if (version.Build > 0)
+			{
+				labelDebugVersion.Text = string.Format("Build #{0}", version.Build);
+			}
+			else
+			{
+				labelDebugVersion.Text = @"Test Build";
+				labelDebugVersion.ForeColor = Color.Yellow;
+			}
+			
 			labelDebugVersion.Visible = true;
 		}
 
@@ -220,6 +233,8 @@ namespace VixenApplication
 				if (!string.IsNullOrEmpty(directory) && Directory.Exists(directory))
 				{
 					_rootDataDirectory = directory;
+					string profileName = profile.GetSetting(XMLProfileSettings.SettingType.Profiles, "Profile" + profileToLoad + "/Name", string.Empty);
+					UpdateTitleWithProfileName(profileName);
 				}
 				else
 				{
@@ -247,6 +262,7 @@ namespace VixenApplication
 					if (!string.IsNullOrEmpty(directory) && Directory.Exists(directory))
 					{
 						_rootDataDirectory = directory;
+						UpdateTitleWithProfileName(selectProfile.ProfileName);
 						break;
 					}
 					//messageBox Arguments are (Text, Title, No Button Visible, Cancel Button Visible)
@@ -260,6 +276,7 @@ namespace VixenApplication
 				else if (result == DialogResult.Cancel)
 				{
 					//messageBox Arguments are (Text, Title, No Button Visible, Cancel Button Visible)
+					MessageBoxForm.msgIcon = SystemIcons.Warning;
 					var messageBox = new MessageBoxForm(Application.ProductName + " cannot continue without a vaild profile." + Environment.NewLine + Environment.NewLine +
 						"Are you sure you want to exit " + Application.ProductName + "?",
 						Application.ProductName, true, false);
@@ -277,6 +294,11 @@ namespace VixenApplication
 			}
 
 			SetLogFilePaths();
+		}
+
+		private void UpdateTitleWithProfileName(string profileName)
+		{
+			Text = string.Format("Vixen Administration - {0} Profile", profileName);
 		}
 
 		/// <summary>
@@ -700,6 +722,17 @@ namespace VixenApplication
 			}
 
 			listViewRecentSequences.EndUpdate();
+			ColumnAutoSize();
+		}
+
+		public void ColumnAutoSize()
+		{
+			listViewRecentSequences.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
+			ListView.ColumnHeaderCollection cc = listViewRecentSequences.Columns;
+			for (int i = 0; i < cc.Count; i++)
+			{
+				cc[i].Width = listViewRecentSequences.Width - (int)(listViewRecentSequences.Width *.18d);
+			}
 		}
 
 		#endregion
@@ -716,11 +749,28 @@ namespace VixenApplication
 		private const int StatsUpdateInterval = 1000; // ms
 		private Timer _statsTimer;
 		private Process _thisProc;
+		private PerformanceCounter _committedRamCounter;
+		private PerformanceCounter _reservedRamCounter;
+		
 
 		private void InitStats()
 		{
 			_thisProc = Process.GetCurrentProcess();
 			_cpuUsage = new CpuUsage();
+
+			//try
+			//{
+			//	if (PerformanceCounterCategory.Exists(".NET CLR Memory"))
+			//	{
+			//		_committedRamCounter = new PerformanceCounter(".NET CLR Memory", "# Total committed Bytes", _thisProc.ProcessName);
+			//		_reservedRamCounter = new PerformanceCounter(".NET CLR Memory", "# Total reserved Bytes", _thisProc.ProcessName);
+			//		_perfCountersAvailable = true;
+			//	}
+			//}
+			//catch (Exception ex)
+			//{
+			//	Logging.Error("Cannot access performance counters. Refresh the counter list with lodctr /R");
+			//}
 
 			_statsTimer = new Timer();
 			_statsTimer.Interval = StatsUpdateInterval;
@@ -731,11 +781,25 @@ namespace VixenApplication
 
 		private void statsTimer_Tick(object sender, EventArgs e)
 		{
-			long memUsage = _thisProc.PrivateMemorySize64/1024/1024;
-			long sharedMem = _thisProc.VirtualMemorySize64/1024/1024;
+			//long memUsage;
+			//long reservedMemUsage;
 
-			toolStripStatusLabel_memory.Text = String.Format("Mem: {0}/{2} MB   CPU: {1}%",
-			                                                 memUsage, _cpuUsage.GetUsage(), sharedMem);
+			//if (_perfCountersAvailable)
+			//{
+			//	memUsage = Convert.ToInt32(_committedRamCounter.NextValue()/1024/1024);
+			//	reservedMemUsage = Convert.ToInt32(_reservedRamCounter.NextValue()/1024/1024);
+			//}
+			//else
+			//{
+			//	_thisProc.Refresh();
+			//	memUsage = _thisProc.PrivateMemorySize64 / 1024 / 1024;
+			//	reservedMemUsage = _thisProc.VirtualMemorySize64 / 1024 / 1024;
+			//}
+
+			
+			
+
+			toolStripStatusLabel_memory.Text = String.Format("CPU: {0}%",_cpuUsage.GetUsage());
 		}
 
 		#endregion
@@ -798,8 +862,10 @@ namespace VixenApplication
 			Pen borderColor = new Pen(ThemeColorTable.GroupBoxBorderColor, 1);
 			if (ActiveForm != null)
 			{
-				e.Graphics.DrawLine(borderColor, 0, pictureBox1.Size.Height + 30, ActiveForm.Width, pictureBox1.Size.Height + 30);
-				e.Graphics.DrawLine(borderColor, 0, Height - (statusStrip.Height + 40), Width, Height - (statusStrip.Height + 40));
+				int extraSpace1 = (int) (30*ScalingTools.GetScaleFactor());
+				int extraSpace2 = (int) (40 * ScalingTools.GetScaleFactor());
+				e.Graphics.DrawLine(borderColor, 0, pictureBox1.Size.Height + extraSpace1, ActiveForm.Width, pictureBox1.Size.Height + extraSpace1);
+				e.Graphics.DrawLine(borderColor, 0, Height - (statusStrip.Height + extraSpace2), Width, Height - (statusStrip.Height + extraSpace2));
 			}
 		}
 

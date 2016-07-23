@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using System.Diagnostics;
 using System.IO;
 using System.Xml.Serialization;
+using Common.Controls.Scaling;
 using Common.Controls.Theme;
 using Common.Resources;
 using Common.Resources.Properties;
@@ -30,15 +31,15 @@ namespace VixenModules.App.Shows
 
 			ForeColor = ThemeColorTable.ForeColor;
 			BackColor = ThemeColorTable.BackgroundColor;
-			ThemeUpdateControls.UpdateControls(this);
+			int iconSize = (int)(16 * ScalingTools.GetScaleFactor());
 			ContolLabel1 = label1;
 			ContolLabelSequence = labelSequence;
 			ContolTextBoxSequence = textBoxSequence;
 			ContolButtonSelectSequence = buttonSelectSequence;
 			
-			buttonSelectSequence.Image = Tools.GetIcon(Resources.folder_explore, 16);
+			buttonSelectSequence.Image = Tools.GetIcon(Resources.folder_explore, iconSize);
 			buttonSelectSequence.Text = "";
-
+			ThemeUpdateControls.UpdateControls(this);
 			_showItem = showItem;
 		}
 

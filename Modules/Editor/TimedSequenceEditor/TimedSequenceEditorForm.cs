@@ -11,8 +11,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Forms;
+using System.Windows.Media.Animation;
 using System.Xml;
 using Common.Controls;
+using Common.Controls.ControlsEx.ValueControls;
+using Common.Controls.Scaling;
 using Common.Controls.Theme;
 using Common.Controls.Timeline;
 using Common.Resources;
@@ -23,7 +26,6 @@ using Vixen.Cache.Sequence;
 using Vixen.Execution;
 using Vixen.Execution.Context;
 using Vixen.Module.App;
-using VixenApplication;
 using VixenModules.App.Curves;
 using VixenModules.App.LipSyncApp;
 using VixenModules.Media.Audio;
@@ -34,6 +36,7 @@ using Vixen.Module.Media;
 using Vixen.Module.Timing;
 using Vixen.Services;
 using Vixen.Sys;
+using Vixen.Sys.LayerMixing;
 using Vixen.Sys.State;
 using VixenModules.Analysis.BeatsAndBars;
 using VixenModules.App.ColorGradients;
@@ -48,7 +51,7 @@ using VixenModules.Property.Color;
 namespace VixenModules.Editor.TimedSequenceEditor
 {
 
-	public partial class TimedSequenceEditorForm : Form, IEditorUserInterface, ITiming
+	public partial class TimedSequenceEditorForm : BaseForm, IEditorUserInterface, ITiming
 	{
 
 		#region Member Variables
@@ -114,6 +117,15 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		private static Random rnd = new Random();
 		private PreCachingSequenceEngine _preCachingSequenceEngine;
 
+		//Used for setting a mouse location to do repeat actions on.
+		private Point _mouseOriginalPoint = new Point(0,0);
+
+		//Used for the Align Effects to the nearest Mark.
+		private string AlignTo_Threshold;
+
+		private readonly double _scaleFactor = 1;
+		private bool _suppressModifiedEvents;
+
 		#endregion
 
 		#region Constructor / Initialization
@@ -121,10 +133,12 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		public TimedSequenceEditorForm()
 		{
 			InitializeComponent();
-
+			_scaleFactor = ScalingTools.GetScaleFactor();
 			menuStrip.Renderer = new ThemeToolStripRenderer();
 			toolStripOperations.Renderer = new ThemeToolStripRenderer();
 			_contextMenuStrip.Renderer = new ThemeToolStripRenderer();
+			int imageSize = (int)(16 * _scaleFactor);
+			_contextMenuStrip.ImageScalingSize = new Size(imageSize, imageSize);
 			statusStrip.Renderer = new ThemeToolStripRenderer();
 			ForeColor = ThemeColorTable.ForeColor;
 			BackColor = ThemeColorTable.BackgroundColor;
@@ -132,51 +146,55 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			cboAudioDevices.BackColor = ThemeColorTable.BackgroundColor;
 			cboAudioDevices.ForeColor = ThemeColorTable.ForeColor;
 			Icon = Resources.Icon_Vixen3;
-			toolStripButton_Start.Image = Tools.GetIcon(Resources.control_start_blue,24);
+			int iconSize = (int) (24*_scaleFactor);
+			toolStripOperations.ImageScalingSize = new Size(iconSize, iconSize);
+			toolStripButton_Start.Image = Resources.control_start_blue;
 			toolStripButton_Start.DisplayStyle = ToolStripItemDisplayStyle.Image;
-			toolStripButton_Play.Image = Tools.GetIcon(Resources.control_play_blue, 24);
+			toolStripButton_Play.Image = Resources.control_play_blue;
 			toolStripButton_Play.DisplayStyle = ToolStripItemDisplayStyle.Image;
-			toolStripButton_Stop.Image = Tools.GetIcon(Resources.control_stop_blue, 24);
+			toolStripButton_Stop.Image = Resources.control_stop_blue;
 			toolStripButton_Stop.DisplayStyle = ToolStripItemDisplayStyle.Image;
-			toolStripButton_Pause.Image = Tools.GetIcon(Resources.control_pause_blue, 24);
+			toolStripButton_Pause.Image = Resources.control_pause_blue;
 			toolStripButton_Pause.DisplayStyle = ToolStripItemDisplayStyle.Image;
-			toolStripButton_End.Image = Tools.GetIcon(Resources.control_end_blue, 24);
+			toolStripButton_End.Image = Resources.control_end_blue;
 			toolStripButton_End.DisplayStyle = ToolStripItemDisplayStyle.Image;
-			toolStripButton_Loop.Image = Tools.GetIcon(Resources.arrow_repeat, 24);
+			toolStripButton_Loop.Image = Resources.arrow_repeat;
 			toolStripButton_Loop.DisplayStyle = ToolStripItemDisplayStyle.Image;
-			undoButton.Image =  Tools.GetIcon(Resources.arrow_undo, 24);
+			undoButton.Image =  Resources.arrow_undo;
 			undoButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
-			redoButton.Image =  Tools.GetIcon(Resources.arrow_redo, 24);
+			redoButton.Image =  Resources.arrow_redo;
 			redoButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
 			redoButton.ButtonType =  UndoButtonType.RedoButton;
-			toolStripButton_Cut.Image = Tools.GetIcon(Resources.cut, 24);
+			toolStripButton_Cut.Image = Resources.cut;
 			toolStripButton_Cut.DisplayStyle = ToolStripItemDisplayStyle.Image;
-			toolStripButton_Copy.Image = Tools.GetIcon(Resources.page_white_copy, 24);
+			toolStripButton_Copy.Image = Resources.page_white_copy;
 			toolStripButton_Copy.DisplayStyle = ToolStripItemDisplayStyle.Image;
-			toolStripButton_Paste.Image = Tools.GetIcon(Resources.page_white_paste, 24);
+			toolStripButton_Paste.Image = Resources.page_white_paste;
 			toolStripButton_Paste.DisplayStyle = ToolStripItemDisplayStyle.Image;
-			toolStripButton_AssociateAudio.Image = Tools.GetIcon(Resources.music, 24);
+			toolStripButton_AssociateAudio.Image = Resources.music;
 			toolStripButton_AssociateAudio.DisplayStyle = ToolStripItemDisplayStyle.Image;
-			toolStripButton_MarkManager.Image = Tools.GetIcon(Resources.timeline_marker, 24);
+			toolStripButton_MarkManager.Image = Resources.timeline_marker;
 			toolStripButton_MarkManager.DisplayStyle = ToolStripItemDisplayStyle.Image;
-			toolStripButton_ZoomTimeIn.Image = Tools.GetIcon(Resources.zoom_in, 24);
+			toolStripButton_ZoomTimeIn.Image = Resources.zoom_in;
 			toolStripButton_ZoomTimeIn.DisplayStyle = ToolStripItemDisplayStyle.Image;
-			toolStripButton_ZoomTimeOut.Image = Tools.GetIcon(Resources.zoom_out, 24);
+			toolStripButton_ZoomTimeOut.Image = Resources.zoom_out;
 			toolStripButton_ZoomTimeOut.DisplayStyle = ToolStripItemDisplayStyle.Image;
-			toolStripButton_SnapTo.Image = Tools.GetIcon(Resources.magnet, 24);
+			toolStripButton_SnapTo.Image = Resources.magnet;
 			toolStripButton_SnapTo.DisplayStyle = ToolStripItemDisplayStyle.Image;
-			toolStripButton_DrawMode.Image = Tools.GetIcon(Resources.pencil, 24);
+			toolStripButton_DrawMode.Image = Resources.pencil;
 			toolStripButton_DrawMode.DisplayStyle = ToolStripItemDisplayStyle.Image;
-			toolStripButton_SelectionMode.Image = Tools.GetIcon(Resources.cursor_arrow, 24);
+			toolStripButton_SelectionMode.Image = Resources.cursor_arrow;
 			toolStripButton_SelectionMode.DisplayStyle = ToolStripItemDisplayStyle.Image;
-			toolStripButton_DragBoxFilter.Image = Tools.GetIcon(Resources.table_select_big, 24);
+			toolStripButton_DragBoxFilter.Image = Resources.table_select_big;
 			toolStripButton_DragBoxFilter.DisplayStyle = ToolStripItemDisplayStyle.Image;
-			toolStripButton_IncreaseTimingSpeed.Image = Tools.GetIcon(Resources.plus, 24);
+			toolStripButton_IncreaseTimingSpeed.Image = Resources.plus;
 			toolStripButton_IncreaseTimingSpeed.DisplayStyle = ToolStripItemDisplayStyle.Image;
-			toolStripButton_DecreaseTimingSpeed.Image = Tools.GetIcon(Resources.minus, 24);
+			toolStripButton_DecreaseTimingSpeed.Image = Resources.minus;
 			toolStripButton_DecreaseTimingSpeed.DisplayStyle = ToolStripItemDisplayStyle.Image;
-			toolStripSplitButton_CloseGaps.Image = Tools.GetIcon(Resources.fill_gaps, 24);
+			toolStripSplitButton_CloseGaps.Image = Resources.fill_gaps;
 			toolStripSplitButton_CloseGaps.DisplayStyle = ToolStripItemDisplayStyle.Image;
+			toolStripDropDownButton_AlignTo.Image = Resources.alignment;
+			toolStripDropDownButton_AlignTo.DisplayStyle = ToolStripItemDisplayStyle.Image;
 
 			foreach (ToolStripItem toolStripItem in toolStripDropDownButton_SnapToStrength.DropDownItems)
 			{
@@ -196,6 +214,16 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				}
 			}
 
+			foreach (ToolStripItem toolStripItem in toolStripDropDownButton_AlignTo.DropDownItems)
+			{
+				var toolStripMenuItem = toolStripItem as ToolStripMenuItem;
+				if (toolStripMenuItem != null)
+				{
+					toolStripMenuItem.Click += toolStripDropDownButtonAlignToStrength_MenuItem_Click;
+				}
+			}
+
+			PerformAutoScale();
 			Execution.ExecutionStateChanged += OnExecutionStateChanged;
 			_autoSaveTimer.Tick += AutoSaveEventProcessor;
 
@@ -214,7 +242,9 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				return ToolsForm;
 			if (persistString == typeof(FormEffectEditor).ToString())
 				return EffectEditorForm;
-			
+			if (persistString == typeof(LayerEditor).ToString())
+				return LayerEditor;
+
 			//Else
 			throw new NotImplementedException("Unable to find docking window type: " + persistString);
 		}
@@ -230,15 +260,21 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 			if (File.Exists(_settingsPath))
 			{
-				dockPanel.LoadFromXml(_settingsPath, DockingPanels_GetContentFromPersistString);
+				try
+				{
+					//Try to load the dock settings fro ma file. Somehow users manage to corrupt this file, so if it can be used
+					//Then just reconfigure to the defaults.
+					dockPanel.LoadFromXml(_settingsPath, DockingPanels_GetContentFromPersistString);
+				}
+				catch (Exception ex)
+				{
+					Logging.Error("Error loading dock panel config. Restoring to the default.", ex);
+					SetDockDefaults();
+				}
 			}
 			else
 			{
-				GridForm.Show(dockPanel, DockState.Document);
-				ToolsForm.Show(dockPanel, DockState.DockLeft);
-				MarksForm.Show(dockPanel, DockState.DockLeft);
-				EffectsForm.Show(dockPanel, DockState.DockLeft);
-				EffectEditorForm.Show(dockPanel, DockState.DockRight);
+				SetDockDefaults();
 			}
 
 			if (GridForm.IsHidden)
@@ -250,7 +286,12 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			{
 				EffectEditorForm.Show(dockPanel, DockState.DockRight);
 			}
-				
+
+			if (LayerEditor.DockState == DockState.Unknown)
+			{
+				LayerEditor.Show(dockPanel, DockState.DockRight);
+			}
+
 			XMLProfileSettings xml = new XMLProfileSettings();
 
 			//Get preferences
@@ -263,6 +304,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			toolStripButton_SnapTo.Checked = toolStripMenuItem_SnapTo.Checked = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/SnapToSelected", Name), true);
 			PopulateSnapStrength(xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/SnapStrength", Name), 2));
 			TimelineControl.grid.CloseGap_Threshold = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/CloseGapThreshold", Name), ".100");
+			AlignTo_Threshold = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/AlignToThreshold", Name), ".800");
 			toolStripMenuItem_ResizeIndicator.Checked = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ResizeIndicatorEnabled", Name), false);
 			toolStripButton_DrawMode.Checked = TimelineControl.grid.EnableDrawMode = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/DrawModeSelected", Name), false);
 			toolStripButton_SelectionMode.Checked = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/SelectionModeSelected", Name), true);
@@ -270,6 +312,9 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			ToolsForm.LinkGradients = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteLinkGradients", Name), false);
 			cADStyleSelectionBoxToolStripMenuItem.Checked = TimelineControl.grid.aCadStyleSelectionBox = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/CadStyleSelectionBox", Name), false);
 			CheckRiColorMenuItem(xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ResizeIndicatorColor", Name), "Red"));
+			zoomUnderMousePositionToolStripMenuItem.Checked = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ZoomUnderMousePosition", Name), false);
+			TimelineControl.waveform.Height = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/WaveFormHeight", Name), 50);
+			TimelineControl.ruler.Height = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/RulerHeight", Name), 50);
 
 			foreach (ToolStripItem toolStripItem in toolStripDropDownButton_SnapToStrength.DropDownItems)
 			{
@@ -290,6 +335,19 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				if (toolStripMenuItem != null)
 				{
 					if (TimelineControl.grid.CloseGap_Threshold.Equals(toolStripMenuItem.Tag))
+					{
+						toolStripMenuItem.PerformClick();
+						break;
+					}
+				}
+			}
+
+			foreach (ToolStripItem toolStripItem in toolStripDropDownButton_AlignTo.DropDownItems)
+			{
+				var toolStripMenuItem = toolStripItem as ToolStripMenuItem;
+				if (toolStripMenuItem != null)
+				{
+					if (AlignTo_Threshold.Equals(toolStripMenuItem.ToString()))
 					{
 						toolStripMenuItem.PerformClick();
 						break;
@@ -353,11 +411,13 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			TimelineControl.ContextSelected += timelineControl_ContextSelected;
 			TimelineControl.SequenceLoading = false;
 			TimelineControl.TimePerPixelChanged += TimelineControl_TimePerPixelChanged;
+			TimelineControl.VisibleTimeStartChanged += TimelineControl_VisibleTimeStartChanged;
 			TimelineControl.grid.SelectedElementsCloneDelegate = CloneElements;
 			TimelineControl.grid.StartDrawMode += DrawElement;
 			TimelineControl.grid.DragOver += TimelineControlGrid_DragOver;
 			TimelineControl.grid.DragEnter += TimelineControlGrid_DragEnter;
 			TimelineControl.grid.DragDrop += TimelineControlGrid_DragDrop;
+			Row.RowHeightChanged += TimeLineControl_Row_RowHeightChanged;
 
 			_curveLibrary = ApplicationServices.Get<IAppModuleInstance>(CurveLibraryDescriptor.ModuleID) as CurveLibrary;
 			if (_curveLibrary != null)
@@ -381,6 +441,20 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 			_library = ApplicationServices.Get<IAppModuleInstance>(LipSyncMapDescriptor.ModuleID) as LipSyncMapLibrary;
 			Cursor.Current = Cursors.Default;
+			if (_sequence.DefaultSplitterDistance != 0)
+			{
+				TimelineControl.splitContainer.SplitterDistance = _sequence.DefaultSplitterDistance;
+			}
+			else
+			{
+				TimelineControl.splitContainer.SplitterDistance = (int) (TimelineControl.DefaultSplitterDistance*_scaleFactor);
+			}
+
+			if (_sequence.DefaultPlaybackEndTime != TimeSpan.Zero)
+			{
+				_mPrevPlaybackStart = TimelineControl.PlaybackStartTime = _sequence.DefaultPlaybackStartTime;
+				_mPrevPlaybackEnd = TimelineControl.PlaybackEndTime = _sequence.DefaultPlaybackEndTime;
+			}
 
 #if DEBUG
 			ToolStripButton b = new ToolStripButton("[Debug Break]");
@@ -389,8 +463,18 @@ namespace VixenModules.Editor.TimedSequenceEditor
 #endif
 		}
 
-		
-#if DEBUGDataDropped
+		private void SetDockDefaults()
+		{
+			GridForm.Show(dockPanel, DockState.Document);
+			ToolsForm.Show(dockPanel, DockState.DockRight);
+			MarksForm.Show(dockPanel, DockState.DockRight);
+			LayerEditor.Show(dockPanel, DockState.DockRight);
+			EffectsForm.Show(dockPanel, DockState.DockLeft);
+			EffectEditorForm.Show(ToolsForm.Pane, DockAlignment.Top, .6);
+		}
+
+
+#if DEBUG
 		private void b_Click(object sender, EventArgs e)
 		{
 			//Debugger.Break();
@@ -458,6 +542,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			TimelineControl.ElementsSelected -= timelineControl_ElementsSelected;
 			TimelineControl.ContextSelected -= timelineControl_ContextSelected;
 			TimelineControl.TimePerPixelChanged -= TimelineControl_TimePerPixelChanged;
+			TimelineControl.VisibleTimeStartChanged -= TimelineControl_VisibleTimeStartChanged;
+			Row.RowHeightChanged -= TimeLineControl_Row_RowHeightChanged;
 			//TimelineControl.DataDropped -= timelineControl_DataDropped;
 
 			Execution.ExecutionStateChanged -= OnExecutionStateChanged;
@@ -660,6 +746,25 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			}
 		}
 
+		private LayerEditor _layerEditor;
+
+		private LayerEditor LayerEditor
+		{
+			get
+			{
+				if (_layerEditor != null && !_layerEditor.IsDisposed)
+				{
+					return _layerEditor;
+				}
+
+				_layerEditor = new LayerEditor(_sequence.SequenceLayers);
+				_layerEditor.LayersChanged += LayerEditorLayersChanged;
+				_layerEditor.Closing +=LayerEditorOnClosing;
+
+				return _layerEditor;
+			}
+		}
+
 		private Form_ToolPalette _toolPaletteForm;
 
 		private Form_ToolPalette ToolsForm
@@ -706,6 +811,15 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			EffectsForm.Closing -= _effectsForm_Closing;
 		}
 
+		private void LayerEditorOnClosing(object sender, CancelEventArgs cancelEventArgs)
+		{
+			LayerEditor.Closing -= LayerEditorOnClosing;
+		}
+
+		private void LayerEditorLayersChanged(object sender, EventArgs e)
+		{
+			SequenceModified();
+		}
 
 
 		private void MarkCollection_Checked(object sender, MarkCollectionArgs e)
@@ -830,6 +944,17 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			TimelineControl.AllowGridResize = false;
 			_elementNodeToRows = new Dictionary<ElementNode, List<Row>>();
 
+			_suppressModifiedEvents = true;
+			//Scale our default pixel height for the rows
+			if (_sequence.DefaultRowHeight != 0)
+			{
+				TimelineControl.rowHeight = _sequence.DefaultRowHeight;
+			}
+			else
+			{
+				TimelineControl.rowHeight = (int)(TimelineControl.DefaultRowHeight * _scaleFactor);
+			}
+			
 			if (clearCurrentRows)
 				TimelineControl.ClearAllRows();
 
@@ -838,6 +963,23 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			{
 				AddNodeAsRow(node, null);
 			}
+
+			//Expand groups based on save settings
+			foreach (Row row in TimelineControl.Rows)
+			{
+				if (_sequence.RowGuidId == null) continue;
+				foreach (var rowGuidId in _sequence.RowGuidId)
+				{
+					if (rowGuidId.Key != ((ElementNode) row.Tag).Id) continue;
+					row.TreeOpen = true;
+					if (row.ParentRow != null)
+					{
+						row.TreeOpen = true;
+						row.Visible = rowGuidId.Value;
+					}
+				}
+			}
+			_suppressModifiedEvents = false;
 			TimelineControl.EnableDisableHandlers();
 
 			TimelineControl.LayoutRows();
@@ -970,7 +1112,12 @@ namespace VixenModules.Editor.TimedSequenceEditor
 					TimelineControl.TimePerPixel = _sequence.TimePerPixel;
 				}
 
+				if (_sequence.VisibleTimeStart > TimeSpan.Zero)
+				{
+					TimelineControl.VisibleTimeStart = _sequence.VisibleTimeStart;
+				}
 
+				TimelineControl.grid.SequenceLayers = Sequence.GetSequenceLayerManager();
 
 				Logging.Debug("Sequence {0} took {1} to load.", sequence.Name, _loadingWatch.Elapsed);
 			}
@@ -1024,7 +1171,9 @@ namespace VixenModules.Editor.TimedSequenceEditor
 								name = name + _sequence.FileExtension;
 								Logging.Info("TimedSequenceEditor: <SaveSequence> - Incorrect extension provided for timed sequence, appending one.");
 							}
+							SaveGridRowSettings();
 							_sequence.Save(name);
+							SetTitleBarText();
 						}
 						else
 						{
@@ -1034,12 +1183,15 @@ namespace VixenModules.Editor.TimedSequenceEditor
 					}
 					else
 					{
+						SaveGridRowSettings();
 						_sequence.Save();
 					}
 				}
 				else
 				{
+					SaveGridRowSettings();
 					_sequence.Save(filePath);
+					SetTitleBarText();
 				}
 
 			}
@@ -1049,6 +1201,40 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			}
 			
 			SequenceNotModified();
+		}
+
+		private void SaveGridRowSettings() //Adds Row and Grid settings to _sequence to be saved. 
+		{
+			_sequence.RowHeightSettings = new List<RowHeightSetting>();
+			_sequence.RowGuidId = new Dictionary<Guid, bool>();
+			//Add Default Row Height
+			_sequence.DefaultRowHeight = TimelineControl.rowHeight;
+			//Add Splitter Distance, the width of the RowList Column
+			if (TimelineControl.splitContainer.SplitterDistance != TimelineControl.DefaultSplitterDistance)
+			{
+				_sequence.DefaultSplitterDistance = TimelineControl.splitContainer.SplitterDistance;
+			}
+			//Add Playback start and end time
+			_sequence.DefaultPlaybackStartTime = TimelineControl.PlaybackStartTime;
+			_sequence.DefaultPlaybackEndTime = TimelineControl.PlaybackEndTime;
+			//Adds the Row height settings for only those Rows that are not within the Default range
+			foreach (Row row in TimelineControl.Rows)
+			{
+				if (row.Height > TimelineControl.rowHeight + 7 || row.Height < TimelineControl.rowHeight - 7) //The 7 is the buffer size and will not save the Row Height if within 7 pixels. This is if a user manual adjusts the Row to matach the others (default height) and is a small amout off.
+				{
+					RowHeightSetting newRowHeightCollection = new RowHeightSetting { RowHeight = row.Height, RowName = row.Name };
+					_sequence.RowHeightSettings.Add(newRowHeightCollection);
+				}
+			}
+			//Adds the Expanded Groups for the Row List.
+			foreach (Row row in TimelineControl.Rows)
+			{
+				if (row.TreeOpen)
+				{
+					if (!_sequence.RowGuidId.Keys.Contains(((ElementNode)row.Tag).Id))
+						_sequence.RowGuidId.Add(((ElementNode)row.Tag).Id, row.Visible);
+				}
+			}
 		}
 
 		private void SaveColorCollections()
@@ -1106,7 +1292,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				{
 					foreach (TimeSpan time in mc.Marks)
 					{
-						TimelineControl.AddSnapTime(time, mc.Level, mc.MarkColor);
+						TimelineControl.AddSnapTime(time, mc.Level, mc.MarkColor, mc.Bold, mc.SolidLine);
 					}
 				}
 			}
@@ -1736,11 +1922,29 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			}
 		}
 
+		private void TimeLineControl_Row_RowHeightChanged(object sender, EventArgs e)
+		{
+			if (!_suppressModifiedEvents)
+			{
+				SequenceModified();
+			}
+		}
+
 		private void TimelineControl_TimePerPixelChanged(object sender, EventArgs e)
 		{
 			if (_sequence.TimePerPixel != TimelineControl.TimePerPixel)
 			{
 				_sequence.TimePerPixel = TimelineControl.TimePerPixel;
+				SequenceModified();
+			}
+
+		}
+
+		private void TimelineControl_VisibleTimeStartChanged(object sender, EventArgs e)
+		{
+			if (_sequence.VisibleTimeStart != TimelineControl.VisibleTimeStart)
+			{
+				_sequence.VisibleTimeStart = TimelineControl.VisibleTimeStart;
 				SequenceModified();
 			}
 
@@ -1791,7 +1995,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 			_contextMenuStrip.Items.Add(contextMenuItemAddEffect);
 
-
+			ConfigureLayerMenu(e);
 
 			if (e.ElementsUnderCursor != null && e.ElementsUnderCursor.Count() == 1)
 			{
@@ -1809,7 +2013,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				//Disables the Alignment menu if too many effects are selected in a row.
 				if (!contextMenuItemAlignment.Enabled)
 				{
-					contextMenuItemAlignment.ToolTipText = @"Disabled, maximum selected effects per row is 4.";
+					contextMenuItemAlignment.ToolTipText = @"Disabled, maximum selected effects per row is 32.";
 				}
 
 				ToolStripMenuItem contextMenuItemAlignStart = new ToolStripMenuItem("Align Start Times (shift)")
@@ -1878,10 +2082,13 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				contextMenuItemDistributeEqually.Click += (mySender, myE) => DistributeSelectedEffectsEqually();
 
 				ToolStripMenuItem contextMenuItemAlignStartToMark = new ToolStripMenuItem("Align Start to nearest mark");
-				contextMenuItemAlignStartToMark.Click += (mySender, myE) => AlignEffectsToNearestMarks(true);
+				contextMenuItemAlignStartToMark.Click += (mySender, myE) => AlignEffectsToNearestMarks("Start");
 
 				ToolStripMenuItem contextMenuItemAlignEndToMark = new ToolStripMenuItem("Align End to nearest mark");
-				contextMenuItemAlignEndToMark.Click += (mySender, myE) => AlignEffectsToNearestMarks(false);
+				contextMenuItemAlignEndToMark.Click += (mySender, myE) => AlignEffectsToNearestMarks("End");
+
+				ToolStripMenuItem contextMenuItemAlignBothToMark = new ToolStripMenuItem("Align Both to nearest mark");
+				contextMenuItemAlignBothToMark.Click += (mySender, myE) => AlignEffectsToNearestMarks("Both");
 
 				_contextMenuStrip.Items.Add(contextMenuItemAlignment);
 				contextMenuItemAlignment.DropDown.Items.Add(contextMenuItemAlignStart);
@@ -1895,6 +2102,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				contextMenuItemAlignment.DropDown.Items.Add(contextMenuItemDistDialog);
 				contextMenuItemAlignment.DropDown.Items.Add(contextMenuItemAlignStartToMark);
 				contextMenuItemAlignment.DropDown.Items.Add(contextMenuItemAlignEndToMark);
+				contextMenuItemAlignment.DropDown.Items.Add(contextMenuItemAlignBothToMark);
 
 				if (tse != null)
 				{
@@ -1980,7 +2188,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 					contextMenuItemEditTime.Tag = tse;
 					contextMenuItemEditTime.Enabled = TimelineControl.grid.OkToUseAlignmentHelper(TimelineControl.SelectedElements);
 					if (!contextMenuItemEditTime.Enabled)
-						contextMenuItemEditTime.ToolTipText = @"Disabled, maximum selected effects per row is 4.";
+						contextMenuItemEditTime.ToolTipText = @"Disabled, maximum selected effects per row is 32.";
 					_contextMenuStrip.Items.Add(contextMenuItemEditTime);
 
 				}
@@ -2020,9 +2228,81 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 			}
 
+			ToolStripMenuItem contextMenuItemResetTimeLineSettings = new ToolStripMenuItem("Reset Timeline Settings"){ Image = Resources.Reset};
+			contextMenuItemResetTimeLineSettings.ToolTipText = "Resets TimeLine Start to Zero and Timeline Zoom to 14sec";
+			contextMenuItemResetTimeLineSettings.Click += (mySender, myE) => ResetTimeLineSettings();
+			_contextMenuStrip.Items.Add(contextMenuItemResetTimeLineSettings);
+
 			e.AutomaticallyHandleSelection = false;
 
 			_contextMenuStrip.Show(MousePosition);
+		}
+
+		private void ConfigureLayerMenu(ContextSelectedEventArgs e)
+		{
+			if ((e.ElementsUnderCursor != null && e.ElementsUnderCursor.Any()) || TimelineControl.SelectedElements.Any())
+			{
+				var layers = Sequence.GetAllLayers();
+				if (layers.Count() > 1)
+				{
+					ToolStripMenuItem contextMenuToLayer = new ToolStripMenuItem("Layer")
+					{
+						Enabled = true,
+						Image = Resources.layers,
+						ToolTipText = @"Assign effects to a layer"
+					};
+
+					foreach (var layer in layers.Reverse())
+					{
+						var item = new ToolStripMenuItem(layer.LayerName);
+						item.Tag = layer;
+						item.ToolTipText = layer.FilterName;
+						contextMenuToLayer.DropDownItems.Add(item);
+						item.Click += (sender, args) =>
+						{
+							var sequenceLayers = Sequence.GetSequenceLayerManager();
+							var el = e.ElementsUnderCursor;
+							Dictionary<IEffectNode, ILayer> modifiedNodes = new Dictionary<IEffectNode, ILayer>();
+							var newLayer = (ILayer) item.Tag;
+							//First try to apply to selected elements
+							if (TimelineControl.SelectedElements.Any())
+							{
+								foreach (var selectedElement in TimelineControl.SelectedElements)
+								{
+									var curentLayer = sequenceLayers.GetLayer(selectedElement.EffectNode);
+									if (newLayer != curentLayer)
+									{
+										modifiedNodes.Add(selectedElement.EffectNode, curentLayer);
+										sequenceLayers.AssignEffectNodeToLayer(selectedElement.EffectNode, newLayer);
+									}
+								}
+							}
+							else if (el != null && el.Any()) 
+							{
+								//if there are no selected elements, the ntry to apply to the element under the cursor
+								foreach (var selectedElement in el)
+								{
+									var curentLayer = sequenceLayers.GetLayer(selectedElement.EffectNode);
+									if (newLayer != curentLayer)
+									{
+										modifiedNodes.Add(selectedElement.EffectNode, curentLayer);
+										sequenceLayers.AssignEffectNodeToLayer(selectedElement.EffectNode, newLayer);
+									}
+								}
+							}
+							
+
+							if (modifiedNodes.Any())
+							{
+								var undo = new EffectsLayerChangedUndoAction(this, modifiedNodes);
+								_undoMgr.AddUndoAction(undo);
+								SequenceModified();
+							}
+						};
+					}
+					_contextMenuStrip.Items.Add(contextMenuToLayer);
+				}
+			}
 		}
 
 		private void AddContextCollectionsMenu()
@@ -2210,12 +2490,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				}
 				if (newEffects.Count > 0)
 				{
-					if (eDialog.SelectEffects || eDialog.EditEffects) SelectEffectNodes(newEffects);
-					if (eDialog.EditEffects && TimelineControl.SelectedElements.Any())
-					{
-						EditElements(TimelineControl.SelectedElements.Cast<TimedSequenceElement>());
-					}
-
+					if (eDialog.SelectEffects) SelectEffectNodes(newEffects);
 				}
 			}
 		}
@@ -2525,7 +2800,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				// Set the timeline control
 				TimelineControl.PlaybackStartTime = e.Time;
 				TimelineControl.PlaybackEndTime = null;
-
+				SequenceModified();
 				if (autoPlay)
 				{
 					_PlaySequence(e.Time, TimeSpan.MaxValue);
@@ -2557,7 +2832,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 					{
 						//messageBox Arguments are (Text, Title, No Button Visible, Cancel Button Visible)
 						MessageBoxForm.msgIcon = SystemIcons.Error; //this is used if you want to add a system icon to the message form.
-						var messageBox = new MessageBoxForm("Please select a mark collection in the Mark Manager window before adding a new mark to the timeline.", @"New Mark", false, true);
+						var messageBox = new MessageBoxForm("Please select a mark collection in the Mark Manager window before adding a new mark to the timeline.", @"New Mark", false, false);
 						messageBox.ShowDialog();
 					}
 				}
@@ -2725,13 +3000,14 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		private void PlaySequence()
 		{
+			int iconSize = (int)(24 * ScalingTools.GetScaleFactor());
 			//MessageBox.Show("Call to play sequence");
 			if (delayOffToolStripMenuItem.Checked == false && timerPostponePlay.Enabled == false && toolStripButton_Stop.Enabled == false)
 			{
 				//MessageBox.Show("Starting delay");
 				_delayCountDown = (timerPostponePlay.Interval / 1000);
 				timerPostponePlay.Enabled = timerDelayCountdown.Enabled = true;
-				toolStripButton_Play.Image = Tools.GetIcon(Resources.hourglass, 24);
+				toolStripButton_Play.Image = Resources.hourglass;
 				//The Looping stuff kinda broke this, but we need to do this for consistency
 				toolStripButton_Play.Enabled = true;
 				playToolStripMenuItem.Enabled = false;
@@ -2745,7 +3021,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			}
 
 			//Make sure the blue play icon is used & dissappear the delay countdown
-			toolStripButton_Play.Image = Tools.GetIcon(Resources.control_play_blue, 24);
+			toolStripButton_Play.Image = Resources.control_play_blue;
 			toolStripStatusLabel3.Visible = toolStripStatusLabel_delayPlay.Visible = false;
 
 			if (_context == null)
@@ -2818,6 +3094,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		private void StopSequence()
 		{
+			int iconSize = (int)(24 * ScalingTools.GetScaleFactor());
 			if (delayOffToolStripMenuItem.Checked != true)
 			{
 				toolStripStatusLabel3.Visible = toolStripStatusLabel_delayPlay.Visible = true;
@@ -2827,7 +3104,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			if (timerPostponePlay.Enabled)
 			{
 				timerPostponePlay.Enabled = timerDelayCountdown.Enabled = false;
-				toolStripButton_Play.Image = Tools.GetIcon(Resources.control_play_blue, 24);
+				toolStripButton_Play.Image = Resources.control_play_blue;
 				toolStripButton_Play.Enabled = playToolStripMenuItem.Enabled = true;
 				toolStripButton_Stop.Enabled = stopToolStripMenuItem.Enabled = false;
 				//We are stopping the delay, there is no context, so get out of here to avoid false entry into error log
@@ -3000,6 +3277,21 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		}
 
 		/// <summary>
+		/// Adds an EffectNode to the sequence and the TimelineControl and puts it in the given layer.
+		/// </summary>
+		/// <param name="node"></param>
+		/// <returns>The TimedSequenceElement created and added to the TimelineControl.</returns>
+		public TimedSequenceElement AddEffectNode(EffectNode node, ILayer layer)
+		{
+			//Debug.WriteLine("{0}   AddEffectNode({1})", (int)DateTime.Now.TimeOfDay.TotalMilliseconds, node.Effect.InstanceId);
+			_sequence.InsertData(node);
+			//return addElementForEffectNode(node);
+			var element =  AddElementForEffectNodeTpl(node);
+			Sequence.GetSequenceLayerManager().AssignEffectNodeToLayer(node, layer);
+			return element;
+		}
+
+		/// <summary>
 		/// Adds an EffectNode to the sequence and the TimelineControl.
 		/// </summary>
 		/// <param name="node"></param>
@@ -3029,12 +3321,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		private void SelectEffectNodes(IEnumerable<EffectNode> nodes)
 		{
 			TimelineControl.grid.ClearSelectedElements();
-
-			foreach (EffectNode element in nodes)
-			{
-				TimedSequenceElement tse = (TimedSequenceElement)_effectNodeToElement[element];
-				tse.Selected = true;
-			}
+			TimelineControl.grid.SelectElements(nodes.Select(x => _effectNodeToElement[x]));
 		}
 		
 		/// <summary>
@@ -3046,17 +3333,29 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			//Debug.WriteLine("{0}   RemoveEffectNodeAndElement(InstanceId={1})", (int)DateTime.Now.TimeOfDay.TotalMilliseconds, node.Effect.InstanceId);
 
 			// Lookup this effect node's Timeline Element
-			TimedSequenceElement tse = (TimedSequenceElement)_effectNodeToElement[node];
+			if (_effectNodeToElement.ContainsKey(node))
+			{
+				TimedSequenceElement tse = (TimedSequenceElement) _effectNodeToElement[node];
 
-			foreach (Row row in TimelineControl) // Remove the element from all rows
-				row.RemoveElement(tse);
+				foreach (Row row in TimelineControl) // Remove the element from all rows
+					row.RemoveElement(tse);
 
-			// TODO: Unnecessary?
-			tse.ContentChanged -= ElementContentChangedHandler; // Unregister event handlers
-			tse.TimeChanged -= ElementTimeChangedHandler;
+				// TODO: Unnecessary?
+				tse.ContentChanged -= ElementContentChangedHandler; // Unregister event handlers
+				tse.TimeChanged -= ElementTimeChangedHandler;
 
-			_effectNodeToElement.Remove(node); // Remove the effect node from the map
-			_sequence.RemoveData(node); // Remove the effect node from sequence
+				_effectNodeToElement.Remove(node); // Remove the effect node from the map
+				_sequence.RemoveData(node); // Remove the effect node from sequence
+				Sequence.GetSequenceLayerManager().RemoveEffectNodeFromLayers(node);
+			}
+			else
+			{
+				Logging.Error("Missing node on remove attempt in RemoveEffectNodeAndElement.");
+				//messageBox Arguments are (Text, Title, No Button Visible, Cancel Button Visible)
+				MessageBoxForm.msgIcon = SystemIcons.Error; //this is used if you want to add a system icon to the message form.
+				var messageBox = new MessageBoxForm("Node to remove not found, the editor is in a bad state! Please close the editor and restart it.", "Error", false, false);
+				messageBox.ShowDialog();
+			}
 		}
 
 
@@ -3288,7 +3587,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		{
 			// made the new row from the given node and add it to the control.
 			TimedSequenceRowLabel label = new TimedSequenceRowLabel {Name = node.Name};
-			Row newRow = TimelineControl.AddRow(label, parentRow, 32);
+			
+			Row newRow = TimelineControl.AddRow(label, parentRow, TimelineControl.rowHeight);
 			newRow.ElementRemoved += ElementRemovedFromRowHandler;
 			newRow.ElementAdded += ElementAddedToRowHandler;
 
@@ -3310,6 +3610,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			foreach (ElementNode child in node.Children)
 			{
 				AddNodeAsRow(child, newRow);
+				
 			}
 		}
 
@@ -3381,11 +3682,11 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			FormParameterPicker parameterPicker = new FormParameterPicker(parameterPickerControls)
 			{
 				StartPosition = FormStartPosition.Manual,
-				Top = MousePosition.Y
+				Top = _mouseOriginalPoint.Y
 			};
-			parameterPicker.Left = ((MousePosition.X + parameterPicker.Width) < Screen.FromControl(this).Bounds.Width)
-				? MousePosition.X
-				: MousePosition.X - parameterPicker.Width;
+			parameterPicker.Left = ((_mouseOriginalPoint.X + parameterPicker.Width) < Screen.FromControl(this).Bounds.Width)
+				? _mouseOriginalPoint.X
+				: _mouseOriginalPoint.X - parameterPicker.Width;
 			return parameterPicker;
 		}
 
@@ -3439,7 +3740,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			UpdateToolStrip4("Choose the property to set, press Escape to cancel.", 4);
 		}
 
-		private void CompleteDrop(Dictionary<Element, Tuple<object, PropertyDescriptor>> elementValues, Element element)
+		private void CompleteDrop(Dictionary<Element, Tuple<object, PropertyDescriptor>> elementValues, Element element, string type)
 		{
 			if (elementValues.Any())
 			{
@@ -3448,7 +3749,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				TimelineControl.grid.ClearSelectedElements();
 				TimelineControl.SelectElement(element);
 				UpdateToolStrip4(
-					string.Format("Gradient applied to {0} {1} effect(s).", elementValues.Count(), element.EffectNode.Effect.EffectName), 30);
+					string.Format("{2} applied to {0} {1} effect(s).", elementValues.Count(), element.EffectNode.Effect.EffectName, type), 30);
 			}
 		}
 
@@ -3457,6 +3758,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		private void HandleColorDrop(Element element, Color color)
 		{
+			_mouseOriginalPoint = new Point(MousePosition.X, MousePosition.Y);
+
 			var elements = GetElementsForDrop(element);
 
 			if (ValidateMultipleEffects(element, elements)) return;	
@@ -3467,6 +3770,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		private void HandleColorDropOnElements(IEnumerable<Element> elements, Color color)
 		{
 			if (elements == null || !elements.Any()) return;
+
 			var element = elements.First();
 
 			var properties = MetadataRepository.GetProperties(element.EffectNode.Effect).Where(x => (x.PropertyType == typeof(Color)) && x.IsBrowsable);
@@ -3563,7 +3867,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				}
 
 			}
-			CompleteDrop(elementValues, element);
+			CompleteDrop(elementValues, element, "Color");
 			
 		}
 
@@ -3580,6 +3884,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		
 		private void HandleCurveDrop(Element element, Curve curve)
 		{
+			_mouseOriginalPoint = new Point(MousePosition.X, MousePosition.Y);
+
 			var elements = GetElementsForDrop(element);
 
 			if (ValidateMultipleEffects(element, elements)) return;	
@@ -3666,7 +3972,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				}
 
 			}
-			CompleteDrop(elementValues, element);
+			CompleteDrop(elementValues, element, "Curve");
 			
 		}
 
@@ -3697,6 +4003,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		private void HandleGradientDrop(Element element, ColorGradient color)
 		{
+			_mouseOriginalPoint = new Point(MousePosition.X, MousePosition.Y);
+
 			var elements = GetElementsForDrop(element);
 
 			if (ValidateMultipleEffects(element, elements)) return;	
@@ -3811,7 +4119,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 
 			}
-			CompleteDrop(elementValues, element);
+			CompleteDrop(elementValues, element, "Gradient");
 
 		}
 
@@ -3908,6 +4216,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		#region Overridden form functions (On___)
 
+		public bool IgnoreKeyDownEvents { get; set; }
+
 		protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
 		{
 			switch (keyData)
@@ -3935,6 +4245,9 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		protected override void OnKeyDown(KeyEventArgs e)
 		{
+			if (IgnoreKeyDownEvents) return;
+
+			Element element;
 			// do anything special we want to here: keyboard shortcuts that are in
 			// the menu will be handled by them instead.
 			switch (e.KeyCode)
@@ -3971,25 +4284,49 @@ namespace VixenModules.Editor.TimedSequenceEditor
 					break;
 
 				case Keys.Space:
-					if (!_context.IsRunning)
-						PlaySequence();
-					else
-					{
-						if (_context.IsPaused)
-							PlaySequence();
-						else
-							StopSequence();
-					}
+					HandleSpacebarAction();
 					break;
 
 				case Keys.Left:
 					if (e.Control)
+					{
 						TimelineControl.MoveSelectedElementsByTime(TimelineControl.TimePerPixel.Scale(-2));
+					}
+					
 					break;
 
 				case Keys.Right:
 					if (e.Control)
+					{
 						TimelineControl.MoveSelectedElementsByTime(TimelineControl.TimePerPixel.Scale(2));
+					}
+					
+					break;
+				
+				case Keys.S:
+					element = TimelineControl.grid.ElementAtPosition(MousePosition);
+					if (element != null && TimelineControl.SelectedElements.Count() > 1 && TimelineControl.SelectedElements.Contains(element))
+					{
+						TimelineControl.grid.AlignElementStartTimes(TimelineControl.SelectedElements, element, e.Shift);
+					}
+					break;
+				case Keys.E:
+					
+					element = TimelineControl.grid.ElementAtPosition(MousePosition);
+					if (element != null && TimelineControl.SelectedElements.Count() > 1 && TimelineControl.SelectedElements.Contains(element))
+					{
+						TimelineControl.grid.AlignElementEndTimes(TimelineControl.SelectedElements, element, e.Shift);
+					}
+					break;
+					
+				case Keys.B:
+					
+					element = TimelineControl.grid.ElementAtPosition(MousePosition);
+					if (element != null && TimelineControl.SelectedElements.Count() > 1 && TimelineControl.SelectedElements.Contains(element))
+					{
+						TimelineControl.grid.AlignElementStartEndTimes(TimelineControl.SelectedElements, element);
+					}
+					
 					break;
 
 				case Keys.Escape:
@@ -4024,6 +4361,19 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			base.OnKeyDown(e);
 		}
 
+		internal void HandleSpacebarAction()
+		{
+			if (!_context.IsRunning)
+				PlaySequence();
+			else
+			{
+				if (_context.IsPaused)
+					PlaySequence();
+				else
+					StopSequence();
+			}
+		}
+
 		protected override void OnFormClosed(FormClosedEventArgs e)
 		{
 			VixenSystem.Contexts.ReleaseContext(_context);
@@ -4046,6 +4396,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 			int rownum = 0;
 			var affectedElements = new List<Element>();
+			var layerManager = LayerManager;
 			foreach (Row row in TimelineControl.VisibleRows)
 			{
 				// Since removals may happen during enumeration, make a copy with ToArray().
@@ -4062,7 +4413,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 						new EffectModelCandidate(elem.EffectNode.Effect)
 							{
 								Duration = elem.Duration,
-								StartTime = elem.StartTime
+								StartTime = elem.StartTime,
+								LayerId = layerManager.GetLayer(elem.EffectNode).Id
 							};
 					result.EffectModelCandidates.Add(modelCandidate, relativeVisibleRow);
 
@@ -4071,8 +4423,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 					if (cutElements)
 					{
-						row.RemoveElement(elem);
-						_sequence.RemoveData(elem.EffectNode);
+						RemoveEffectNodeAndElement(elem.EffectNode);
 						SequenceModified();
 					}
 				}
@@ -4149,8 +4500,10 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				//Make a new effect and populate it with the detail data from the clipboard
 				var newEffect = ApplicationServices.Get<IEffectModuleInstance>(effectModelCandidate.TypeId);
 				newEffect.ModuleData = effectModelCandidate.GetEffectData();
-				
-				nodesToAdd.Add(CreateEffectNode(newEffect, visibleRows[targetRowIndex], targetTime, effectModelCandidate.Duration));
+				var node = CreateEffectNode(newEffect, visibleRows[targetRowIndex], targetTime, effectModelCandidate.Duration);
+				LayerManager.AssignEffectNodeToLayer(node, effectModelCandidate.LayerId);
+				nodesToAdd.Add(node);
+
 				result++;
 			}
 
@@ -4419,73 +4772,45 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		private void gridWindowToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-
-			if (GridForm.IsHidden || GridForm.DockState == DockState.Unknown)
-			{
-				GridForm.DockState = DockState.Document;
-				GridForm.Show(dockPanel, DockState.Document);
-			}
-			
+			HandleDockContentToolStripMenuClick(GridForm, DockState.Document);
 		}
 
 		private void effectEditorWindowToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			if (EffectEditorForm.DockState == DockState.Unknown)
-			{
-				EffectEditorForm.Show(dockPanel, DockState.DockRight);
-			}
-			else
-			{
-				EffectEditorForm.Close();
-			}
-
+			HandleDockContentToolStripMenuClick(EffectEditorForm, DockState.DockRight);
 		}
-
 
 		private void effectWindowToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			if (EffectsForm.DockState == DockState.Unknown)
-			{
-				DockState dockState = EffectsForm.DockState;
-				if (dockState == DockState.Unknown) dockState = DockState.DockLeft;
-				EffectsForm.Show(dockPanel, dockState);
-			}
-			else
-			{
-				EffectsForm.Close();
-			}
+			HandleDockContentToolStripMenuClick(EffectsForm, DockState.DockLeft);
 		}
 
 		private void markWindowToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			if (MarksForm.DockState == DockState.Unknown)
-			{
-				DockState dockState = MarksForm.DockState;
-				dockState = DockState.DockLeft;
-				if (dockState == DockState.Unknown) dockState = DockState.DockLeft;
-				MarksForm.Show(dockPanel, dockState);
-			}
-			else
-			{
-				MarksForm.Close();
-			}
+			HandleDockContentToolStripMenuClick(MarksForm, DockState.DockRight);
 		}
 
 		private void toolWindowToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			if (ToolsForm.DockState == DockState.Unknown)
+			HandleDockContentToolStripMenuClick(ToolsForm, DockState.DockRight);
+		}
+
+		private void mixingFilterEditorWindowToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			HandleDockContentToolStripMenuClick(LayerEditor, DockState.DockLeft);
+		}
+
+		private void HandleDockContentToolStripMenuClick(DockContent dockWindow, DockState state)
+		{
+			if (dockWindow.IsHidden || dockWindow.DockState == DockState.Unknown)
 			{
-				DockState dockState = ToolsForm.DockState;
-				dockState = DockState.DockLeft;
-				if (dockState == DockState.Unknown) dockState = DockState.DockLeft;
-				ToolsForm.Show(dockPanel, dockState);
+				dockWindow.Show(dockPanel, state);
 			}
 			else
 			{
-				ToolsForm.Close();
+				dockWindow.Close();
 			}
 		}
-
 
 		#endregion
 
@@ -4584,6 +4909,23 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			}
 		}
 
+		private void toolStripDropDownButtonAlignToStrength_MenuItem_Click(object sender, EventArgs e)
+		{
+			ToolStripMenuItem item = sender as ToolStripMenuItem;
+			if (item != null && !item.Checked)
+			{
+				foreach (ToolStripMenuItem subItem in item.Owner.Items)
+				{
+					if (!item.Equals(subItem) && subItem != null)
+					{
+						subItem.Checked = false;
+					}
+				}
+				item.Checked = true;
+				AlignTo_Threshold = item.ToString();
+			}
+		}
+
 		#endregion
 
 		#region Undo
@@ -4673,6 +5015,17 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			TimelineControl.grid.SwapElementPlacement(changedElements);
 		}
 
+		public void SwapLayers(Dictionary<IEffectNode, ILayer> effectNodes)
+		{
+			foreach (var node in effectNodes.Keys.ToList())
+			{
+				var tmpLayer = LayerManager.GetLayer(node);
+				LayerManager.AssignEffectNodeToLayer(node, effectNodes[node]);
+				effectNodes[node] = tmpLayer;
+			}
+
+			SequenceModified();
+		}
 		//private void SwapEffectData(Dictionary<Element, EffectModelCandidate> changedElements)
 		//{
 		//	List<Element> keys = new List<Element>(changedElements.Keys);
@@ -4725,6 +5078,15 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			get { throw new NotImplementedException(); }
 		}
 
+		public SequenceLayers LayerManager
+		{
+			get
+			{
+				return Sequence.GetSequenceLayerManager();
+				
+			}
+		}
+
 		public ISequence Sequence
 		{
 			get { return _sequence; }
@@ -4760,6 +5122,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			dockPanel.SaveAsXml(_settingsPath);
 			MarksForm.Close();
 			EffectsForm.Close();
+			LayerEditor.Close();
 
 			var xml = new XMLProfileSettings();
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/DockLeftPortion", Name), (int)dockPanel.DockLeftPortion);
@@ -4775,11 +5138,15 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/WindowState", Name), WindowState.ToString());
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/SnapStrength", Name), TimelineControl.grid.SnapStrength);
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/CloseGapThreshold", Name), TimelineControl.grid.CloseGap_Threshold);
+			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/AlignToThreshold", Name), AlignTo_Threshold);
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ResizeIndicatorEnabled", Name), TimelineControl.grid.ResizeIndicator_Enabled);
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/CadStyleSelectionBox", Name), cADStyleSelectionBoxToolStripMenuItem.Checked);
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ResizeIndicatorColor", Name), TimelineControl.grid.ResizeIndicator_Color);
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteLinkCurves", Name), ToolsForm.LinkCurves);
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ToolPaletteLinkGradients", Name), ToolsForm.LinkGradients);
+			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ZoomUnderMousePosition", Name), zoomUnderMousePositionToolStripMenuItem.Checked);
+			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/WaveFormHeight", Name), TimelineControl.waveform.Height);
+			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/RulerHeight", Name), TimelineControl.ruler.Height);
 
 			//This .Close is here because we need to save some of the settings from the form before it is closed.
 			ToolsForm.Close();
@@ -4978,6 +5345,24 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			FormBorderStyle = FormBorderStyle.FixedSingle;
 			//loadingTask = Task.Factory.StartNew(() => loadSequence(_sequence), token);
 			LoadSequence(_sequence);
+
+			//Adjusts Row heights based on saved row height settings.
+			if (_sequence.RowHeightSettings != null)
+			{
+				_suppressModifiedEvents = true;
+				foreach (RowHeightSetting rowSettings in _sequence.RowHeightSettings)
+				{
+					foreach (Row row in TimelineControl.Rows)
+					{
+						if (row.Name == rowSettings.RowName)
+						{
+							row.Height = rowSettings.RowHeight;
+						}
+					}
+				}
+
+				_suppressModifiedEvents = false;
+			}
 		}
 
 		private void cboAudioDevices_TextChanged(object sender, EventArgs e)
@@ -4996,6 +5381,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			//to create the form if the user does not activate it. 
 			effectWindowToolStripMenuItem.Checked = !(_effectsForm == null || _effectsForm.DockState == DockState.Unknown);
 			markWindowToolStripMenuItem.Checked = !(_marksForm == null || _marksForm.DockState == DockState.Unknown);
+			mixingFilterEditorWindowToolStripMenuItem.Checked = !(_layerEditor == null || _layerEditor.DockState == DockState.Unknown);
 			toolWindowToolStripMenuItem.Checked = !(_toolPaletteForm==null || _toolPaletteForm.DockState == DockState.Unknown);
 			gridWindowToolStripMenuItem.Checked = !GridForm.IsHidden;
 			effectEditorWindowToolStripMenuItem.Checked = !(_effectEditorForm == null || EffectEditorForm.DockState == DockState.Unknown);
@@ -5140,8 +5526,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
                               new EffectModelCandidate(effect)
                               {
                                   Duration = TimeSpan.FromMilliseconds(phoneme.DurationMS - 1),
-                                  StartTime = startTime,
-                              };
+                                  StartTime = startTime
+							  };
 
                         result.EffectModelCandidates.Add(modelCandidate, rownum);
                         if (startTime < result.EarliestStartTime)
@@ -5348,10 +5734,10 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 		/// <summary>
 		/// Aligns selected elements, or if none, all elements to the closest mark.
-		/// alignStart = true to align the start of the elements, false to align the end of the elements.
+		/// alignMethod = Start to align the start of the elements, End to align the end of the effects and Both to align Start and End of elements.
 		/// </summary>
-		/// <param name="alignStart"></param>
-		private void AlignEffectsToNearestMarks(bool alignStart)
+		/// <param name="alignMethod"></param>
+		private void AlignEffectsToNearestMarks(string alignMethod)
 		{
 			if (!TimelineControl.grid.SelectedElements.Any())
 			{
@@ -5375,10 +5761,25 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 				foreach (Element element in elements)
 				{
-					var nearestMark = FindNearestMark(alignStart ? element.StartTime : element.EndTime);
-					if (nearestMark != TimeSpan.Zero && !moveElements.ContainsKey(element))
+					var nearestStartMark = element.StartTime;
+					var nearestEndMark = element.EndTime;
+
+					switch (alignMethod)
 					{
-						moveElements.Add(element, new Tuple<TimeSpan, TimeSpan>(alignStart ? nearestMark : element.StartTime, alignStart ? element.EndTime : nearestMark));
+						case "Start":
+							nearestStartMark = FindNearestMark(element.StartTime);
+							break;
+						case "End":
+							nearestEndMark = FindNearestMark(element.EndTime);
+							break;
+						case "Both":
+							nearestStartMark = FindNearestMark(element.StartTime);
+							nearestEndMark = FindNearestMark(element.EndTime);
+							break;
+					}
+					if (nearestStartMark != TimeSpan.Zero && !moveElements.ContainsKey(element) && nearestEndMark != TimeSpan.Zero && !moveElements.ContainsKey(element))
+					{
+						moveElements.Add(element, new Tuple<TimeSpan, TimeSpan>(nearestStartMark, nearestEndMark));
 					}
 				}
 			}
@@ -5387,16 +5788,22 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			if (moveElements.Any()) TimelineControl.grid.MoveResizeElements(moveElements);
 		}
 
+		private void ResetTimeLineSettings()
+		{
+			TimelineControl.VisibleTimeStart = TimeSpan.Zero;
+			TimelineControl.TimePerPixel = TimeSpan.FromTicks(100000);
+		}
+
 		/// <summary>
 		/// Returns the TimeSpan location of the nearest mark to the given TimeSpan
-		/// Located within the threshhold: TimelineControl.grid.CloseGap_Threshold
+		/// Located within the threshhold: AlignTo_Threshold
 		/// </summary>
 		/// <param name="referenceTimeSpan"></param>
 		/// <returns></returns>
 		private TimeSpan FindNearestMark(TimeSpan referenceTimeSpan)
 		{
 			List<TimeSpan> marksInRange = new List<TimeSpan>();
-			var threshold = TimeSpan.FromSeconds(Convert.ToDouble(TimelineControl.grid.CloseGap_Threshold));
+			var threshold = TimeSpan.FromSeconds(Convert.ToDouble(AlignTo_Threshold));
 			TimeSpan result = TimeSpan.Zero;
 			TimeSpan compareResult = TimeSpan.Zero;
 
@@ -5415,13 +5822,13 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 			foreach (TimeSpan markTime in marksInRange)
 			{
-				if (markTime > referenceTimeSpan && markTime - referenceTimeSpan < compareResult || result == TimeSpan.Zero)
+				if (markTime > referenceTimeSpan && markTime - referenceTimeSpan < compareResult.Duration() || result == TimeSpan.Zero)
 				{
 					compareResult = markTime - referenceTimeSpan;
 					result = markTime;
 				}
 
-				if (markTime < referenceTimeSpan && referenceTimeSpan - markTime < compareResult || result == TimeSpan.Zero)
+				if (markTime < referenceTimeSpan && referenceTimeSpan - markTime < compareResult.Duration() || result == TimeSpan.Zero)
 				{
 					compareResult = referenceTimeSpan - markTime;
 					result = markTime;
@@ -5447,6 +5854,21 @@ namespace VixenModules.Editor.TimedSequenceEditor
 
 				}
 			}
+		}
+
+		private void zoomUnderMousePositionToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
+		{
+			TimelineControl.ZoomToMousePosition = zoomUnderMousePositionToolStripMenuItem.Checked;
+	}
+
+		private void resetRowHeightToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			TimelineControl.ResetRowHeight();
+		}
+
+		private void collapeAllElementGroupsToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			TimelineControl.RowListMenuCollapse();
 		}
 
 	}

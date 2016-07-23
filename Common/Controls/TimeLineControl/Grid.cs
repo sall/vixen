@@ -13,6 +13,7 @@ using Common.Controls.Theme;
 using NLog;
 using Vixen;
 using Vixen.Execution.Context;
+using Vixen.Sys.LayerMixing;
 
 namespace Common.Controls.Timeline
 {
@@ -52,6 +53,9 @@ namespace Common.Controls.Timeline
 		private MouseButtons MouseButtonDown;
 		public string alignmentHelperWarning = @"Too many effects selected on the same row for this action.\nMax selected effects per row for this action is 4";
 		public bool aCadStyleSelectionBox { get; set; }
+
+		private List<Row> _visibleRows = new List<Row>();
+		private bool _visibleRowsDirty = false;
 
 		#region Initialization
 
@@ -254,9 +258,17 @@ namespace Common.Controls.Timeline
 			get { return Rows.FirstOrDefault(x => x.Active); }
 		}
 
-		public IEnumerable<Row> VisibleRows
+		public List<Row> VisibleRows
 		{
-			get { return Rows.Where(x => x.Visible); }
+			get
+			{
+				if (_visibleRowsDirty)
+				{
+					_visibleRows = Rows.Where(x => x.Visible).ToList();
+					_visibleRowsDirty = false;
+				}
+				return _visibleRows;
+			}
 		}
 
 		public Row TopVisibleRow
@@ -322,6 +334,8 @@ namespace Common.Controls.Timeline
 		private SortedDictionary<TimeSpan, List<SnapDetails>> StaticSnapPoints { get; set; }
 		private SortedDictionary<TimeSpan, List<SnapDetails>> CurrentDragSnapPoints { get; set; }
 		private List<Element> tempSelectedElements = new List<Element>();
+
+		public SequenceLayers SequenceLayers { get; set; }
 
 		#endregion
 
@@ -427,6 +441,8 @@ namespace Common.Controls.Timeline
 			// when dragging, the control will invalidate after it's done, in case multiple elements are changing.
 			if (m_dragState != DragState.Moving && !SequenceLoading)
 				if (!SuppressInvalidate) Invalidate();
+
+			_visibleRowsDirty = true;
 		}
 
 		protected void RowSelectedChangedHandler(object sender, ModifierKeysEventArgs e)
@@ -690,7 +706,7 @@ namespace Common.Controls.Timeline
 
 			foreach (Element elem in elements)
 			{
-				if (elem.Row.SelectedElements.Count() > 4)
+				if (elem.Row.SelectedElements.Count() > 32)
 					return false;
 			}
 			return true;
@@ -730,7 +746,7 @@ namespace Common.Controls.Timeline
 						: new Tuple<TimeSpan, TimeSpan>(referenceElement.StartTime, selectedElement.EndTime));
 			}
 
-			MoveResizeElements(elementsToAlign, ElementMoveType.Align);
+			MoveResizeElements(elementsToAlign, ElementMoveType.AlignStart);
 		}
 
 		/// <summary>
@@ -767,7 +783,7 @@ namespace Common.Controls.Timeline
 						: new Tuple<TimeSpan, TimeSpan>(selectedElement.StartTime, referenceElement.EndTime));
 			}
 
-			MoveResizeElements(elementsToAlign, ElementMoveType.Align);
+			MoveResizeElements(elementsToAlign, ElementMoveType.AlignEnd);
 		}
 
 		/// <summary>
@@ -798,7 +814,7 @@ namespace Common.Controls.Timeline
 						: new Tuple<TimeSpan, TimeSpan>(selectedElement.StartTime, selectedElement.StartTime + referenceElement.Duration));
 			}
 
-			MoveResizeElements(elementsToAlign, ElementMoveType.Align);
+			MoveResizeElements(elementsToAlign, ElementMoveType.AlignDurations);
 		}
 
 		/// <summary>
@@ -825,7 +841,7 @@ namespace Common.Controls.Timeline
 				elementsToAlign.Add(selectedElement, new Tuple<TimeSpan, TimeSpan>(referenceElement.StartTime, referenceElement.EndTime));
 			}
 
-			MoveResizeElements(elementsToAlign, ElementMoveType.Align);
+			MoveResizeElements(elementsToAlign, ElementMoveType.AlignBoth);
 		}
 
 		/// <summary>
@@ -859,7 +875,7 @@ namespace Common.Controls.Timeline
 				elementsToAlign.Add(selectedElement, new Tuple<TimeSpan, TimeSpan>(startTime, endTime));
 			}
 
-			MoveResizeElements(elementsToAlign, ElementMoveType.Align);
+			MoveResizeElements(elementsToAlign, ElementMoveType.AlignStartToEnd);
 		}
 
 		/// <summary>
@@ -893,7 +909,7 @@ namespace Common.Controls.Timeline
 				elementsToAlign.Add(selectedElement, new Tuple<TimeSpan, TimeSpan>(startTime, endTime));
 			}
 
-			MoveResizeElements(elementsToAlign, ElementMoveType.Align);
+			MoveResizeElements(elementsToAlign, ElementMoveType.AlignEndToStart);
 		}
 
 		/// <summary>
@@ -922,7 +938,7 @@ namespace Common.Controls.Timeline
 				elementsToAlign.Add(selectedElement, new Tuple<TimeSpan, TimeSpan>(TimeSpan.FromSeconds(thisStartTime), TimeSpan.FromSeconds(thisStartTime) + selectedElement.Duration));
 			}
 
-			MoveResizeElements(elementsToAlign, ElementMoveType.Align);
+			MoveResizeElements(elementsToAlign, ElementMoveType.AlignCenters);
 		}
 
 		/// <summary>
@@ -1836,18 +1852,20 @@ namespace Common.Controls.Timeline
 			foreach (KeyValuePair<TimeSpan, List<SnapDetails>> kvp in StaticSnapPoints) {
 				newPoints[kvp.Key] = new List<SnapDetails>();
 				foreach (SnapDetails details in kvp.Value) {
-					newPoints[kvp.Key].Add(CalculateSnapDetailsForPoint(details.SnapTime, details.SnapLevel, details.SnapColor));
+					newPoints[kvp.Key].Add(CalculateSnapDetailsForPoint(details.SnapTime, details.SnapLevel, details.SnapColor, details.SnapBold, details.SnapSolidLine));
 				}
 			}
 			StaticSnapPoints = newPoints;
 		}
 
-		private SnapDetails CalculateSnapDetailsForPoint(TimeSpan snapTime, int level, Color color)
+		private SnapDetails CalculateSnapDetailsForPoint(TimeSpan snapTime, int level, Color color, bool lineBold, bool solidLine)
 		{
 			SnapDetails result = new SnapDetails();
 			result.SnapLevel = level;
 			result.SnapTime = snapTime;
 			result.SnapColor = color;
+			result.SnapBold = lineBold;
+			result.SnapSolidLine = solidLine;
 
 			// the start time and end times for specified points are 2 pixels
 			// per snap level away from the snap time.
@@ -1856,12 +1874,12 @@ namespace Common.Controls.Timeline
 			return result;
 		}
 
-		public void AddSnapPoint(TimeSpan snapTime, int level, Color color)
+		public void AddSnapPoint(TimeSpan snapTime, int level, Color color, bool lineBold, bool solidLine)
 		{
 			if (!StaticSnapPoints.ContainsKey(snapTime))
-				StaticSnapPoints.Add(snapTime, new List<SnapDetails> {CalculateSnapDetailsForPoint(snapTime, level, color)});
+				StaticSnapPoints.Add(snapTime, new List<SnapDetails> {CalculateSnapDetailsForPoint(snapTime, level, color, lineBold, solidLine)});
 			else
-				StaticSnapPoints[snapTime].Add(CalculateSnapDetailsForPoint(snapTime, level, color));
+				StaticSnapPoints[snapTime].Add(CalculateSnapDetailsForPoint(snapTime, level, color, lineBold, solidLine));
 
 			if (!SuppressInvalidate) Invalidate();
 		}
@@ -1931,6 +1949,12 @@ namespace Common.Controls.Timeline
 			_SelectionChanged();
 		}
 
+		public void SelectElements(IEnumerable<Element> elements)
+		{
+			elements.All(x => x.Selected = true);
+			_SelectionChanged();
+		}
+
 		public void ToggleElementSelection(Element element)
 		{
 			element.Selected = !element.Selected;
@@ -1995,10 +2019,7 @@ namespace Common.Controls.Timeline
 			// Draw row separators
 			using (Pen p = new Pen(RowSeparatorColor))
 			using (SolidBrush b = new SolidBrush(SelectionColor)) {
-				foreach (Row row in Rows) {
-					if (!row.Visible)
-						continue;
-
+				foreach (Row row in VisibleRows) {
 					Point selectedTopLeft = new Point((-AutoScrollPosition.X), curY);
 					curY += row.Height;
 					Point lineLeft = new Point((-AutoScrollPosition.X), curY);
@@ -2054,9 +2075,13 @@ namespace Common.Controls.Timeline
 						if (details == null || (d.SnapLevel > details.SnapLevel && d.SnapColor != Color.Empty))
 							details = d;
 					}
-					p = new Pen(details.SnapColor);
+					int lineBold = 1;
+					if (details.SnapBold)
+						lineBold = 3;
+					p = new Pen(details.SnapColor, lineBold);
 					Single x = timeToPixels(kvp.Key);
-					p.DashPattern = new float[] {details.SnapLevel, details.SnapLevel};
+					if (!details.SnapSolidLine)
+						p.DashPattern = new float[] {details.SnapLevel, details.SnapLevel};
 					g.DrawLine(p, x, 0, x, AutoScrollMinSize.Height);
 					p.Dispose();
 				}
@@ -2104,7 +2129,7 @@ namespace Common.Controls.Timeline
             CancellationTokenSource cts = new CancellationTokenSource();
             ParallelOptions po = new ParallelOptions();
             po.CancellationToken = cts.Token;
-            po.MaxDegreeOfParallelism = Environment.ProcessorCount;
+            //po.MaxDegreeOfParallelism = Environment.ProcessorCount;
 
 			long processed = 0;
 			try
@@ -2112,8 +2137,8 @@ namespace Common.Controls.Timeline
 		        if (_blockingElementQueue != null)
 		        {
                     //Use or fancy multi cpu boxes more effectively.
-		            //foreach (Element element in _blockingElementQueue.GetConsumingEnumerable()) {
-		            Parallel.ForEach(_blockingElementQueue.GetConsumingPartitioner(), po, element =>
+		            foreach (Element element in _blockingElementQueue.GetConsumingEnumerable()) 
+		            //Parallel.ForEach(_blockingElementQueue.GetConsumingPartitioner(), po, element =>
 		            {
 			            Interlocked.Increment(ref processed);
 		                // This will likely never be hit: the blocking element queue above will always block waiting for more
@@ -2154,7 +2179,7 @@ namespace Common.Controls.Timeline
 		                {
 		                    Logging.Error("Error in rendering.", ex);
 		                }
-		            });
+		            }//);
 		        }
 		    }
 		    catch (OperationCanceledException ce)
@@ -2304,7 +2329,8 @@ namespace Common.Controls.Timeline
 				Row row = rowAt(m_lastGridLocation);
 				if (row != null) //null check to prevent mouse off screen locations trying to find a row.
 				{
-					element.DrawInfo(g, new Rectangle(element.DisplayRect.X, row.DisplayTop, element.DisplayRect.Width, row.Height));
+					var layerInfo = SequenceLayers.GetLayer(element.EffectNode);
+					element.DrawInfo(g, new Rectangle(element.DisplayRect.X, row.DisplayTop, element.DisplayRect.Width, row.Height), layerInfo);
 				}
 			}
 		}
@@ -2460,6 +2486,8 @@ namespace Common.Controls.Timeline
 		public int SnapLevel; // the "priority" of this snap point; bigger is higher priority
 		public Row SnapRow; // the rows that this point should affect; null if all rows
 		public Color SnapColor; // the color to draw the snap point
+		public bool SnapBold; // snap point is bold
+		public bool SnapSolidLine; // snap point is a solidline or dotted
 	}
 
 

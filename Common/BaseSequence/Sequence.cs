@@ -5,8 +5,10 @@ using System.IO;
 using Vixen.Module.Media;
 using Vixen.Module.Timing;
 using Vixen.Execution;
+using Vixen.Module.MixingFilter;
 using Vixen.Services;
 using Vixen.Sys;
+using Vixen.Sys.LayerMixing;
 
 namespace BaseSequence
 {
@@ -29,6 +31,8 @@ namespace BaseSequence
 		public void Save(string filePath)
 		{
 			SequenceService.Instance.Save(this, filePath);
+			//update our file path.
+			FilePath = filePath;
 		}
 
 		public void Save()
@@ -140,6 +144,20 @@ namespace BaseSequence
 
 		#endregion
 
+		#region IHasLayerMixingFilters
+
+		public IEnumerable<ILayer> GetAllLayers()
+		{
+			return SequenceData.SequenceLayers.Layers;
+		}
+
+		public SequenceLayers GetSequenceLayerManager()
+		{
+			return SequenceData.SequenceLayers;
+		}
+
+		#endregion
+
 		public SelectedTimingProvider SelectedTimingProvider
 		{
 			get { return SequenceData.SelectedTimingProvider; }
@@ -174,6 +192,8 @@ namespace BaseSequence
 		~Sequence() {
 			Dispose(false);
 		}
+
+		
 		protected void Dispose(bool disposing) {
 			if (disposing)
 			{

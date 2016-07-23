@@ -5,23 +5,27 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Data;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Windows.Forms;
 using System.Diagnostics;
 using Common.Controls.Theme;
 using VixenModules.Media.Audio;
 using System.Threading.Tasks;
+using Common.Controls.Scaling;
 
 namespace Common.Controls.Timeline
 {
 	[System.ComponentModel.DesignerCategory("")] // Prevent this from showing up in designer.
 	public class TimelineControl : TimelineControlBase, IEnumerable<Row>
 	{
-		private const int InitialSplitterDistance = 200;
+		//These are the 96 DPI based defaults. They should be scaled if used.
+		public const int DefaultSplitterDistance = 200;
+		public const int DefaultRowHeight = 32;
 
 		#region Member Controls
 
-		private SplitContainer splitContainer;
+		public SplitContainer splitContainer;
 
 		// Left side (Panel 1)
 		private RowList timelineRowList;
@@ -29,11 +33,16 @@ namespace Common.Controls.Timeline
 		// Right side (Panel 2)
 		public Ruler ruler;
 		public Grid grid;
-		private Waveform waveform;
+		public Waveform waveform;
 
 		#endregion
 
 		private bool _sequenceLoading = false;
+
+		public bool ZoomToMousePosition { get; set; }
+
+		public int rowHeight;
+		private Row selectedRow;
 
 		public bool SequenceLoading
 		{
@@ -49,6 +58,7 @@ namespace Common.Controls.Timeline
 		public TimelineControl()
 			: base(new TimeInfo()) // This is THE TimeInfo object for the whole control (and all sub-controls).
 		{
+			rowHeight = (int)(DefaultRowHeight*ScalingTools.GetScaleFactor());
 			TimeInfo.TimePerPixel = TimeSpan.FromTicks(100000);
 			TimeInfo.VisibleTimeStart = TimeSpan.Zero;
 
@@ -72,10 +82,12 @@ namespace Common.Controls.Timeline
 				Row.RowToggled += RowToggledHandler;
 				Row.RowHeightChanged += RowHeightChangedHandler;
 				Row.RowHeightResized += RowHeightResizedHandler;
+				Row.RowLabelContextMenuSelect += RowLabelContextMenuHandler;
 			} else {
 				Row.RowToggled -= RowToggledHandler;
 				Row.RowHeightChanged -= RowHeightChangedHandler;
 				Row.RowHeightResized -= RowHeightResizedHandler;
+				Row.RowLabelContextMenuSelect -= RowLabelContextMenuHandler;
 			}
 			this.timelineRowList.EnableDisableHandlers(enabled);
 		}
@@ -86,6 +98,7 @@ namespace Common.Controls.Timeline
 			Row.RowToggled -= RowToggledHandler;
 			Row.RowHeightChanged -= RowHeightChangedHandler;
 			Row.RowHeightResized -= RowHeightResizedHandler;
+			Row.RowLabelContextMenuSelect -= RowLabelContextMenuHandler;
 			Vixen.Utility.cEventHelper.RemoveAllEventHandlers(this);
 			Vixen.Utility.cEventHelper.RemoveAllEventHandlers(TimeInfo);
 			TimeInfo = null;
@@ -135,10 +148,11 @@ namespace Common.Controls.Timeline
 
 			InitializePanel1();
 			InitializePanel2();
-
+			
 			splitContainer.ResumeLayout(false);
 			splitContainer.EndInit();
-
+		
+			splitContainer.PerformAutoScale();
 			this.ResumeLayout(false);
 		}
 
@@ -181,7 +195,7 @@ namespace Common.Controls.Timeline
 			ruler = new Ruler(TimeInfo)
 			        	{
 			        		Dock = DockStyle.Top,
-			        		Height = 40,
+			        		Height = 50,
 			        	};
 			splitContainer.Panel2.Controls.Add(ruler);
 
@@ -327,19 +341,44 @@ namespace Common.Controls.Timeline
 			grid.EndDraw();
 			}
 
-		public void ZoomRows(double scale)
+		public void ZoomTime(double scale, Point mousePosition)
 		{
 			if (scale <= 0.0)
 				return;
 			grid.BeginDraw();
 
+			decimal gridPixelWidth = splitContainer.Panel2.Width;
+			TimeSpan originalTimeSpan = VisibleTimeSpan;
+			TimePerPixel = TimePerPixel.Scale(scale);
+			TimeSpan newTimeSpan = VisibleTimeSpan;
+			decimal timeSpanOffset = ((100 / gridPixelWidth) * (mousePosition.X - splitContainer.SplitterDistance) / 100);
+			VisibleTimeStart = scale > 1
+				? VisibleTimeStart - (pixelsToTime((int)(timeToPixels(newTimeSpan - originalTimeSpan) * (float)timeSpanOffset)))
+				: VisibleTimeStart + (pixelsToTime((int)(timeToPixels(originalTimeSpan - newTimeSpan) * (float)timeSpanOffset)));
+
+			grid.EndDraw();
+		}
+
+		public void ZoomRows(double scale)
+		{
+			if (scale <= 0.0)
+				return;
+			//The following ensures the screen is not refreshed in any way, saving a lot of redraw time and rows now resize smoothly.
+			grid.AllowGridResize = false;
+			EnableDisableHandlers(false);
+			//sets the new rowheight
+			rowHeight = (int)(rowHeight * scale);
+			//Updastes all rows with new rowheight
 			foreach (Row r in Rows)
 			{
 				if (r.Height * scale > grid.Height) continue; //Don't scale a row beyond the grid height. How big do you need it?
 				r.Height = (int)(r.Height * scale);
 			}
-
-			grid.EndDraw();
+			//Enables handlers and refreshes row and grid heights.
+			EnableDisableHandlers();
+			grid.AllowGridResize = true;
+			LayoutRows();
+			Rows.ElementAt(0).Height = Rows.ElementAt(0).Height;
 		}
 
 		public void ResizeGrid()
@@ -412,10 +451,10 @@ namespace Common.Controls.Timeline
 			set { waveform.Audio = value; }
 		}
 
-		public void AddSnapTime(TimeSpan time, int level, Color color)
+		public void AddSnapTime(TimeSpan time, int level, Color color, bool lineBold, bool solidLine)
 		{
-			grid.AddSnapPoint(time, level, color);
-			ruler.AddSnapPoint(time, level, color);
+			grid.AddSnapPoint(time, level, color, lineBold, solidLine);
+			ruler.AddSnapPoint(time, level, color, lineBold, solidLine);
 		}
 
 		public bool RemoveSnapTime(TimeSpan time)
@@ -591,6 +630,12 @@ namespace Common.Controls.Timeline
 			remove { ruler.TimeRangeDragged -= value; }
 		}
 
+		public event EventHandler<SelectedMarkMoveEventArgs> SelectedMarkMove
+		{
+			add { Ruler.SelectedMarkMove += value; }
+			remove { Ruler.SelectedMarkMove -= value; }
+		}
+
 		#endregion
 		
 		#region Event Handlers
@@ -635,20 +680,144 @@ namespace Common.Controls.Timeline
 		private void RowHeightResizedHandler(object sender, EventArgs e)
 		{
 			Invalidate();
+
+			//resizes all other copies of the same element
+			var selectedRow = sender as Row;
+			foreach (Row row in Rows)
+			{
+				if (row.Name == selectedRow.Name)
+				{
+					row.Height = selectedRow.Height;
 		}
+			}
+		}
+
+
+		public static readonly ContextMenuStrip RowListMenu = new ContextMenuStrip();
+
+		#region RowLabel Context Menu Strip
+
+		private void RowLabelContextMenuHandler(object sender, EventArgs e)
+		{
+			//Conext menu for the RowLabel when right clicking.
+			RowListMenu.Items.Clear();
+			ToolStripMenuItem RowListMenuCollapse = new ToolStripMenuItem("Collapse All Groups");
+			ToolStripMenuItem RowListMenuResetRowHeight = new ToolStripMenuItem("Reset All Rows to Default Height");
+			ToolStripMenuItem RowListMenuResetSelectedRowHeight =
+				new ToolStripMenuItem("Reset Selected and Child rows to Default Height");
+			RowListMenuCollapse.Click += RowListMenuCollapse_Click;
+			RowListMenuResetRowHeight.Click += ResetRowHeight_Click;
+			RowListMenuResetSelectedRowHeight.Click += ResetSelectedRowHeight_Click;
+			RowListMenu.Items.AddRange(new ToolStripItem[]
+			{RowListMenuCollapse, RowListMenuResetRowHeight, RowListMenuResetSelectedRowHeight});
+			RowListMenu.Renderer = new ThemeToolStripRenderer();
+			RowListMenu.Show(MousePosition);
+		}
+
+		private void ResetRowHeight_Click(object sender, EventArgs e)
+		{
+			ResetRowHeight();
+		}
+		private void ResetSelectedRowHeight_Click(object sender, EventArgs e)
+		{
+			ResetSelectedRowHeight();
+		}
+
+		private void RowListMenuCollapse_Click(object sender, EventArgs e)
+		{
+			RowListMenuCollapse();
+		}
+
+		public void ResetRowHeight()
+		{
+			//Resets all row heights back to default
+			//ensure that rows are completed before refreshing allowing a smooth transistion.
+			EnableDisableHandlers(false);
+			grid.AllowGridResize = false;
+			rowHeight = (int)(DefaultRowHeight*ScalingTools.GetScaleFactor());
+			foreach (Row row in Rows)
+			{
+				if (row.Height != rowHeight )
+					row.Height = rowHeight;
+			}
+			
+			EnableDisableHandlers();
+			grid.AllowGridResize = true;
+			LayoutRows();
+			Rows.ElementAt(0).Height = Rows.ElementAt(0).Height;
+		}
+
+		public void RowListMenuCollapse()
+		{
+			//Collapses all open groups
+			foreach (Row row in Rows)
+			{
+				if (row.TreeOpen)
+				{
+					row.TreeOpen = false;
+				}
+			}
+		}
+
+		private void ResetSelectedRowHeight()
+		{
+			//Resets the selected row and childs to current default height.
+			SelectedRow.Height = rowHeight;
+			foreach (Row rH in SelectedRow.ChildRows)
+			{
+				rH.Height = rowHeight;
+				ChangeRowHeight(rH); 
+			}
+		}
+
+		public void ChangeRowHeight(Row childs)
+		{
+			// iterate through all of its children, changing each row height to the current default
+			foreach (Row child in childs.ChildRows)
+			{
+				child.Height = rowHeight;
+				ChangeRowHeight(child);
+			}
+		}
+		#endregion
 
 		protected override void OnMouseWheel(MouseEventArgs e)
 		{
 			base.OnMouseWheel(e);
-			if (Form.ModifierKeys.HasFlag(Keys.Control)) {
-				// holding the control key zooms the horizontal axis, by 10% per mouse wheel tick
-				Zoom(1.0 - ((double) e.Delta/1200.0));
+			if (ModifierKeys.HasFlag(Keys.Control) & ModifierKeys.HasFlag(Keys.Alt))
+			{
+				//holding the control and alt keys while scrolling adjusts the row height under the cursor.
+				Point gridLocation = e.Location;
+				int delta = e.Delta;
+				zoomRowHeight(gridLocation, delta);
 			}
-			else if (Form.ModifierKeys.HasFlag(Keys.Shift)) {
+			else if (ModifierKeys.HasFlag(Keys.Control) & ModifierKeys.HasFlag(Keys.Shift))
+			{
+				//holding the control and shift while scrolling adjusts all row heights
+				double zoomScale = e.Delta < 0.0 ? 0.8 : 1.25;
+				ZoomRows(zoomScale);
+			}
+			else if (ModifierKeys.HasFlag(Keys.Control))
+			{
+				// holding the control key zooms the horizontal axis, by 10% per mouse wheel tick
+				if (ZoomToMousePosition)
+				{
+					// holding the control key zooms the horizontal axis under the cursor, by 10% per mouse wheel tick
+					ZoomTime(1.0 - ((double)e.Delta / 1200.0), e.Location);
+	//			waveform.Invalidate();
+			}
+				else
+				{
+					// holding the control key zooms the horizontal axis, by 10% per mouse wheel tick
+					Zoom(1.0 - ((double)e.Delta / 1200.0));
+				}
+			}
+			else if (ModifierKeys.HasFlag(Keys.Shift)) {
 				// holding the skift key moves the horizontal axis, by 10% of the visible time span per mouse wheel tick
 				// wheel towards user   --> negative delta --> VisibleTimeStart increases
 				// wheel away from user --> positive delta --> VisibleTimeStart decreases
-				VisibleTimeStart += VisibleTimeSpan.Scale(-((double) e.Delta/1200.0));
+				VisibleTimeStart += VisibleTimeSpan.Scale(-((double)e.Delta / 1200.0));
+	//			waveform.Invalidate();
 			}
 			else {
 				// moving the mouse wheel with no modifiers moves the display vertically, 40 pixels per mouse wheel tick
@@ -657,19 +826,46 @@ namespace Common.Controls.Timeline
 		}
 
 		#endregion
+		private void zoomRowHeight(Point gridLocation, int delta)
+		{
+			//Changes Row height with the control shift and mouse scroll
+			grid.BeginDraw();
+			double zoomScale = delta < 0.0 ? 0.8 : 1.25;
+			int waveFormHeight = 0;
+			if (waveform.Audio != null)
+				waveFormHeight = waveform.Height;
+			int curheight = ruler.Height + waveFormHeight;
+
+			foreach (Row row in Rows)
+			{
+				if (!row.Visible)
+					continue;
+
+				if (gridLocation.Y < curheight + row.Height)
+				{
+					selectedRow = row;
+					break;
+				}
+				curheight += row.Height;
+			}
+			if (selectedRow != null) selectedRow.Height = (int)(selectedRow.Height * zoomScale);
+			grid.EndDraw();
+		}
 
 		#region Overridden methods (On__)
 
 		protected override void OnLoad(EventArgs e)
 		{
-			splitContainer.SplitterDistance = InitialSplitterDistance;
 			base.OnLoad(e);
 		}
 
 		protected override void OnLayout(LayoutEventArgs e)
 		{
 			//Console.WriteLine("Layout");
-			timelineRowList.Top = grid.Top;
+			if (grid != null)
+			{
+				timelineRowList.Top = grid.Top;
+			}
 			base.OnLayout(e);
 		}
 

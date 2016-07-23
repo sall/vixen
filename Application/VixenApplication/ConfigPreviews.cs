@@ -21,7 +21,7 @@ using Vixen.Sys.Output;
 
 namespace VixenApplication
 {
-	public partial class ConfigPreviews : Form
+	public partial class ConfigPreviews : BaseForm
 	{
 		private OutputPreview _displayedController;
 		private bool _changesMade;
@@ -146,10 +146,22 @@ namespace VixenApplication
 			}
 
 			listViewControllers.EndUpdate();
+			ColumnAutoSize();
 
 			foreach (ListViewItem item in listViewControllers.Items) {
 				if (item.Tag == _displayedController)
 					item.Selected = true;
+			}
+		}
+
+		public void ColumnAutoSize()
+		{
+			listViewControllers.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
+			ListView.ColumnHeaderCollection cc = listViewControllers.Columns;
+			var width = (listViewControllers.Width - (int) (listViewControllers.Width*.06d))/listViewControllers.Columns.Count;
+			for (int i = 0; i < cc.Count; i++)
+			{
+				cc[i].Width = width;
 			}
 		}
 

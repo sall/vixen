@@ -7,13 +7,14 @@ using System.Text;
 using System.Windows.Forms;
 using System.Drawing;
 using Common.Controls;
+using Common.Controls.Scaling;
 using Common.Controls.Theme;
 using Common.Resources;
 using Common.Resources.Properties;
 
 namespace VixenModules.App.Shows
 {
-	public partial class ShowEditorForm : Form
+	public partial class ShowEditorForm : BaseForm
 	{
 		ShowItemType currentShowItemType;
 
@@ -23,19 +24,39 @@ namespace VixenModules.App.Shows
 
 			ForeColor = ThemeColorTable.ForeColor;
 			BackColor = ThemeColorTable.BackgroundColor;
-			ThemeUpdateControls.UpdateControls(this);
-			buttonAddItem.Image = Tools.GetIcon(Resources.add, 16);
+			int iconSize = (int) (24*ScalingTools.GetScaleFactor());
+			buttonAddItem.Image = Tools.GetIcon(Resources.add, iconSize);
 			buttonAddItem.Text = "";
-			buttonDeleteItem.Image = Tools.GetIcon(Resources.delete, 16);
+			buttonDeleteItem.Image = Tools.GetIcon(Resources.delete, iconSize);
 			buttonDeleteItem.Text = "";
-			buttonHelp.Image = Tools.GetIcon(Resources.help, 16);
+			buttonHelp.Image = Tools.GetIcon(Resources.help, iconSize);
+
+			ThemeUpdateControls.UpdateControls(this);
+
+			tabControlShowItems.AutoSize = true;
+			tabControlShowItems.SizeMode = TabSizeMode.Fixed;
+			
+			var tabWidth = 0;
+			var tabHeight = 0;
 			foreach (Control tab in tabControlShowItems.TabPages)
 			{
 				tab.BackColor = ThemeColorTable.ComboBoxBackColor;
 				tab.ForeColor = ThemeColorTable.ForeColor;
+				Graphics g = tab.CreateGraphics();
+				SizeF s = g.MeasureString(tab.Text, tab.Font);
+				tabWidth = Math.Max(tabWidth, (int)s.Width+10);
+				tabHeight = Math.Max(tabHeight, (int)s.Height);
 			}
+
+			tabWidth = Math.Min(tabControlShowItems.Width - 10/tabControlShowItems.TabPages.Count, tabWidth);
+
+			tabControlShowItems.ItemSize = new Size(tabWidth, tabHeight);
+
 			tabControlShowItems.SelectedTabColor = ThemeColorTable.ComboBoxBackColor;
 			tabControlShowItems.TabColor = ThemeColorTable.ComboBoxHighlightColor;
+
+			
+
 
 			ShowData = show;
 		}
@@ -129,7 +150,7 @@ namespace VixenModules.App.Shows
 					SelectedShowItem.Action = ActionStringToAction(action);
 					currentEditor = SelectedShowItem.Editor;
 					currentEditor.Location = new Point(4, 16);
-					currentEditor.Width = groupBoxItemEdit.Width - (currentEditor.Left * 2);
+					currentEditor.Dock=DockStyle.Fill;
 					currentEditor.OnTextChanged += OnTextChanged;
 					groupBoxItemEdit.Controls.Add(currentEditor);
 				}
@@ -444,9 +465,7 @@ namespace VixenModules.App.Shows
 
 		private void buttonCancel_Click(object sender, EventArgs e)
 		{
-			//messageBox Arguments are (Text, Title, No Button Visible, Cancel Button Visible)
-			MessageBoxForm.msgIcon = SystemIcons.Warning; //this is used if you want to add a system icon to the message form.
-			var messageBox = new MessageBoxForm("Are you sure you want to cancel? Any changes made to the show setup will be lost.", "Cancel Show setup changes", true, false);
+			var messageBox = new MessageBoxForm("Are you sure you want to cancel? Any changes made to the show setup will be lost.", "Cancel Show setup changes",MessageBoxButtons.YesNo, SystemIcons.Warning);
 			messageBox.ShowDialog();
 			if (messageBox.DialogResult == DialogResult.OK)
 			{
@@ -458,10 +477,5 @@ namespace VixenModules.App.Shows
 		private int Xwid = 8;
 		private const int tab_margin = 0;
 
-		// Draw a tab.
-		private void tabMenu_DrawItem(object sender, DrawItemEventArgs e)
-		{
-
-		}
 	}
 }

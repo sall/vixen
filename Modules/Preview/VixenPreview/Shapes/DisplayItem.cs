@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -35,7 +36,7 @@ namespace VixenModules.Preview.VixenPreview.Shapes
     [KnownType(typeof (PreviewIcicle))]
     [KnownType(typeof(PreviewPolyLine))]
     [KnownType(typeof(PreviewMultiString))]
-	public class DisplayItem : IHandler<IIntentState<LightingValue>>, IHandler<IIntentState<CommandValue>>, IDisposable
+	public class DisplayItem : IHandler<IIntentState<LightingValue>>, IHandler<IIntentState<CommandValue>>, IDisposable, IEnumerable<DisplayItem>
 	{
 		private PreviewBaseShape _shape;
 
@@ -63,7 +64,7 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 				int margin = 1;
 				string info;
 				info = "Z:" + Shape.Pixels[0].Z;
-				Font font = new Font("Arial", 7);
+				Font font = new Font(SystemFonts.MessageBoxFont.FontFamily, 7);
 				SizeF textSize = g.MeasureString(info, font);
 				Rectangle rect = new Rectangle(Shape.Left, Shape.Top, (int)textSize.Width + (margin * 2), (int)textSize.Height + (margin * 2));
 
@@ -115,6 +116,16 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 				_zoomLevel = value;
 				Shape.ZoomLevel = _zoomLevel;
 			}
+		}
+
+		public IEnumerator<DisplayItem> GetEnumerator()
+		{
+			throw new NotImplementedException();
+		}
+
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return GetEnumerator();
 		}
 	}
 }

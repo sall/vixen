@@ -7,13 +7,14 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using Common.Controls;
+using Common.Controls.Scaling;
 using Common.Controls.Theme;
 using Common.Resources;
 using Common.Resources.Properties;
 
 namespace VixenModules.App.SuperScheduler
 {
-	public partial class SetupForm : Form
+	public partial class SetupForm : BaseForm
 	{
 		public SetupForm(SuperSchedulerData data)
 		{
@@ -21,17 +22,18 @@ namespace VixenModules.App.SuperScheduler
 
 			ForeColor = ThemeColorTable.ForeColor;
 			BackColor = ThemeColorTable.BackgroundColor;
-			ThemeUpdateControls.UpdateControls(this);
-			buttonAddSchedule.Image = Tools.GetIcon(Resources.add, 16);
+			int iconSize = (int)(24 * ScalingTools.GetScaleFactor());
+			buttonAddSchedule.Image = Tools.GetIcon(Resources.add, iconSize);
 			buttonAddSchedule.Text = "";
-			buttonDeleteSchedule.Image = Tools.GetIcon(Resources.delete, 16);
+			buttonDeleteSchedule.Image = Tools.GetIcon(Resources.delete, iconSize);
 			buttonDeleteSchedule.Text = "";
-			buttonEditSchedule.Image = Tools.GetIcon(Resources.pencil, 16);
+			buttonEditSchedule.Image = Tools.GetIcon(Resources.pencil, iconSize);
 			buttonEditSchedule.Text = "";
-			buttonEditShow.Image = Tools.GetIcon(Resources.table_edit, 16);
+			buttonEditShow.Image = Tools.GetIcon(Resources.table_edit, iconSize);
 			buttonEditShow.Text = "";
-			buttonHelp.Image = Tools.GetIcon(Resources.help, 16);
+			buttonHelp.Image = Tools.GetIcon(Resources.help, iconSize);
 
+			ThemeUpdateControls.UpdateControls(this);
 			
 			Data = data;
 		}
@@ -69,9 +71,9 @@ namespace VixenModules.App.SuperScheduler
 			string daySt = String.Empty;
 			if (item.Monday && item.Tuesday && item.Wednesday && item.Thursday && item.Friday && item.Saturday && item.Sunday)
 				daySt = "Everyday";
-			else if (item.Monday && item.Tuesday && item.Wednesday && item.Thursday && item.Friday && !(item.Saturday && item.Sunday))
+			else if (item.Monday && item.Tuesday && item.Wednesday && item.Thursday && item.Friday && !(item.Saturday || item.Sunday))
 				daySt = "Weekdays";
-			else if (item.Saturday && item.Sunday && !(item.Monday && item.Tuesday && item.Wednesday && item.Thursday && item.Friday))
+			else if (item.Saturday && item.Sunday && !(item.Monday || item.Tuesday || item.Wednesday || item.Thursday || item.Friday))
 				daySt = "Weekends";
 			else
 			{

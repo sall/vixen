@@ -97,28 +97,28 @@ namespace Common.Controls.Timeline
 									SelectElementsBetween(m_lastSingleSelectedElementLocation, gridLocation);
 								}
 							}
-							else
-							{
-								//Unselect everything and make this the new selection
+							//else
+							//{
+							//	//Unselect everything and make this the new selection
 								
-								SupressSelectionEvents = true;
-								ClearSelectedElements();
-								ClearSelectedRows();
-								ClearActiveRows();
-								SupressSelectionEvents = false;
+							//	SupressSelectionEvents = true;
+							//	ClearSelectedElements();
+							//	ClearSelectedRows();
+							//	ClearActiveRows();
+							//	SupressSelectionEvents = false;
 								
-								if (_ElementsSelected(m_mouseDownElements))
-								{
-									foreach (Element element in m_mouseDownElements)
-									{
-										element.Selected = true;
-									}
-									m_lastSingleSelectedElementLocation = gridLocation;
+							//	if (_ElementsSelected(m_mouseDownElements))
+							//	{
+							//		foreach (Element element in m_mouseDownElements)
+							//		{
+							//			element.Selected = true;
+							//		}
+							//		m_lastSingleSelectedElementLocation = gridLocation;
 									
-								}
+							//	}
 
-								_SelectionChanged();
-							}
+							//	_SelectionChanged();
+							//}
 						}
 					}
 					else {
@@ -148,13 +148,13 @@ namespace Common.Controls.Timeline
 								}
 								m_lastSingleSelectedElementLocation = gridLocation;
 								Row row = rowAt(gridLocation);
-								if(row!=null)row.Active = true;
+								if (row != null) row.Active = true;
 								_SelectionChanged();
 							}
-							else if(!CtrlPressed)
+							else if (!CtrlPressed)
 							{
 								_SelectionChanged();
-							}	
+							}
 						}
 						
 					}
@@ -221,16 +221,18 @@ namespace Common.Controls.Timeline
 						endAllDrag();
 						// If we're not dragging on mouse up, it could be a click on one of multiple
 						// selected elements. (In which case we select only that one)
-						//if (m_mouseDownElements != null && m_mouseDownElements.Any()  && !CtrlPressed && !ShiftPressed) {
-						//	ClearSelectedElements();
-						//	if (_ElementsSelected(m_mouseDownElements)) {
-						//		m_mouseDownElements.First().Selected = true;
-						//		m_lastSingleSelectedElementLocation = gridLocation;
-						//		_SelectionChanged();
-						//		Row row = rowAt(gridLocation);
-						//		if(row!=null)row.Active = true;
-						//	}
-						//}
+						if (m_mouseDownElements != null && m_mouseDownElements.Any() && !CtrlPressed && !ShiftPressed)
+						{
+							ClearSelectedElements();
+							if (_ElementsSelected(m_mouseDownElements))
+							{
+								m_mouseDownElements.First().Selected = true;
+								m_lastSingleSelectedElementLocation = gridLocation;
+								_SelectionChanged();
+								Row row = rowAt(gridLocation);
+								if (row != null) row.Active = true;
+							}
+						}
 						if (m_mouseDownElements != null && m_mouseDownElements.Any() && ShiftPressed ||
 							m_mouseDownElements != null && m_mouseDownElements.Any() && CtrlPressed)
 						{
@@ -664,7 +666,7 @@ namespace Common.Controls.Timeline
 
 					// if it's a non-selected element, generate snap points for it; for the start and end times. Also record the
 					// row its from in the generated point, so when snapping we can check against only elements from this row.
-					SnapDetails details = CalculateSnapDetailsForPoint(element.StartTime, SnapPriorityForElements, Color.Empty);
+					SnapDetails details = CalculateSnapDetailsForPoint(element.StartTime, SnapPriorityForElements, Color.Empty, false, false);
 					details.SnapRow = row;
 
 					if (!CurrentDragSnapPoints.ContainsKey(details.SnapTime)) {
@@ -672,7 +674,7 @@ namespace Common.Controls.Timeline
 					}
 					CurrentDragSnapPoints[details.SnapTime].Add(details);
 
-					details = CalculateSnapDetailsForPoint(element.EndTime, SnapPriorityForElements, Color.Empty);
+					details = CalculateSnapDetailsForPoint(element.EndTime, SnapPriorityForElements, Color.Empty, false, false);
 					details.SnapRow = row;
 
 					if (!CurrentDragSnapPoints.ContainsKey(details.SnapTime)) {
@@ -982,7 +984,13 @@ namespace Common.Controls.Timeline
 	{
 		Move,
 		Resize,
-		Align,
+		AlignStart,
+		AlignEnd,
+		AlignBoth,
+		AlignDurations,
+		AlignStartToEnd,
+		AlignEndToStart,
+		AlignCenters,
 		Distribute
 	}
 }

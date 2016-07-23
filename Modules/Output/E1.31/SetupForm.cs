@@ -41,11 +41,12 @@ using Common.Controls.Theme;
     using VixenModules.Controller.E131.J1Sys;
     using System.Drawing;
     using System.Linq;
-    using Vixen.Sys;
+using Common.Controls.Scaling;
+using Vixen.Sys;
 
 namespace VixenModules.Output.E131
 {
-    public partial class SetupForm : Form
+	public partial class SetupForm : BaseForm
     {
         // column indexes - must be changed if column addrange code is changed
         // could refactor to a variable and initialize it at column add time
@@ -74,6 +75,7 @@ namespace VixenModules.Output.E131
         /// </summary>
         public SetupForm()
         {
+			
             // get all the nics
             var networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
             foreach (var networkInterface in networkInterfaces)
@@ -99,19 +101,21 @@ namespace VixenModules.Output.E131
 
             // finally initialize the form
             InitializeComponent();
+	        int iconSize = (int)(16*ScalingTools.GetScaleFactor());
+			lblDestination.Font = new Font(SystemFonts.MessageBoxFont.FontFamily, 14.25F);
             btnAddUniverse.Text = "";
-            btnAddUniverse.Image = Tools.GetIcon(Resources.add, 16);
+            btnAddUniverse.Image = Tools.GetIcon(Resources.add, iconSize);
             btnDeleteUniverse.Text = "";
-            btnDeleteUniverse.Image = Tools.GetIcon(Resources.delete, 16);
+            btnDeleteUniverse.Image = Tools.GetIcon(Resources.delete, iconSize);
 
             btnAddUnicast.Text = "";
-            btnAddUnicast.Image = Tools.GetIcon(Resources.add, 16);
+            btnAddUnicast.Image = Tools.GetIcon(Resources.add, iconSize);
             btnDeleteUnicast.Text = "";
-            btnDeleteUnicast.Image = Tools.GetIcon(Resources.delete, 16);
+            btnDeleteUnicast.Image = Tools.GetIcon(Resources.delete, iconSize);
 			SetDestinations();
 			ForeColor = ThemeColorTable.ForeColor;
 			BackColor = ThemeColorTable.BackgroundColor;
-			ThemeUpdateControls.UpdateControls(this);
+			ThemeUpdateControls.UpdateControls(this, new List<Control>(new []{univDGVN}));
 			foreach (Control tab in tabControlEX1.TabPages)
 			{
 				tab.BackColor = ThemeColorTable.BackgroundColor;
@@ -120,9 +124,26 @@ namespace VixenModules.Output.E131
 			tabControlEX1.SelectedTabColor = ThemeColorTable.BackgroundColor;
 			tabControlEX1.TabColor = ThemeColorTable.BackgroundColor;
 	        tabControlEX1.SelectedTab = tabPageEX1;
+			univDGVN.EnableHeadersVisualStyles = false;
 			univDGVN.BackgroundColor = ThemeColorTable.BackgroundColor;
+			univDGVN.ForeColor = ThemeColorTable.ForeColor;
+	        univDGVN.DefaultCellStyle.BackColor = ThemeColorTable.BackgroundColor;
+	        univDGVN.DefaultCellStyle.ForeColor = ThemeColorTable.ForeColor;
+	        univDGVN.DefaultCellStyle.SelectionBackColor = ThemeColorTable.ListBoxHighLightColor;
+			univDGVN.DefaultCellStyle.SelectionForeColor = ThemeColorTable.ForeColor;
+			univDGVN.RowsDefaultCellStyle.BackColor = Color.Empty;
+			univDGVN.RowsDefaultCellStyle.ForeColor = Color.Empty;
+			univDGVN.ColumnHeadersDefaultCellStyle.BackColor = ThemeColorTable.BackgroundColor;
+			univDGVN.ColumnHeadersDefaultCellStyle.ForeColor = ThemeColorTable.ForeColor;
+	        univDGVN.RowHeadersDefaultCellStyle.BackColor = Color.Empty;
+	        univDGVN.RowHeadersDefaultCellStyle.ForeColor = Color.Empty;
+			univDGVN.RowHeadersDefaultCellStyle.SelectionForeColor = Color.Empty;
+			univDGVN.RowHeadersDefaultCellStyle.SelectionBackColor = Color.Empty;
+			autoPopulateStateUpdate();
+
         }
 
+		
         public int EventRepeatCount
         {
             get
@@ -868,13 +889,12 @@ namespace VixenModules.Output.E131
 
                             if ((r1LowerBound >= r2LowerBound && r1LowerBound <= r2UpperBound) || (r1UpperBound >= r2LowerBound && r1UpperBound <= r2UpperBound))
                             {
-								//messageBox Arguments are (Text, Title, No Button Visible, Cancel Button Visible)
-								MessageBoxForm.msgIcon = SystemIcons.Warning; //this is used if you want to add a system icon to the message form.
-								var messageBox = new MessageBoxForm("The start values seem to be setup in an unusual way. You are sending identical lighting values to multiple sACN outputs. The start value column refers to where a given universe starts reading values in from the list of output channel data from Vixen. For example, setting Universe 1's start value to 5 will map Channel 1 in Universe 1 to output channel #5 in the Vixen controller setup. Would you like to review your settings?", "Warning", true, false);
+
+								var messageBox = new MessageBoxForm("The start values seem to be setup in an unusual way. You are sending identical lighting values to multiple sACN outputs. The start value column refers to where a given universe starts reading values in from the list of output channel data from Vixen. For example, setting Universe 1's start value to 5 will map Channel 1 in Universe 1 to output channel #5 in the Vixen controller setup. Would you like to review your settings?", "Warning", MessageBoxButtons.OKCancel, SystemIcons.Warning);
 								messageBox.ShowDialog();
 								if (messageBox.DialogResult == DialogResult.OK)
 								{
-                                    e.Cancel = true;
+                                    e.Cancel = false;
                                     return;
                                 }
                                 overlapWarning = true;
@@ -971,13 +991,17 @@ namespace VixenModules.Output.E131
 
             if (!autoPopulateStart.Checked)
             {
-                univDGVN.Columns[START_COLUMN].DefaultCellStyle.BackColor = Color.LightGray;
-                univDGVN.Columns[START_COLUMN].DefaultCellStyle.Font = new Font(univDGVN.Columns[START_COLUMN].DefaultCellStyle.Font ?? SystemFonts.DefaultFont, FontStyle.Italic);
+	            var style = univDGVN.Columns[START_COLUMN].DefaultCellStyle;
+				style.BackColor = ThemeColorTable.ListBoxHighLightColor;
+				style.Font = new Font(univDGVN.Columns[START_COLUMN].DefaultCellStyle.Font ?? SystemFonts.MessageBoxFont, FontStyle.Italic);
+	            univDGVN.Columns[START_COLUMN].DefaultCellStyle = style;
             }
             else
             {
-                univDGVN.Columns[START_COLUMN].DefaultCellStyle.BackColor = Color.White;
-                univDGVN.Columns[START_COLUMN].DefaultCellStyle.Font = new Font(univDGVN.Columns[START_COLUMN].DefaultCellStyle.Font ?? SystemFonts.DefaultFont, FontStyle.Regular);
+				var style = univDGVN.Columns[START_COLUMN].DefaultCellStyle;
+				style.BackColor = ThemeColorTable.BackgroundColor;
+                style.Font = new Font(univDGVN.Columns[START_COLUMN].DefaultCellStyle.Font ?? SystemFonts.MessageBoxFont, FontStyle.Regular);
+				univDGVN.Columns[START_COLUMN].DefaultCellStyle = style;
             }
 
             updateDgvnStartValues();

@@ -13,7 +13,7 @@ using Vixen.Sys;
 
 namespace VixenModules.App.LipSyncApp
 {
-    public partial class LipSyncNodeSelect : Form
+	public partial class LipSyncNodeSelect : BaseForm
     {
         private bool _userAdd;
         private bool _stringAreRows;
@@ -22,6 +22,7 @@ namespace VixenModules.App.LipSyncApp
         {
 			Location = ActiveForm != null ? new Point(ActiveForm.Location.X + 50, ActiveForm.Location.Y + 50) : new Point(400, 200);
 			InitializeComponent();
+			FormBorderStyle = FormBorderStyle.FixedDialog;
 			ForeColor = ThemeColorTable.ForeColor;
 			BackColor = ThemeColorTable.BackgroundColor;
 			ThemeUpdateControls.UpdateControls(this);

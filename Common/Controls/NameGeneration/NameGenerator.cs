@@ -8,14 +8,17 @@ using Common.Resources;
 using Vixen.Rule;
 using Vixen.Rule.Name;
 using System.Drawing;
+using Common.Controls.Scaling;
 
 namespace Common.Controls
 {
-	public partial class NameGenerator : Form
+	public partial class NameGenerator : BaseForm
 	{
 		private List<string> OldNames { get; set; }
 
 		private int _fixedCount;
+
+		private string SelectedGroupName;
 
 		private int FixedCount
 		{
@@ -40,13 +43,14 @@ namespace Common.Controls
 		{
 			InitializeComponent();
 			Icon = Resources.Properties.Resources.Icon_Vixen3;
-			buttonMoveRuleUp.Image = Tools.GetIcon(Resources.Properties.Resources.arrow_up, 16);
+			int iconSize = (int)(16 * ScalingTools.GetScaleFactor());
+			buttonMoveRuleUp.Image = Tools.GetIcon(Resources.Properties.Resources.arrow_up, iconSize);
 			buttonMoveRuleUp.Text = "";
-			buttonMoveRuleDown.Image = Tools.GetIcon(Resources.Properties.Resources.arrow_down, 16);
+			buttonMoveRuleDown.Image = Tools.GetIcon(Resources.Properties.Resources.arrow_down, iconSize);
 			buttonMoveRuleDown.Text = "";
-			buttonAddNewRule.Image = Tools.GetIcon(Resources.Properties.Resources.add, 16);
+			buttonAddNewRule.Image = Tools.GetIcon(Resources.Properties.Resources.add, iconSize);
 			buttonAddNewRule.Text = "";
-			buttonDeleteRule.Image = Tools.GetIcon(Resources.Properties.Resources.delete, 16);
+			buttonDeleteRule.Image = Tools.GetIcon(Resources.Properties.Resources.delete, iconSize);
 			buttonDeleteRule.Text = "";
 			ForeColor = ThemeColorTable.ForeColor;
 			BackColor = ThemeColorTable.BackgroundColor;
@@ -63,6 +67,7 @@ namespace Common.Controls
 		public NameGenerator(IEnumerable<string> oldNames)
 			: this()
 		{
+			SelectedGroupName = "NewName";
 			OldNames = new List<string>(oldNames);
 			FixedCount = OldNames.Count();
 			listViewNames.Columns.Clear();
@@ -76,6 +81,12 @@ namespace Common.Controls
 			: this()
 		{
 			FixedCount = fixedCount;
+		}
+
+		public NameGenerator(string selectedGroupName)
+			: this()
+		{
+			SelectedGroupName = selectedGroupName;
 		}
 
 		private void BulkRename_Load(object sender, EventArgs e)
@@ -165,7 +176,7 @@ namespace Common.Controls
 
 		private void LoadNamingTemplate(INamingTemplate template)
 		{
-			textBoxNameFormat.Text = template.Format;
+			textBoxNameFormat.Text =  SelectedGroupName + template.Format;
 
 			Generators.Clear();
 			foreach (INamingGenerator generator in template.Generators) {

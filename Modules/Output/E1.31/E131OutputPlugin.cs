@@ -102,6 +102,7 @@ namespace VixenModules.Controller.E131
         internal static SortedList<string, int> unicasts = new SortedList<string, int>();
         private static bool _updateWarn = false;
         private static bool _missingInterfaceWarning = false;
+		private Stopwatch _updateStateStopWatch = new Stopwatch();
 
         public override Vixen.Module.IModuleDataModel ModuleData
         {
@@ -162,6 +163,8 @@ namespace VixenModules.Controller.E131
                 if (setupForm.ShowDialog() == DialogResult.OK)
                 {
 
+                    running = false; //prevent updates
+                    this.Stop();
 
                     _data.Warnings = setupForm.WarningsOption;
                     _data.Statistics = setupForm.StatisticsOption;
@@ -207,10 +210,6 @@ namespace VixenModules.Controller.E131
                         }
                     }
 
-                    running = false; //prevent updates
-
-                    // update in memory table to match xml
-                    this.Stop();
                     this.Start();
                 }
             }
@@ -245,7 +244,7 @@ namespace VixenModules.Controller.E131
             //so just close the first/only one.
             if (_data.Unicast != null)
             {
-                if (_data.Universes != null && _data.Universes[0].Socket != null)
+                if (_data.Universes != null && _data.Universes.Count > 0 && _data.Universes[0].Socket != null)
                 {
                     _data.Universes[0].Socket.Shutdown(SocketShutdown.Both);
                     _data.Universes[0].Socket.Close();
@@ -595,7 +594,7 @@ namespace VixenModules.Controller.E131
 
         public override void UpdateState(int chainIndex, ICommand[] outputStates)
         {
-            Stopwatch stopWatch = Stopwatch.StartNew();
+            _updateStateStopWatch.Start();
 
             //Make sure the setup form is closed & the plugin has started
             if (isSetupOpen || !running)
@@ -711,9 +710,9 @@ namespace VixenModules.Controller.E131
                     uE.SlotCount += uE.Size;
                 }
             }
-            stopWatch.Stop();
+			_updateStateStopWatch.Stop();
 
-            this._totalTicks += stopWatch.ElapsedTicks;
+			this._totalTicks += _updateStateStopWatch.ElapsedTicks;
         }
 
 		private void LoadSetupNodeInfo()

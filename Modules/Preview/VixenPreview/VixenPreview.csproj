@@ -138,6 +138,8 @@
     <Compile Include="ResizePreviewForm.Designer.cs">
       <DependentUpon>ResizePreviewForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Shapes\DiscreteIntentHandler.cs" />
+    <Compile Include="Shapes\FullColorIntentHandler.cs" />
     <Compile Include="Shapes\PreviewCustom.cs" />
     <Compile Include="Shapes\PreviewCustomCreateForm.cs">
       <SubType>Form</SubType>
@@ -289,6 +291,16 @@
     <Compile Include="Shapes\PreviewBaseShape.cs" />
     <Compile Include="Shapes\PreviewTools.cs" />
     <Compile Include="TemplateComboBoxItem.cs" />
+    <Compile Include="Undo\PreviewItemsGroupAddedSeparateUndoAction.cs" />
+    <Compile Include="Undo\PreviewItemsGroupAddedUndoAction.cs" />
+    <Compile Include="Undo\PreviewItemsGroupSeparateAction.cs" />
+    <Compile Include="Undo\PreviewItemsResizeUndoAction.cs" />
+    <Compile Include="Undo\PreviewItemsMoveUndoAction.cs" />
+    <Compile Include="Undo\PreviewItemsPasteUndoAction.cs" />
+    <Compile Include="Undo\PreviewItemsCutUndoAction.cs" />
+    <Compile Include="Undo\PreviewItemsAddedUndoAction.cs" />
+    <Compile Include="Undo\PreviewItemsAddedRemovedUndoAction.cs" />
+    <Compile Include="Undo\PreviewItemsRemovedUndoAction.cs" />
     <Compile Include="VixenPreviewControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -475,6 +487,7 @@
   <ItemGroup>
     <None Include="Resources\Lips.jpg" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

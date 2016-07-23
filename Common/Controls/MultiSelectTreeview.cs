@@ -268,6 +268,8 @@ namespace Common.Controls
 			//base.SetStyle(ControlStyles.UserPaint, true);
 			//base.SetStyle(ControlStyles.AllPaintingInWmPaint, true);
 			AllowDrop = true;
+			AutoSize = true;
+			Dock = DockStyle.Fill;
 		}
 
 		#region Overridden Events
@@ -399,8 +401,8 @@ namespace Common.Controls
 			// including navigation, selection, etc.
 
 			base.OnKeyDown(e);
-
-			if (e.KeyCode == Keys.ShiftKey) return;
+			
+			if (e.Control || e.Shift) return;
 
 			//BeginUpdate();
 			bool bShift = (ModifierKeys == Keys.Shift);

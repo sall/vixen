@@ -7,13 +7,14 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using Common.Controls;
+using Common.Controls.Scaling;
 using Common.Controls.Theme;
 using Common.Resources;
 using Common.Resources.Properties;
 
 namespace VixenModules.App.Shows
 {
-	public partial class ShowListForm : Form
+	public partial class ShowListForm : BaseForm
 	{
 		public ShowListForm(ShowsData data)
 		{
@@ -21,14 +22,15 @@ namespace VixenModules.App.Shows
 
 			ForeColor = ThemeColorTable.ForeColor;
 			BackColor = ThemeColorTable.BackgroundColor;
-			ThemeUpdateControls.UpdateControls(this);
-			buttonAdd.Image = Tools.GetIcon(Resources.add, 16);
+			int iconSize = (int)(24 * ScalingTools.GetScaleFactor());
+			buttonAdd.Image = Tools.GetIcon(Resources.add, iconSize);
 			buttonAdd.Text = "";
-			buttonDelete.Image = Tools.GetIcon(Resources.delete, 16);
+			buttonDelete.Image = Tools.GetIcon(Resources.delete, iconSize);
 			buttonDelete.Text = "";
-			buttonEdit.Image = Tools.GetIcon(Resources.pencil, 16);
+			buttonEdit.Image = Tools.GetIcon(Resources.pencil, iconSize);
 			buttonEdit.Text = "";
-			buttonHelp.Image = Tools.GetIcon(Resources.help, 16);
+			buttonHelp.Image = Tools.GetIcon(Resources.help, iconSize);
+			ThemeUpdateControls.UpdateControls(this);
 
 			Data = data;
 		}

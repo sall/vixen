@@ -1,5 +1,7 @@
-﻿using System.Drawing;
+﻿using System.Collections.Generic;
+using System.Drawing;
 using System.Windows.Forms;
+using Vixen.Module.Analysis;
 using Button = System.Windows.Forms.Button;
 using CheckBox = System.Windows.Forms.CheckBox;
 using ComboBox = System.Windows.Forms.ComboBox;
@@ -19,10 +21,13 @@ namespace Common.Controls.Theme
 	{
 		//used to provide color to various controls.
 		//will move through each control and sub controls and adjust each control properties as required.
-		public static void UpdateControls(Control control)
+		public static void UpdateControls(Control control, List<Control> excludes = null)
 		{
+			control.Font = SystemFonts.MessageBoxFont;
 			foreach (Control c in control.Controls)
 			{
+				if (excludes != null && excludes.Contains(c)) continue;
+				c.Font = SystemFonts.MessageBoxFont;
 				if (c is GroupBox | c is Panel | c is Label | c is ToolStripEx | c is ToolStrip | c is RadioButton | c is CheckBox | c is TreeView | c.ToString().Contains("PropertyGrid"))
 				{
 					c.ForeColor = ThemeColorTable.ForeColor;
@@ -33,12 +38,12 @@ namespace Common.Controls.Theme
 					Button btn = c as Button;
 					btn.FlatStyle = FlatStyle.Flat;
 					btn.FlatAppearance.BorderSize = 0;
-					if (btn.Width > 40)
+					if (btn.BackgroundImage==null && btn.Image==null)
 					{
 						btn.BackgroundImageLayout = ImageLayout.Stretch;
 						btn.BackgroundImage = Resources.Properties.Resources.ButtonBackgroundImage;
 						btn.BackColor = Color.Transparent;
-						btn.ForeColor = btn.Enabled ? ThemeColorTable.ForeColor : ThemeColorTable.ForeColorDisabled;
+						btn.ForeColor = ThemeColorTable.ForeColor;
 					}
 				}
 				if (c is TextBox & !c.ToString().Contains("UpDown"))
@@ -80,9 +85,23 @@ namespace Common.Controls.Theme
 				}
 				if (c.Controls.Count > 0)
 				{
-					UpdateControls(c);
+					UpdateControls(c, excludes);
 				}
 			}
+		}
+
+		public static void UpdateButton(Button btn)
+		{
+			btn.FlatStyle = FlatStyle.Flat;
+			btn.FlatAppearance.BorderSize = 0;
+			if (btn.BackgroundImage == null && btn.Image == null)
+			{
+				btn.BackgroundImageLayout = ImageLayout.Stretch;
+				btn.BackgroundImage = Resources.Properties.Resources.ButtonBackgroundImage;
+				btn.BackColor = Color.Transparent;
+				btn.ForeColor = ThemeColorTable.ForeColor;
+			}
+			
 		}
 	}
 }

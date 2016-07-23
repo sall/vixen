@@ -9,6 +9,7 @@ using Vixen.Services;
 using Vixen.Sys;
 using Vixen.Module.Timing;
 using Vixen.Module.Media;
+using Vixen.Sys.LayerMixing;
 
 namespace BaseSequence
 {
@@ -104,6 +105,15 @@ namespace BaseSequence
 					return Sequence.GetAllSequenceFilters();
 				}
 				return Enumerable.Empty<ISequenceFilterNode>();
+			}
+		}
+
+		public SequenceLayers SequenceLayers
+		{
+			get
+			{
+				//Would the sequence ever be null here? If it is that's bad anyway
+				return Sequence.GetSequenceLayerManager();
 			}
 		}
 
@@ -213,7 +223,7 @@ namespace BaseSequence
 			
 			//Reset our position. No need to stop the source, we will just reset its position.
 			TimingSource.Position = StartTime;
-			
+			TimingSource.Start();
 			OnSequenceReStarted(new SequenceStartedEventArgs(Sequence, TimingSource, StartTime, EndTime));
 			
 			while (TimingSource.Position == StartTime)

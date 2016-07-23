@@ -6,6 +6,7 @@ using System.Timers;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
+using System.Windows.Input;
 using Vixen.Execution.Context;
 using Vixen.Sys;
 using VixenModules.Editor.EffectEditor;
@@ -22,10 +23,11 @@ namespace VixenModules.Editor.TimedSequenceEditor
 	{
 		private readonly List<Element> _elements = new List<Element>();
 		private readonly TimedSequenceEditorForm _sequenceEditorForm;
-		private LiveContext _previewContext;
+		private PreviewContext _previewContext;
 		private readonly Timer _previewLoopTimer = new Timer();
 		private readonly EffectPropertyEditorGrid _effectPropertyEditorGridEffectEffectPropertiesEditor;
 		private bool _previewState;
+		private ElementHost host;
 
 		public FormEffectEditor(TimedSequenceEditorForm sequenceEditorForm)
 		{
@@ -45,18 +47,20 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			InitializeComponent();
 			
 			_sequenceEditorForm = sequenceEditorForm;
-			var host = new ElementHost { Dock = DockStyle.Fill };
+			host = new ElementHost { Dock = DockStyle.Fill };
 
 			_effectPropertyEditorGridEffectEffectPropertiesEditor = new EffectPropertyEditorGrid
 			{
 				ShowReadOnlyProperties = true,
 				PropertyFilterVisibility = Visibility.Hidden
 			};
-			
+
+			_effectPropertyEditorGridEffectEffectPropertiesEditor.KeyDown += Editor_OnKeyDown;
+
 			host.Child = _effectPropertyEditorGridEffectEffectPropertiesEditor;
 
 			Controls.Add(host);
-			
+
 			sequenceEditorForm.TimelineControl.SelectionChanged += timelineControl_SelectionChanged;
 			_effectPropertyEditorGridEffectEffectPropertiesEditor.PropertyValueChanged += EffectPropertyEditorValueChanged;
 			_effectPropertyEditorGridEffectEffectPropertiesEditor.PreviewChanged += EditorPreviewStateChanged;
@@ -106,6 +110,15 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			_sequenceEditorForm.AddEffectsModifiedToUndo(undo);
 		}
 
+		
+		private void Editor_OnKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+		{
+			if (e.Key == Key.Space)
+			{
+				_sequenceEditorForm.HandleSpacebarAction();
+			}
+		}
+
 		#endregion
 
 		#region Preview
@@ -137,7 +150,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		{
 			if (_previewContext == null)
 			{
-				_previewContext = VixenSystem.Contexts.CreateLiveContext("Effect Preview");
+				_previewContext = VixenSystem.Contexts.CreatePreviewContext("Effect Preview");
+				_previewContext.Sequence = _sequenceEditorForm.Sequence;
 				_previewContext.Start();
 
 			}

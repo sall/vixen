@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using Vixen.Module;
+using Vixen.Sys.LayerMixing;
 
 namespace VixenModules.Sequence.Timed
 {
@@ -13,12 +14,41 @@ namespace VixenModules.Sequence.Timed
 		public List<MarkCollection> MarkCollections { get; set; }
 
 		[DataMember]
+		public List<RowHeightSetting> RowHeightSettings { get; set; }
+
+		[DataMember]
 		public TimeSpan TimePerPixel { get; set; }
-	
+
+		[DataMember]
+		public TimeSpan VisibleTimeStart { get; set; }
+
+		[DataMember]
+		public int DefaultRowHeight { get; set; }
+
+		[DataMember]
+		public int DefaultSplitterDistance { get; set; }
+
+		[DataMember]
+		public Dictionary<Guid, bool> RowGuidId { get; set; }
+		
+
+		[DataMember]
+		public TimeSpan? DefaultPlaybackEndTime { get; set; }
+
+		[DataMember]
+		public TimeSpan? DefaultPlaybackStartTime { get; set; }
+
 		public TimedSequenceData()
 		{
 			MarkCollections = new List<MarkCollection>();
 			TimePerPixel = TimeSpan.MinValue;
+			RowHeightSettings = new List<RowHeightSetting>();
+			DefaultRowHeight = 0;
+			RowGuidId = new Dictionary<Guid, bool>();
+			VisibleTimeStart = TimeSpan.MinValue;
+			DefaultSplitterDistance = 0;
+			DefaultPlaybackStartTime = TimeSpan.Zero;
+			DefaultPlaybackEndTime = TimeSpan.Zero;
 		}
 
 		public override IModuleDataModel Clone()

@@ -7,13 +7,14 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using Common.Controls;
+using Common.Controls.Scaling;
 using Common.Controls.Theme;
 using Common.Resources;
 using Common.Resources.Properties;
 
 namespace VixenModules.App.SuperScheduler
 {
-	public partial class SetupScheduleForm : Form
+	public partial class SetupScheduleForm : BaseForm
 	{
 		ScheduleItem _scheduleItem;
 
@@ -23,9 +24,11 @@ namespace VixenModules.App.SuperScheduler
 
 			ForeColor = ThemeColorTable.ForeColor;
 			BackColor = ThemeColorTable.BackgroundColor;
+			int iconSize = (int)(24 * ScalingTools.GetScaleFactor());
+			buttonHelp.Image = Tools.GetIcon(Resources.help, iconSize);
+
 			ThemeUpdateControls.UpdateControls(this);
-			buttonHelp.Image = Tools.GetIcon(Resources.help, 16);
-			
+
 			_scheduleItem = scheduleItem;
 		}
 

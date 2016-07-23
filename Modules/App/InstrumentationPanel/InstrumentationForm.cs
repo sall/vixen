@@ -1,19 +1,22 @@
 ﻿using System;
 using System.Linq;
 using System.Windows.Forms;
+using Common.Controls;
 using Common.Controls.Theme;
 using Common.Resources.Properties;
 using Vixen.Sys;
 
 namespace VixenModules.App.InstrumentationPanel
 {
-	public partial class InstrumentationForm : Form
+	public partial class InstrumentationForm : BaseForm
 	{
 		public InstrumentationForm()
 		{
 			InitializeComponent();
 			ForeColor = ThemeColorTable.ForeColor;
 			BackColor = ThemeColorTable.BackgroundColor;
+			textBox1.ForeColor = ThemeColorTable.ForeColor;
+			textBox1.BackColor = ThemeColorTable.BackgroundColor;
 			ThemeUpdateControls.UpdateControls(this);
 			Icon = Resources.Icon_Vixen3;
 		}

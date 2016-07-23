@@ -4,24 +4,23 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Vixen.Attributes;
 using Vixen.Module;
-using Vixen.Module.Effect;
 using Vixen.Sys;
 using Vixen.Sys.Attribute;
 using Vixen.TypeConverters;
 using VixenModules.App.ColorGradients;
+using VixenModules.Effect.Effect;
+using VixenModules.Effect.Pulse;
 using VixenModules.EffectEditor.EffectDescriptorAttributes;
 using VixenModules.Property.Color;
 
 namespace VixenModules.Effect.Alternating
 {
-
-	public class Alternating : EffectModuleInstanceBase
+	public class Alternating : BaseEffect
 	{
-		private AlternatingData _data;
 		private EffectIntents _elementData;
+		private AlternatingData _data;
 
 		public Alternating()
 		{
@@ -39,15 +38,15 @@ namespace VixenModules.Effect.Alternating
 
 		protected override void _PreRender(CancellationTokenSource cancellationToken = null)
 		{
-			EffectIntents data = new EffectIntents();
+			_elementData = new EffectIntents();
 
 			foreach (ElementNode node in TargetNodes)
 			{
 				if (node != null)
-					data.Add(RenderNode(node));
+					_elementData.Add(RenderNode(node));
 			}
 
-			_elementData = data;
+			//_elementData = IntentBuilder.ConvertToStaticArrayIntents(_elementData, TimeSpan, IsDiscrete());
 		}
 
 		//Validate that the we are using valid colors and set appropriate defaults if not.
@@ -59,12 +58,20 @@ namespace VixenModules.Effect.Alternating
 			var validColors = new HashSet<Color>();
 			validColors.AddRange(TargetNodes.SelectMany(x => ColorModule.getValidColorsForElementNode(x, true)));
 
-			//We need to beable to modify the list in the loop, since a collection used in foreach is immuatable we need to use a for loop
-			for (int i = 0; i < Colors.Count; i++)
+			if (validColors.Any())
 			{
-				if (validColors.Any() && !Colors[i].ColorGradient.GetColorsInGradient().IsSubsetOf(validColors))
+				bool changed = false;
+				foreach (GradientLevelPair t in Colors)
 				{
-					Colors[i].ColorGradient = new ColorGradient(validColors.First());
+					if (!t.ColorGradient.GetColorsInGradient().IsSubsetOf(validColors))
+					{
+						t.ColorGradient = new ColorGradient(validColors.First());
+						changed = true;
+					}
+				}
+				if (changed)
+				{
+					OnPropertyChanged("Colors");
 				}
 			}
 
@@ -83,6 +90,11 @@ namespace VixenModules.Effect.Alternating
 				_data = value as AlternatingData;
 				InitAllAttributes();
 			}
+		}
+
+		protected override EffectTypeModuleData EffectModuleData
+		{
+			get { return _data; }
 		}
 
 		#region Color
@@ -128,7 +140,7 @@ namespace VixenModules.Effect.Alternating
 		}
 
 		[Value]
-		[ProviderCategory(@"Config", 10)]
+		[ProviderCategory(@"Config", 1)]
 		[ProviderDisplayName(@"GroupLevel")]
 		[ProviderDescription(@"GroupLevel")]
 		[NumberRange(1, 5000, 1)]
@@ -138,7 +150,7 @@ namespace VixenModules.Effect.Alternating
 			get { return _data.GroupLevel; }
 			set
 			{
-				_data.GroupLevel = value;
+				_data.GroupLevel = value>0?value:1;
 				IsDirty = true;
 				OnPropertyChanged();
 			}
@@ -253,7 +265,6 @@ namespace VixenModules.Effect.Alternating
 			int colorCount = Colors.Count();
 			//Use a single pulse to do our work, we don't need to keep creating it and then thowing it away making the GC work
 			//hard for no reason.
-			var pulse = new Pulse.Pulse(); 
 			
 			if (!EnableStatic)
 			{
@@ -267,7 +278,6 @@ namespace VixenModules.Effect.Alternating
 					? TimeSpan
 					: TimeSpan.FromMilliseconds(Interval);
 
-			pulse.TimeSpan = intervalTime;
 			
 			for (int i = 0; i < intervals; i++)
 			{
@@ -279,7 +289,7 @@ namespace VixenModules.Effect.Alternating
 					var glp = Colors[gradientLevelItem];
 					foreach (var element in elementGroup)
 					{
-						RenderElement(pulse, glp, startTime, element, effectIntents);
+						RenderElement(glp, startTime, intervalTime, element, effectIntents);
 					}
 					gradientLevelItem = ++gradientLevelItem % colorCount;
 
@@ -294,15 +304,10 @@ namespace VixenModules.Effect.Alternating
 			return effectIntents;
 		}
 
-		private void RenderElement(Pulse.Pulse pulse, GradientLevelPair gradientLevelPair, TimeSpan startTime,
+		private void RenderElement(GradientLevelPair gradientLevelPair, TimeSpan startTime, TimeSpan interval,
 			ElementNode element, EffectIntents effectIntents)
 		{
-			pulse.ColorGradient = gradientLevelPair.ColorGradient;
-			pulse.LevelCurve = gradientLevelPair.Curve;
-			pulse.TargetNodes = new[] { element };
-			
-			var result = pulse.Render();
-
+			var result = PulseRenderer.RenderNode(element, gradientLevelPair.Curve, gradientLevelPair.ColorGradient, interval, HasDiscreteColors);
 			result.OffsetAllCommandsByTime(startTime);
 			effectIntents.Add(result);
 		}
