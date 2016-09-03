@@ -94,7 +94,7 @@ namespace VixenModules.Preview.VixenPreview
 
 		private VixenPreviewData _data;
 
-		private List<ElementNode> _highlightedElements = new List<ElementNode>();
+		private HashSet<Guid> _highlightedElements = new HashSet<Guid>();
 		public List<DisplayItem> _selectedDisplayItems;
 
 		private Rectangle _bandRect = new Rectangle();
@@ -204,7 +204,7 @@ namespace VixenModules.Preview.VixenPreview
 			}
 		}
 
-		public List<ElementNode> HighlightedElements
+		public HashSet<Guid> HighlightedElements
 		{
 			get { return _highlightedElements; }
 		}
@@ -2031,7 +2031,7 @@ namespace VixenModules.Preview.VixenPreview
 				{
 					if (_editMode)
 					{
-						displayItem.Draw(fp, true, HighlightedElements, SelectedDisplayItems.Contains(displayItem), false);
+						displayItem.Draw(fp, true, HighlightedElements, displayItem.Shape.Selected || SelectedDisplayItems.Contains(displayItem), false);
 					}
 					else
 					{
@@ -2181,7 +2181,14 @@ namespace VixenModules.Preview.VixenPreview
 
 				foreach (var previewItem in modifyingElements)
 				{
-					OriginalPreviewItem.Add(previewItem, new PreviewItemPositionInfo(previewItem));
+					if (OriginalPreviewItem.ContainsKey(previewItem))
+					{
+						OriginalPreviewItem[previewItem] = new PreviewItemPositionInfo(previewItem);
+					}
+					else
+					{
+						OriginalPreviewItem.Add(previewItem, new PreviewItemPositionInfo(previewItem));
+					}
 				}
 			}
 

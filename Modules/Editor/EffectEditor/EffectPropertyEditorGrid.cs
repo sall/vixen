@@ -41,6 +41,8 @@ namespace VixenModules.Editor.EffectEditor
 	{
 		public delegate void PreviewStateChangedEventHandler(object sender, PreviewStateEventArgs e);
 
+		private const string InformationMessage = "Select an Effect to edit.";
+		private const string InformationLinkUrl = "http://www.vixenlights.com/vixen-3-documentation/sequencer/effect-editor";
 		private static readonly Type ThisType = typeof (EffectPropertyEditorGrid);
 
 		/// <summary>
@@ -134,6 +136,8 @@ namespace VixenModules.Editor.EffectEditor
 		private GridEntryCollection<CategoryItem> _categories;
 		private IComparer<CategoryItem> _categoryComparer;
 		private string _effectName = "";
+		private string _information = InformationMessage;
+		private string _informationLink = InformationLinkUrl;
 		private GridEntryCollection<PropertyItem> _properties;
 		private IComparer<PropertyItem> _propertyComparer;
 
@@ -262,7 +266,8 @@ namespace VixenModules.Editor.EffectEditor
 						item.Dispose();
 					}
 				}
-
+				Information = InformationMessage;
+				InformationLink = InformationLinkUrl;
 				if (value != null)
 				{
 					_properties = value;
@@ -278,6 +283,14 @@ namespace VixenModules.Editor.EffectEditor
 						if (item.Name.Equals("EffectName"))
 						{
 							EffectName = item.PropertyValue.StringValue;
+						}
+						if (item.Name.Equals("Information"))
+						{
+							Information = item.PropertyValue.StringValue;
+						}
+						if (item.Name.Equals("InformationLink"))
+						{
+							InformationLink = item.PropertyValue.StringValue;
 						}
 					}
 				}
@@ -350,6 +363,26 @@ namespace VixenModules.Editor.EffectEditor
 			}
 		}
 
+		public string Information
+		{
+			get { return _information; }
+			set
+			{
+				_information = value;
+				OnPropertyChanged("Information");
+			}
+		}
+
+		public string InformationLink
+		{
+			get { return _informationLink; }
+			set
+			{
+				_informationLink = value;
+				OnPropertyChanged("InformationLink");
+			}
+		}
+
 		/// <summary>
 		///     Gets or sets the categories of the selected object(s).
 		/// </summary>
@@ -360,6 +393,13 @@ namespace VixenModules.Editor.EffectEditor
 			private set
 			{
 				if (_categories == value) return;
+				if (_categories != null)
+				{
+					foreach (var item in _categories)
+					{
+						item.Dispose();
+					}
+				}
 				_categories = value;
 
 				if (CategoryComparer != null)
@@ -1131,6 +1171,7 @@ namespace VixenModules.Editor.EffectEditor
 			// Create a new CategoryItem
 			var categoryItem = new CategoryItem(this, attribute);
 			categoryItem.IsBrowsable = ShouldDisplayCategory(categoryItem.Name);
+			categoryItem.IsExpanded = IsCategoryExpanded(categoryItem.Name);
 			if (attribute is IOrderableAttribute)
 			{
 				var attr = (IOrderableAttribute) attribute;
@@ -1207,6 +1248,22 @@ namespace VixenModules.Editor.EffectEditor
 			if (wildcard != null) return wildcard.Browsable;
 
 			// Allow by default if no restrictions were applied
+			return true;
+		}
+
+		private bool IsCategoryExpanded(string categoryName)
+		{
+			if (string.IsNullOrEmpty(categoryName)) return false;
+
+			// Check the explicit declaration
+			var attribute = browsableCategories.FirstOrDefault(item => item.CategoryName == categoryName);
+			if (attribute != null) return attribute.Expanded;
+
+			// Check the wildcard
+			var wildcard = browsableCategories.FirstOrDefault(item => item.CategoryName == BrowsableCategoryAttribute.All);
+			if (wildcard != null) return wildcard.Expanded;
+
+			// Expanded by default if no restrictions were applied
 			return true;
 		}
 

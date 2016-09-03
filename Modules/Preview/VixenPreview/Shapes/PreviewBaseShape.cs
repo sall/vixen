@@ -327,12 +327,12 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 			}
 		}
 
-		public virtual void Draw(Bitmap b, bool editMode, List<ElementNode> highlightedElements)
+		public virtual void Draw(Bitmap b, bool editMode, HashSet<Guid> highlightedElements)
 		{
 			throw new NotImplementedException();
 		}
 
-		public virtual void DrawPixel(PreviewPixel pixel, FastPixel.FastPixel fp, bool editMode, List<ElementNode> highlightedElements,
+		public virtual void DrawPixel(PreviewPixel pixel, FastPixel.FastPixel fp, bool editMode, HashSet<Guid> highlightedElements,
 		                              bool selected, bool forceDraw)
 		{
             if (forceDraw)
@@ -352,31 +352,30 @@ namespace VixenModules.Preview.VixenPreview.Shapes
                 }
                 else
                 {
-                    if (selected)
-                    {
-                        pixelColor = PreviewTools.SelectedItemColor;
-                    }
-                    else if (highlightedElements != null && highlightedElements.Contains(pixel.Node))
-                    {
-                        pixelColor = Color.HotPink;
-                    }
-                    else
-                    {
-                        if (pixel.Node != null)
-                        {
-                            pixelColor = Color.Turquoise;
-                        }
-                        else
-                        {
-                            pixelColor = Color.White;
-                        }
-                    }
+	                if (selected)
+	                {
+		                pixelColor = PreviewTools.SelectedItemColor;
+	                }
+	                else
+	                {
+		                if (pixel.NodeId != Guid.Empty)
+		                {
+			                if (highlightedElements.Contains(pixel.NodeId))
+			                {
+				                pixelColor = Color.HotPink;
+			                }
+			                else
+			                {
+								pixelColor = Color.Turquoise;
+							}
+						}
+	                } 
                 }
                 pixel.Draw(fp, pixelColor);
             }
 		}
 
-		public virtual void Draw(FastPixel.FastPixel fp, bool editMode, List<ElementNode> highlightedElements, bool selected,
+		public virtual void Draw(FastPixel.FastPixel fp, bool editMode, HashSet<Guid> highlightedElements, bool selected,
 		                         bool forceDraw)
 		{
 			foreach (PreviewPixel pixel in Pixels) {

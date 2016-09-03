@@ -75,21 +75,8 @@ namespace VixenModules.Preview.VixenPreview
 					gdiControl.BeginUpdate();
 
 					_sw.Restart();
-					foreach (var element in VixenSystem.Elements)
-					{
-						if (element.State.Count > 0)
-						{
-							List<PreviewPixel> pixels;
-							if (NodeToPixel.TryGetValue(element.Id, out pixels))
-							{
-								foreach (PreviewPixel pixel in pixels)
-								{
-									pixel.Draw(gdiControl.FastPixel, element.State);
-								}
-							}
-						}
-					}
-
+					Parallel.ForEach(VixenSystem.Elements, UpdateElementPixels);
+					
 					_previewSetPixelsTime.Set(_sw.ElapsedMilliseconds);
 				}
 				catch (Exception e)
@@ -101,6 +88,21 @@ namespace VixenModules.Preview.VixenPreview
 				gdiControl.Invalidate();
 
 				toolStripStatusFPS.Text = string.Format("{0} fps", gdiControl.FrameRate.ToString());
+			}
+		}
+
+		private void UpdateElementPixels(Element element)
+		{
+			if (element.State.Count > 0)
+			{
+				List<PreviewPixel> pixels;
+				if (NodeToPixel.TryGetValue(element.Id, out pixels))
+				{
+					foreach (PreviewPixel pixel in pixels)
+					{
+						pixel.Draw(gdiControl.FastPixel, element.State);
+					}
+				}
 			}
 		}
 
@@ -143,7 +145,11 @@ namespace VixenModules.Preview.VixenPreview
 					{
 						if (pixel.Node != null)
 						{
-							
+							if (pixel.Node.Element == null)
+							{
+								Logging.Warn("Null element for Node {0}", pixel.Node.Name);
+								continue;
+							}
 							pixelCount++;
 							List<PreviewPixel> pixels;
 							if (NodeToPixel.TryGetValue(pixel.Node.Element.Id, out pixels))
@@ -231,8 +237,7 @@ namespace VixenModules.Preview.VixenPreview
 			if (e.CloseReason == CloseReason.UserClosing)
 			{
 				//messageBox Arguments are (Text, Title, No Button Visible, Cancel Button Visible)
-				MessageBoxForm.msgIcon = SystemIcons.Information; //this is used if you want to add a system icon to the message form.
-				var messageBox = new MessageBoxForm("The preview can only be closed from the Preview Configuration dialog.", "Close", false, true);
+				var messageBox = new MessageBoxForm("The preview can only be closed from the Preview Configuration dialog.", "Close", MessageBoxButtons.OK, SystemIcons.Information);
 				messageBox.ShowDialog();
 				e.Cancel = true;
 			}

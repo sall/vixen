@@ -343,8 +343,7 @@ namespace VixenModules.EffectEditor.NutcrackerEffectEditor
 			tree.PixelColor = Color.White;
 			tree.Top = 10;
 			tree.Left = 10;
-			tree.BottomRight.X = preview.Width - 10;
-			tree.BottomRight.Y = preview.Height - 10;
+			tree.BottomRight = new Point(preview.Width - 10, preview.Height - 10);
 			tree.Layout();
 			displayItem.Shape = tree;
 
@@ -412,18 +411,17 @@ namespace VixenModules.EffectEditor.NutcrackerEffectEditor
 			grid.PixelColor = Color.White;
 			grid.Top = 10;
 			grid.Left = 10;
-			grid.BottomRight.X = preview.Width - 10;
 			if (Data.StringOrienation == NutcrackerEffects.StringOrientations.Horizontal)
 			{
 				grid.StringOrientation = PreviewPixelGrid.StringOrientations.Horizontal;
-				grid.BottomRight.Y = Math.Min(StringCount * Data.PixelSize * 2, preview.Width - 10);
+				grid.BottomRight = new Point(Math.Min(StringCount * Data.PixelSize * 2, preview.Width - 10), preview.Width - 10); ;
 				grid.BottomLeft.Y = Math.Min(StringCount * Data.PixelSize * 2, preview.Width - 10);
-				grid.BottomRight.X = Math.Min(grid.LightsPerString*Data.PixelSize * 2, preview.Width - 10);
+				grid.BottomRight = new Point(Math.Min(grid.LightsPerString * Data.PixelSize * 2, preview.Width - 10), preview.Width - 10);
 				grid.Left = Math.Max( (preview.Width - 10 - (grid.LightsPerString * Data.PixelSize * 2))/2 , 10);
 			}
 			else
 			{
-				grid.BottomRight.Y = preview.Height - 10;	
+				grid.BottomRight = new Point(preview.Width-10,preview.Height-10);
 			}
 			
 			grid.Layout();

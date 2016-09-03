@@ -21,6 +21,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 {
 	public partial class FormEffectEditor : DockContent
 	{
+		private static readonly NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
 		private readonly List<Element> _elements = new List<Element>();
 		private readonly TimedSequenceEditorForm _sequenceEditorForm;
 		private PreviewContext _previewContext;
@@ -80,8 +81,32 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			} 
 		}
 
+		/// <summary> 
+		/// Clean up any resources being used.
+		/// </summary>
+		/// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+		protected override void Dispose(bool disposing)
+		{
+			if (disposing && (components != null))
+			{
+				components.Dispose();
+			}
+
+			if (_previewContext != null)
+			{
+				VixenSystem.Contexts.ReleaseContext(_previewContext);
+			}
+
+			_sequenceEditorForm.TimelineControl.SelectionChanged -= timelineControl_SelectionChanged;
+			_effectPropertyEditorGridEffectEffectPropertiesEditor.PropertyValueChanged -= EffectPropertyEditorValueChanged;
+			_effectPropertyEditorGridEffectEffectPropertiesEditor.PreviewChanged -= EditorPreviewStateChanged;
+			_previewLoopTimer.Elapsed -= PreviewLoopTimerOnElapsed;
+			base.Dispose(disposing);
+		}
+
+
 		#region Events
-		
+
 		private void timelineControl_SelectionChanged(object sender, EventArgs e)
 		{
 			Elements = _sequenceEditorForm.TimelineControl.SelectedElements;
@@ -102,7 +127,8 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			foreach (var element in _elements)
 			{
 				element.UpdateNotifyContentChanged();
-				elementValues.Add(element, new Tuple<object, PropertyDescriptor>(e.OldValue[i], e.Property.UnderLyingPropertyDescriptor(i)));
+				if (e.OldValue != null)
+					elementValues.Add(element, new Tuple<object, PropertyDescriptor>(e.OldValue[i], e.Property.UnderLyingPropertyDescriptor(i)));
 				i++;
 			}
 
@@ -115,7 +141,7 @@ namespace VixenModules.Editor.TimedSequenceEditor
 		{
 			if (e.Key == Key.Space)
 			{
-				_sequenceEditorForm.HandleSpacebarAction();
+				_sequenceEditorForm.HandleSpacebarAction(Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl));
 			}
 		}
 
@@ -155,6 +181,11 @@ namespace VixenModules.Editor.TimedSequenceEditor
 				_previewContext.Start();
 
 			}
+			else if(!_previewContext.IsRunning)
+			{
+				Logging.Warn("Preview context was not running!");
+				_previewContext.Start();
+			}
 			IEnumerable<EffectNode> orderedNodes = Elements.Select(x => x.EffectNode).OrderBy(x => x.StartTime).ToList();
 			if (orderedNodes.Any())
 			{
@@ -173,7 +204,15 @@ namespace VixenModules.Editor.TimedSequenceEditor
 			_previewLoopTimer.Stop();
 			if (_previewContext != null)
 			{
-				_previewContext.Clear();
+				if (_previewContext.IsRunning && !_previewContext.IsPaused)
+				{
+					_previewContext.Clear();
+				}
+				else
+				{
+					Logging.Warn("Preview context is not running or is paused.");
+					_previewContext.Clear(false);
+				}
 			}
 		}
 

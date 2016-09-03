@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Vixen.Execution.DataSource;
 using Vixen.Module.Timing;
@@ -10,10 +11,10 @@ namespace Vixen.Execution.Context
 {
 	public class LiveContext : ContextBase
 	{
+		private static readonly NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
 		private readonly string _name;
 		private readonly LiveDataSource _dataSource;
-		private readonly Layer _layer = new DefaultLayer();
-
+		
 		//public LiveContext(string name)
 		//    : base(name) {
 		//    _dataSource = new LiveDataSource();
@@ -53,19 +54,31 @@ namespace Vixen.Execution.Context
 		public void Clear(bool waitForReset = true)
 		{	
 			_dataSource.ClearData();
+			if (!IsRunning || IsPaused)
+			{
+				Logging.Error("Attempt to clear effects from a non running context");
+				return;
+			}
 			CurrentEffects.Reset();
 			if (waitForReset)
 			{
+				//wait for reset to occur, but time out if it does not happen
+				var sw = Stopwatch.StartNew();
 				while (CurrentEffects.Resetting())
 				{
-					//wait for reset to occur.
+					if (sw.ElapsedMilliseconds > 1000)
+					{
+						Logging.Error("Attempt to clear current effects timed out after 1 second.");
+						break;
+					}
+					
 				}
 			}
 		}
 
 		protected override ILayer GetLayerForNode(IEffectNode node)
 		{
-			return _layer;
+			return SequenceLayers.GetDefaultLayer();
 		}
 
 		protected override IDataSource _DataSource
