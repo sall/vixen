@@ -1,21 +1,13 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-using System.Runtime.Serialization;
-using System.Diagnostics;
 using System.ComponentModel;
-using System.Windows.Forms;
+using System.Drawing;
 using System.Drawing.Design;
-using System.Windows.Forms.Design;
+using System.Linq;
+using System.Runtime.Serialization;
+using System.Windows.Forms;
 using System.Xml.Serialization;
 using Vixen.Sys;
-using Vixen.Data.Value;
-using Vixen.Execution.Context;
-using System.Collections.Concurrent;
-using System.Threading;
 
 namespace VixenModules.Preview.VixenPreview.Shapes
 {
@@ -44,10 +36,14 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 		[XmlIgnore] public List<PreviewPoint> _selectPoints = null;
 		public const int SelectPointSize = 6;
 		private Color _pixelColor = Color.White;
-		public int _pixelSize = 2;
+		public int _pixelSize = 3;
+
+		[DataMember(Name = "Pixels")]
 		public List<PreviewPixel> _pixels = new List<PreviewPixel>();
 
-		[DataMember] public List<PreviewBaseShape> _strings;
+		[DataMember(EmitDefaultValue = false)]
+		public List<PreviewBaseShape> _strings;
+
 		public PreviewPoint _selectedPoint;
 
 		public delegate void OnPropertiesChangedHandler(object sender, PreviewBaseShape shape);
@@ -60,21 +56,19 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 			ResizePixels();
 		}
 
-		[DataMember,
-		 CategoryAttribute("Settings"),
-		 DescriptionAttribute("The name of this string. Used in templates to distinguish various strings."),
+		[DataMember(EmitDefaultValue = false), 
+		 Category("Settings"),
+		 Description("The name of this string. Used in templates to distinguish various strings."),
 		 DisplayName("String Name")]
 		public string Name
 		{
 			get
 			{
-				if (_name == null) _name = VixenPreviewSetup3.DrawShape;
                 return _name; 
             }
 			set
 			{
-				_name = value;
-                if (_name == null) _name = "";
+				_name = string.IsNullOrEmpty(value) ? VixenPreviewSetup3.DrawShape : value;
 				FireOnPropertiesChanged(this, this);
 			}
 		}
@@ -108,7 +102,7 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 		public abstract void Layout();
 
 		[DataMember,
-		 CategoryAttribute("Settings"),
+		 Category("Settings"),
 		 DisplayName("String Type")]
 		public virtual StringTypes StringType
 		{
@@ -124,8 +118,7 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 			}
 		}
 
-		[DataMember,
-		 Browsable(false)]
+		[Browsable(false)]
 		public virtual List<PreviewPixel> Pixels
 		{
 			get
@@ -137,11 +130,11 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 							outPixels.Add(pixel);
 						}
 					}
+					_pixels.Clear();
 					return outPixels.ToList();
 				}
-				else {
-					return _pixels;
-				}
+				
+				return _pixels;
 			}
 			set { _pixels = value; }
 		}
@@ -150,7 +143,7 @@ namespace VixenModules.Preview.VixenPreview.Shapes
         public PreviewBaseShape Parent { get; set; }
 
 		[Editor(typeof (PreviewSetElementsUIEditor), typeof (UITypeEditor)),
-		 CategoryAttribute("Settings"),
+		 Category("Settings"),
 		 DisplayName("Linked Elements")]
 		public virtual List<PreviewBaseShape> Strings
 		{
@@ -192,8 +185,8 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 		}
 
 		[DataMember,
-		 CategoryAttribute("Settings"),
-		 DescriptionAttribute("The size of the light point on the preview."),
+		 Category("Settings"),
+		 Description("The size of the light point on the preview."),
 		 DisplayName("Light Size")]
 		public virtual int PixelSize
 		{
@@ -211,14 +204,12 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 		{
 			get
 			{
-				if (_zoomLevel == 0)
+				if (_zoomLevel <= 0)
 					_zoomLevel = 1;
 				return _zoomLevel;
 			}
 			set
 			{
-				if (value > 0)
-					_zoomLevel = value;
 				_zoomLevel = value;
 				if (_strings != null)
 				{
@@ -335,6 +326,7 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 		public virtual void DrawPixel(PreviewPixel pixel, FastPixel.FastPixel fp, bool editMode, HashSet<Guid> highlightedElements,
 		                              bool selected, bool forceDraw)
 		{
+			int origPixelSize = PixelSize;
             if (forceDraw)
             {
                 pixel.Draw(fp, forceDraw);
@@ -342,13 +334,11 @@ namespace VixenModules.Preview.VixenPreview.Shapes
             else
             {
                 Color pixelColor = Color.White;
-                if (
-                    (_pixels.Count > 0) &&
-                    (pixel == _pixels[0] || (_strings != null && _strings.Count > 0 && _strings[0].Pixels != null && _strings[0].Pixels.Count > 0 && _strings[0].Pixels[0] == pixel))
-                   )
-                {
-                    pixelColor = Color.Yellow;
-                    pixel.PixelSize = PixelSize + 2;
+                if (StringType==StringTypes.Pixel && IsPixelOne(pixel))
+	            {
+		            pixelColor = Color.Yellow;
+		            pixel.PixelSize = PixelSize + 2;
+	      
                 }
                 else
                 {
@@ -372,7 +362,21 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 	                } 
                 }
                 pixel.Draw(fp, pixelColor);
+				//Restore the size if we changed it.
+	            pixel.PixelSize = origPixelSize;
             }
+		}
+
+		private bool IsPixelOne(PreviewPixel pixel)
+		{
+			if (_pixels.Count > 0 && pixel == _pixels[0] ||
+				 _strings != null && _strings.Count > 0 && _strings[0].Pixels != null &&
+				 _strings[0].Pixels.Count > 0 && _strings[0].Pixels[0] == pixel)
+			{
+				return true;
+			}
+
+			return false;
 		}
 
 		public virtual void Draw(FastPixel.FastPixel fp, bool editMode, HashSet<Guid> highlightedElements, bool selected,

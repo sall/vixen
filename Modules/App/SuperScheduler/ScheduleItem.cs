@@ -7,6 +7,7 @@ using System.Drawing;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Vixen.Sys;
 using VixenModules.App.Shows;
 
 namespace VixenModules.App.SuperScheduler
@@ -143,11 +144,27 @@ namespace VixenModules.App.SuperScheduler
 
 				if (result < StartTime)
 				{
-					result = _endTime.AddDays(1);
+					result = result.AddDays(1);
 				}
 				return result;
 			}
 			set { _endTime = value; }
+		}
+
+		public DateTime NextStartDateTime
+		{
+			get
+			{
+				var now = DateTime.Now;
+				if (_startDate < now && _endDate > now)
+				{
+					return new DateTime(now.Year, now.Month, _startTime > now?now.Day:now.Day+1,
+										 _startTime.Hour, _startTime.Minute, _startTime.Second);
+				}
+				
+				return new DateTime(_startDate.Year, _startDate.Month, _startDate.Day,
+										 _startTime.Hour, _startTime.Minute, _startTime.Second); 
+			}
 		}
 
 		private DateTime InProcessEndTime { get; set; }
@@ -276,8 +293,16 @@ namespace VixenModules.App.SuperScheduler
 					ScheduleExecutor.AddSchedulerLogEntry(Show.Name, "Stopping action: " + RunningActions[i].ShowItem.Name);
 					RunningActions[i].Stop();
 				}
-				Show.ReleaseAllActions();
-				ScheduleExecutor.AddSchedulerLogEntry(Show.Name, "Show stopped immediately");
+				if (Show != null)
+				{
+					Show.ReleaseAllActions();
+					ScheduleExecutor.AddSchedulerLogEntry(Show.Name, "Show stopped immediately");
+				}
+				else
+				{
+					ScheduleExecutor.AddSchedulerLogEntry("No show selected", "Nothing to stop.");
+				}
+				
 			}
 		}
 
@@ -299,12 +324,12 @@ namespace VixenModules.App.SuperScheduler
 			if (tokenSourcePreProcessAll == null || tokenSourcePreProcessAll.IsCancellationRequested)
 				tokenSourcePreProcessAll = new CancellationTokenSource();
 
-			var preProcessTask = new Task(a => PreProcessActionTask(),null, tokenSourcePreProcessAll.Token);
-			preProcessTask.ContinueWith(task => BeginStartup());
+			var preProcessTask = new Task(a => PreProcessActionTask(),tokenSourcePreProcessAll.Token);
+
+			preProcessTask.ContinueWith(task => BeginStartup(), tokenSourcePreProcessAll.Token);
 
 			preProcessTask.Start();
 
-			//BeginStartup();
 		}
 
 		private void PreProcessActionTask()
@@ -331,10 +356,10 @@ namespace VixenModules.App.SuperScheduler
 
 		private void ExecuteAction(Shows.Action action)
 		{
-			ScheduleExecutor.Logging.Info("ExecuteAction: " + action.ShowItem.Name);
+			LogScheduleInfoEntry(string.Format("ExecuteAction: {0} with state of {1}", action.ShowItem.Name, State));
+			
 			if (State != StateType.Waiting)
 			{
-				ScheduleExecutor.Logging.Info("ExecuteAction: State != StateType.Waiting");
 				if (!action.PreProcessingCompleted)
 				{
 					ScheduleExecutor.AddSchedulerLogEntry(Show.Name, "Pre-processing action: " + action.ShowItem.Name);
@@ -360,10 +385,7 @@ namespace VixenModules.App.SuperScheduler
 				}
 			}
 		}
-
-		private void RunNextItemInQueue() {
-		}
-
+		
 		#endregion // Show Control
 
 		#region Startup Items
@@ -421,30 +443,36 @@ namespace VixenModules.App.SuperScheduler
 
 		public void BeginSequential()
 		{
-			ScheduleExecutor.Logging.Info("BeginSequential");
+			LogScheduleInfoEntry("BeginSequential");
 			if (Show != null && State == StateType.Running)
 			{
 				State = StateType.Running;
 
-				foreach (Shows.ShowItem item in Show.GetItems(Shows.ShowItemType.Sequential))
+				foreach (ShowItem item in Show.GetItems(ShowItemType.Sequential))
 				{
-					ScheduleExecutor.Logging.Info("BeginSequential: Enqueue:" + item.Name);
+					LogScheduleInfoEntry("BeginSequential: Enqueue:" + item.Name);
 					ItemQueue.Enqueue(item);
 				}
 
-				if (ItemQueue.Any() ) 
+				if (ItemQueue.Any())
+				{
 					ExecuteNextSequentialItem();
+				}
+				else
+				{
+					LogScheduleInfoEntry("BeginSequential: Nothing in queue.");
+				}
 			}
 		}
 
 		public void ExecuteNextSequentialItem()
 		{
-			ScheduleExecutor.Logging.Info("ExecuteNextSequentialItem");
+			LogScheduleInfoEntry("ExecuteNextSequentialItem");
 			if (State == StateType.Running)
 			{
 				if (ItemQueue.Any() )
 				{
-					ScheduleExecutor.Logging.Info("ExecuteNextSequentialItem: Dequeue");
+					LogScheduleInfoEntry("ExecuteNextSequentialItem: Dequeue next item");
 					_currentItem = ItemQueue.Dequeue();
 					Shows.Action action = _currentItem.GetAction();
 					action.ActionComplete += OnSequentialActionComplete;
@@ -452,7 +480,7 @@ namespace VixenModules.App.SuperScheduler
 				}
 				else
 				{
-					ScheduleExecutor.Logging.Info("ExecuteNextSequentialItem: BeginSequential");
+					LogScheduleInfoEntry("ExecuteNextSequentialItem: Nothing left in the queue. Restarting the queue.");
 					// Restart the queue 
 					BeginSequential();
 				}
@@ -461,14 +489,13 @@ namespace VixenModules.App.SuperScheduler
 
 		public void OnSequentialActionComplete(object sender, EventArgs e)
 		{
-			ScheduleExecutor.Logging.Info("OnSequentialActionComplete");
 			Shows.Action action = (sender as Shows.Action);
 			action.ActionComplete -= OnSequentialActionComplete;
 			RunningActions.Remove(action);
 			ScheduleExecutor.AddSchedulerLogEntry(Show.Name, "Sequential action complete: " + action.ShowItem.Name);
 			if (!StartShutdownIfRequested())
 			{
-				ScheduleExecutor.Logging.Info("OnSequentialActionComplete: Shutdown NOT requested");
+				LogScheduleInfoEntry("OnSequentialActionComplete: Shutdown was NOT requested");
 				ExecuteNextSequentialItem();
 			}
 		}
@@ -481,7 +508,7 @@ namespace VixenModules.App.SuperScheduler
 		{
 			if (Show != null)
 			{
-				foreach (Shows.ShowItem item in Show.GetItems(Shows.ShowItemType.Background))
+				foreach (ShowItem item in Show.GetItems(ShowItemType.Background))
 				{
 					Shows.Action action = item.GetAction();
 					BackgroundActions.Add(action);
@@ -542,6 +569,7 @@ namespace VixenModules.App.SuperScheduler
 		public bool StartShutdownIfRequested() {
 			if (State == StateType.Shutdown || CheckForShutdown())
 			{
+				LogScheduleInfoEntry("Shutdown IS requested");
 				BeginShutdown();
 				return true;
 			}
@@ -559,14 +587,19 @@ namespace VixenModules.App.SuperScheduler
 				ItemQueue.Clear();
 
 				State = StateType.Shutdown;
-				foreach (Shows.ShowItem item in Show.GetItems(Shows.ShowItemType.Shutdown))
+				foreach (ShowItem item in Show.GetItems(Shows.ShowItemType.Shutdown))
 				{
-					ScheduleExecutor.Logging.Info("BeginShutdown: Enqueue: " + item.Name);
+					LogScheduleInfoEntry(string.Format("BeginShutdown: Enqueue: {0}", item.Name));
 					ItemQueue.Enqueue(item);
 				}
 
 				ExecuteNextShutdownItem();
 			}
+		}
+
+		private void LogScheduleInfoEntry(string message)
+		{
+			ScheduleExecutor.Logging.Info("({0}) {1}", Show!=null?Show.Name:"Unknown show", message);
 		}
 
 		public void ExecuteNextShutdownItem()

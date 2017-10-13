@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Vixen</RootNamespace>
     <AssemblyName>Vixen</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -55,10 +55,30 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <OutputPath>..\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>false</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <OutputPath>..\Debug64\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>false</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="NLog, Version=3.1.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NLog.3.1.0.0\lib\net45\NLog.dll</HintPath>
+    <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
+      <HintPath>..\packages\NLog.4.4.1\lib\net45\NLog.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="PresentationCore" />
@@ -77,10 +97,6 @@
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
-    <Reference Include="System.Data.DataSetExtensions">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
   </ItemGroup>
@@ -185,11 +201,13 @@
     <Compile Include="Export\Export.cs" />
     <Compile Include="Export\ExportCommandHandler.cs" />
     <Compile Include="Export\ESEQWriter.cs" />
+    <Compile Include="Export\ExportProgressStatus.cs" />
     <Compile Include="Export\FSEQWriter.cs" />
     <Compile Include="Export\IExport.cs" />
     <Compile Include="Export\Vir2Writer.cs" />
     <Compile Include="Export\HelixWriter.cs" />
     <Compile Include="Export\Vix2Writer.cs" />
+    <Compile Include="Extensions\Extensions.cs" />
     <Compile Include="Factory\CommandOutputFactory.cs" />
     <Compile Include="Factory\ControllerFactory.cs" />
     <Compile Include="Factory\IntentOutputFactory.cs" />
@@ -340,7 +358,6 @@
     <Compile Include="Sys\LayerMixing\StandardLayer.cs" />
     <Compile Include="Sys\LayerMixing\SequenceLayers.cs" />
     <Compile Include="Sys\Managers\ControllerFacade.cs" />
-    <Compile Include="Sys\Managers\ControllerLinkingManagement.cs" />
     <Compile Include="Sys\Managers\ExecutionState.cs" />
     <Compile Include="Sys\Managers\HardwareUpdateThread.cs" />
     <Compile Include="Sys\Managers\IControllerFacadeParticipant.cs" />
@@ -482,7 +499,6 @@
     <Compile Include="IO\Xml\Serializer\XmlCompressedFileSerializer.cs" />
     <Compile Include="IO\Xml\SystemContext\XmlSystemContextFilePolicy.cs" />
     <Compile Include="IO\Xml\Serializer\XmlControllerCollectionSerializer.cs" />
-    <Compile Include="IO\Xml\Serializer\XmlControllerLinkCollectionSerializer.cs" />
     <Compile Include="IO\Xml\Serializer\XmlControllerSerializer.cs" />
     <Compile Include="IO\Xml\Serializer\XmlDisabledControllerCollectionSerializer.cs" />
     <Compile Include="IO\Xml\Serializer\XmlElementNodeCollectionSerializer.cs" />
@@ -500,8 +516,6 @@
     <Compile Include="IO\Xml\Serializer\IXmlSerializer.cs" />
     <Compile Include="IO\Xml\Serializer\XmlElementCollectionSerializer.cs" />
     <Compile Include="IO\Xml\Serializer\XmlModuleLocalDataSetSerializer.cs" />
-    <Compile Include="Sys\ControllerLink.cs" />
-    <Compile Include="Sys\ControllerLinker.cs" />
     <Compile Include="Sys\DataStream.cs" />
     <Compile Include="Sys\DefaultValueArrayMember.cs" />
     <Compile Include="Sys\IDataNode.cs" />
@@ -910,9 +924,7 @@
   <ItemGroup>
     <Compile Include="Commands\StringCommand.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Extensions\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy "$(SolutionDir)\Release Notes.txt" "$(OutDir)"</PostBuildEvent>

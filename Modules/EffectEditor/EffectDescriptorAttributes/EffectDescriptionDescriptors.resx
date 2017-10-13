@@ -300,9 +300,6 @@
   <data name="Shrink" xml:space="preserve">
     <value>Shrink the legs of the spiral.</value>
   </data>
-  <data name="SnowflakeType" xml:space="preserve">
-    <value>Controls the type of snowflake.</value>
-  </data>
   <data name="SpinSpeedFormat" xml:space="preserve">
     <value>Controls how the individual spins occur.</value>
   </data>
@@ -337,7 +334,7 @@
     <value>Controls how much of the effect by percent is covered in twinkles.</value>
   </data>
   <data name="TwinkleDepth" xml:space="preserve">
-    <value>Controls whether each individual element is twinkled independantly or all at once.</value>
+    <value>Controls whether each individual element is twinkled independantly or controled by the depth of the effect.</value>
   </data>
   <data name="TwinkleLevelVariation" xml:space="preserve">
     <value>Controls how much percent variation in the brightness level of each pulse in the twinkle.</value>
@@ -380,5 +377,182 @@
   </data>
   <data name="EnableMinimumBrightness" xml:space="preserve">
     <value>Enables a default brightness for the background in the effect. The background will be based on the foreground color selections.</value>
+  </data>
+  <data name="BladeType" xml:space="preserve">
+    <value>Determines the look of the blade.</value>
+  </data>
+  <data name="AlternatingDepth" xml:space="preserve">
+    <value>Controls whether each individual element is alternated independantly or controlled by the depth of the effect.</value>
+  </data>
+  <data name="CenterHub" xml:space="preserve">
+    <value>Configures the size of the hub or hole in the center of the Pinwheel.</value>
+  </data>
+  <data name="Twist" xml:space="preserve">
+    <value>Configures the amount of rotation or twist the Pinwheel arm has.</value>
+  </data>
+  <data name="CenterX" xml:space="preserve">
+    <value>Controls the center positioning of the effect in the horizontal plane.</value>
+  </data>
+  <data name="CenterY" xml:space="preserve">
+    <value>Controls the center positioning of the effect in the vertical plane.</value>
+  </data>
+  <data name="RadiusCurve" xml:space="preserve">
+    <value>The radius of the circle over the time of the effect.</value>
+  </data>
+  <data name="WaveAcceleration" xml:space="preserve">
+    <value>Controls how the wave accelerates out from the center over time. </value>
+  </data>
+  <data name="WidthCurve" xml:space="preserve">
+    <value>The width over time of the effect.</value>
+  </data>
+  <data name="ColorType" xml:space="preserve">
+    <value>Controls the Type of Color.</value>
+  </data>
+  <data name="MaxMeteorAngle" xml:space="preserve">
+    <value>Max angle the Meteor moves.</value>
+  </data>
+  <data name="MinMeteorAngle" xml:space="preserve">
+    <value>Min angle the Meteor moves.</value>
+  </data>
+  <data name="MovementType" xml:space="preserve">
+    <value>Controls the Type of Movement.</value>
+  </data>
+  <data name="RandomPosition" xml:space="preserve">
+    <value>Creates new Meteors at a Random Position</value>
+  </data>
+  <data name="RandomSpeed" xml:space="preserve">
+    <value>Enables Random Speed settings.</value>
+  </data>
+  <data name="TailLength" xml:space="preserve">
+    <value>Controls the amount of TailLength.</value>
+  </data>
+  <data name="SpeedVariation" xml:space="preserve">
+    <value>Randomly adjust the Speed around the Speed level by the amount of variation..</value>
+  </data>
+  <data name="FlakeType" xml:space="preserve">
+    <value>Controls the type of snowflake.</value>
+  </data>
+  <data name="Include45Pt" xml:space="preserve">
+    <value>Include 45 Point Flakes.</value>
+  </data>
+  <data name="MaxAngle" xml:space="preserve">
+    <value>Max angle the Snowflake moves.</value>
+  </data>
+  <data name="MaxDirection" xml:space="preserve">
+    <value>Max Direction in Degrees.</value>
+  </data>
+  <data name="MinAngle" xml:space="preserve">
+    <value>Min angle the Snowflake moves.</value>
+  </data>
+  <data name="MinDirection" xml:space="preserve">
+    <value>Min Direction in Degrees.</value>
+  </data>
+  <data name="RandomIntensity" xml:space="preserve">
+    <value>Changes the Intensity for each element of the effect.</value>
+  </data>
+  <data name="GarlandType" xml:space="preserve">
+    <value>Changes the garland type.</value>
+  </data>
+  <data name="Spacing" xml:space="preserve">
+    <value>Adjusts the space between garlands.</value>
+  </data>
+  <data name="ReverseDirection" xml:space="preserve">
+    <value>Changes direction of effect.</value>
+  </data>
+  <data name="Movement" xml:space="preserve">
+    <value>Control type of movement, either Speed and Iterations.</value>
+  </data>
+  <data name="BorderType" xml:space="preserve">
+    <value>Enable Single or Independent Border width control.</value>
+  </data>
+  <data name="BorderMode" xml:space="preserve">
+    <value>Enables Simple or Advanced border width control.</value>
+  </data>
+  <data name="BorderWidth" xml:space="preserve">
+    <value>Adjusts the Border width.</value>
+  </data>
+  <data name="BottomBorderWidth" xml:space="preserve">
+    <value>Adjust the Bottom Border Width.</value>
+  </data>
+  <data name="LeftBorderWidth" xml:space="preserve">
+    <value>Adjust the Left Border Width.</value>
+  </data>
+  <data name="OuterBorderStarts" xml:space="preserve">
+    <value>Adjusts the Outer border start location.</value>
+  </data>
+  <data name="RightBorderWidth" xml:space="preserve">
+    <value>Adjust the Right Border Width.</value>
+  </data>
+  <data name="RoundEdges" xml:space="preserve">
+    <value>Adds a pixel to the inner corners of the border.</value>
+  </data>
+  <data name="TopBorderWidth" xml:space="preserve">
+    <value>Adjust the Top Border Width.</value>
+  </data>
+  <data name="BorderSize" xml:space="preserve">
+    <value>Adjusts the overall size of the border.</value>
+  </data>
+  <data name="BackGroundColor" xml:space="preserve">
+    <value>Changes Background color.</value>
+  </data>
+  <data name="BallCount" xml:space="preserve">
+    <value>Controls the number of Balls displayed.</value>
+  </data>
+  <data name="BallEdgeWidth" xml:space="preserve">
+    <value>Width of the individual empty balls.</value>
+  </data>
+  <data name="BallFill" xml:space="preserve">
+    <value>Selects the type of fill for the balls.</value>
+  </data>
+  <data name="BallType" xml:space="preserve">
+    <value>Selects between Bounce and Wrap.</value>
+  </data>
+  <data name="ChangeCollideColor" xml:space="preserve">
+    <value>Change ball color when balls collide.</value>
+  </data>
+  <data name="Collide" xml:space="preserve">
+    <value>Change the ball direction when balls collide.</value>
+  </data>
+  <data name="RandomRadius" xml:space="preserve">
+    <value>Creates random size balls up to the Radius value..</value>
+  </data>
+  <data name="BallSize" xml:space="preserve">
+    <value>Size of the Ball.</value>
+  </data>
+  <data name="CircleCount" xml:space="preserve">
+    <value>Adjust the number of Circles or radial patterns in the effect.</value>
+  </data>
+  <data name="CircleEdgeWidth" xml:space="preserve">
+    <value>Width of the individual circles, may need to increase when using Loaction.</value>
+  </data>
+  <data name="HorizontalOffset" xml:space="preserve">
+    <value>Controls the center positioning of the effect in the horizontal plane.</value>
+  </data>
+  <data name="RadialSpeed" xml:space="preserve">
+    <value>Speed of the radial pattern.</value>
+  </data>
+  <data name="Size" xml:space="preserve">
+    <value>Size of the radial effect.</value>
+  </data>
+  <data name="VerticalOffset" xml:space="preserve">
+    <value>Controls the center positioning of the effect in the vertical plane.</value>
+  </data>
+  <data name="CircleFill" xml:space="preserve">
+    <value>Changes the way the circle is filled.</value>
+  </data>
+  <data name="RadialDirection" xml:space="preserve">
+    <value>Changes the direction of the effect to In or out.</value>
+  </data>
+  <data name="SnowBuildUp" xml:space="preserve">
+    <value>Allows the Snowflakes to build-up at the bottom of the Element.</value>
+  </data>
+  <data name="InitialBuildUp" xml:space="preserve">
+    <value>Sets the height level of the Initial Snow build-up at the bottom of the element.</value>
+  </data>
+  <data name="BuildUpSpeed" xml:space="preserve">
+    <value>Adjusts how fast the build-up of Snow is.</value>
+  </data>
+  <data name="EnableGroundLevel" xml:space="preserve">
+    <value>Adds a Ground level for the Meteors to hit.</value>
   </data>
 </root>

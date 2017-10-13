@@ -275,7 +275,7 @@ namespace VixenModules.OutputFilter.ColorBreakdown
 		{
 			LightingValue lightingValue = obj.GetValue();
 			if (_mixColors) {
-				_intensityValue = lightingValue.Intensity * _getMaxProportion(lightingValue.FullColor);
+				_intensityValue = lightingValue.Intensity * _getMaxProportion(lightingValue.Color);
 			}
 			else {
 				// if we're not mixing colors, we need to compare the input color against the filter color -- but only the
@@ -341,19 +341,12 @@ namespace VixenModules.OutputFilter.ColorBreakdown
 				}
 			}
 
-			if (intensity > 0)
-			{
-				//Get a copy of the state value which is a struct and update it with the new intensity and then set it back
-				var intensityValue = _state.GetValue();
-				intensityValue.Intensity = intensity;
-				_state.SetValue(intensityValue);
-				Data = _intentData;
-			}
-			else
-			{
-				Data = null;
-			}
 			
+			//Get a copy of the state value which is a struct and update it with the new intensity and then set it back
+			var intensityValue = _state.GetValue();
+			intensityValue.Intensity = intensity;
+			_state.SetValue(intensityValue);
+			Data = _intentData;
 			
 		}
 

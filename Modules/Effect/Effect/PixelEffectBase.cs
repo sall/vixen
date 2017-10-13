@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using System.Threading;
 using NLog;
 using Vixen.Attributes;
@@ -26,7 +27,7 @@ namespace VixenModules.Effect.Effect
 	{
 
 		protected const short FrameTime = 50;
-		private static Logger Logging = LogManager.GetCurrentClassLogger();
+		protected static Logger Logging = LogManager.GetCurrentClassLogger();
 		protected readonly List<int> StringPixelCounts = new List<int>();
 		protected List<ElementLocation> ElementLocations; 
 
@@ -64,6 +65,7 @@ namespace VixenModules.Effect.Effect
 		}
 
 		[ReadOnly(true)]
+		[Browsable(false)]
 		[ProviderCategory(@"Setup", 0)]
 		[ProviderDisplayName(@"StringCount")]
 		[ProviderDescription(@"StringCount")]
@@ -80,6 +82,7 @@ namespace VixenModules.Effect.Effect
 		}
 
 		[ReadOnly(true)]
+		[Browsable(false)]
 		[ProviderCategory(@"Setup", 0)]
 		[ProviderDisplayName(@"PixelsPerString")]
 		[ProviderDescription(@"PixelsPerString")]
@@ -96,18 +99,12 @@ namespace VixenModules.Effect.Effect
 			}
 		}
 
-		[ProviderCategory(@"Setup", 0)]
-		[ProviderDisplayName(@"Orientation")]
-		[ProviderDescription(@"Orientation")]
-		[PropertyOrder(2)]
-		public abstract StringOrientation StringOrientation { get; set; }
-
 		[Value]
 		[Browsable(false)]
 		[ProviderCategory(@"Setup", 0)]
 		[ProviderDisplayName(@"TargetPositioning")]
 		[ProviderDescription(@"TargetPositioning")]
-		[PropertyOrder(3)]
+		[PropertyOrder(2)]
 		public TargetPositioningType TargetPositioning
 		{
 			get { return EffectModuleData.TargetPositioning; }
@@ -124,6 +121,12 @@ namespace VixenModules.Effect.Effect
 				OnPropertyChanged();
 			}
 		}
+
+		[ProviderCategory(@"Setup", 0)]
+		[ProviderDisplayName(@"Orientation")]
+		[ProviderDescription(@"Orientation")]
+		[PropertyOrder(3)]
+		public abstract StringOrientation StringOrientation { get; set; }
 
 		[Browsable(false)]
 		public virtual Color BaseColor { 
@@ -324,7 +327,7 @@ namespace VixenModules.Effect.Effect
 			EffectIntents effectIntents = new EffectIntents();
 			int nFrames = GetNumberFrames();
 			if (nFrames <= 0 | BufferWi == 0 || BufferHt == 0) return effectIntents;
-			PixelLocationFrameBuffer buffer = new PixelLocationFrameBuffer(ElementLocations.Distinct().ToList(), nFrames);
+			PixelLocationFrameBuffer buffer = new PixelLocationFrameBuffer(ElementLocations, nFrames);
 			
 			TimeSpan startTime = TimeSpan.Zero;
 
@@ -334,14 +337,11 @@ namespace VixenModules.Effect.Effect
 			// create the intents
 			var frameTs = new TimeSpan(0, 0, 0, 0, FrameTime);
 
-			foreach (var tuple in buffer.GetElementData())
+			foreach (var elementLocation in ElementLocations)
 			{
-				if (tuple.Item2.Count != nFrames)
-				{
-					Logging.Error("{0} count has {1} instead of {2}", tuple.Item1.ElementNode.Name, tuple.Item2.Count, nFrames );
-				}
-				IIntent intent = new StaticArrayIntent<RGBValue>(frameTs, tuple.Item2.ToArray(), TimeSpan);
-				effectIntents.AddIntentForElement(tuple.Item1.ElementNode.Element.Id, intent, startTime);
+				var frameData = buffer.GetFrameDataAt(elementLocation.X, elementLocation.Y);
+				IIntent intent = new StaticArrayIntent<RGBValue>(frameTs, frameData, TimeSpan);
+				effectIntents.AddIntentForElement(elementLocation.ElementNode.Element.Id, intent, startTime);
 			}
 			
 			return effectIntents;
@@ -408,8 +408,8 @@ namespace VixenModules.Effect.Effect
 
 			// create the intents
 			var frameTs = new TimeSpan(0, 0, 0, 0, FrameTime);
-			List<Element> elements = node.ToList();
-			int numElements = node.Count();
+			List<Element> elements = node.Distinct().ToList();
+			int numElements = elements.Count();
 			for (int eidx = 0; eidx < numElements; eidx++)
 			{
 				IIntent intent = new StaticArrayIntent<RGBValue>(frameTs, pixels[eidx], TimeSpan);
@@ -482,6 +482,84 @@ namespace VixenModules.Effect.Effect
 				step = 0.1;
 			}
 			return step;
+		}
+
+		/// <summary>
+		/// Takes an arbitrary value greater than equal to minimum and less than equal to maximum and translates it to a corresponding 0 - 100 value 
+		/// suitable for use in a curve
+		/// </summary>
+		/// <param name="value"></param>
+		/// <param name="maximum"></param>
+		/// <param name="minimum"></param>
+		/// <returns></returns>
+		public static double ScaleValueToCurve(double value, double maximum, double minimum)
+		{
+			return ConvertRange(minimum, maximum, 0, 100, value);
+		}
+
+		private static double ConvertRange(double originalStart, double originalEnd, double newStart, double newEnd, double value) // value to convert
+		{
+			double scale = (newEnd - newStart) / (originalEnd - originalStart);
+			return newStart + (value - originalStart) * scale;
+		}
+
+		/// <summary>
+		/// Takes an arbitrary value greater than equal to 0 and less than equal to 100 and translates it to a corresponding minimum - maximum value 
+		/// suitable for use in a range 
+		/// </summary>
+		/// <param name="value"></param>
+		/// <param name="maximum"></param>
+		/// <param name="minimum"></param>
+		/// <returns></returns>
+		protected static double ScaleCurveToValue(double value, double maximum, double minimum)
+		{
+			return ConvertRange(0, 100, minimum, maximum, value);
+		}
+
+		protected static bool IsAngleBetween(double a, double b, double n)
+		{
+			n = (360 + (n % 360)) % 360;
+			a = (3600000 + a) % 360;
+			b = (3600000 + b) % 360;
+
+			if (a < b)
+			{
+				return a <= n && n <= b;
+			}
+			return a <= n || n <= b;
+
+		}
+
+		protected static double DegreesDiffernce(double angle1, double angle2)
+		{
+			return Math.Min(360 - Math.Abs(angle1 - angle2), Math.Abs(angle1 - angle2));
+		}
+
+		protected static double GetAngleDegree(Point origin, int x, int y)
+		{
+			var n = 270 - (Math.Atan2(origin.Y - y, origin.X - x)) * 180 / Math.PI;
+			return n % 360;
+		}
+
+		protected static double DistanceFromPoint(Point origin, int x, int y)
+		{
+			return Math.Sqrt(Math.Pow((x - origin.X), 2) + Math.Pow((y - origin.Y), 2));
+		}
+
+		protected static double DistanceFromPoint(Point origin, Point point)
+		{
+			return Math.Sqrt(Math.Pow((point.X - origin.X), 2) + Math.Pow((point.Y - origin.Y), 2));
+		}
+
+		protected static double AddDegrees(double angle, double degrees)
+		{
+			var newAngle = (angle + degrees) % 360;
+			if (newAngle < 0)
+			{
+				newAngle += 360;
+			}
+
+			return newAngle;
 		}
 	}
 }

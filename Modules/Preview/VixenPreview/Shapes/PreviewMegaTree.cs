@@ -26,6 +26,7 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 		[DataMember] private int _baseHeight;
 		[DataMember] private int _lightsPerString;
 		[DataMember] private int _degrees;
+		[DataMember] private int _degreeOffset = 0;
 
 		[DataMember] private PreviewPoint _topRight, _bottomLeft;
 
@@ -139,6 +140,7 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 		[OnDeserialized]
 		private new void OnDeserialized(StreamingContext context)
 		{
+			_pixels.Clear();
 			Layout();
 		}
 
@@ -207,6 +209,24 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 			}
 			get { return _degrees; }
 		}
+
+		
+		[CategoryAttribute("Settings"),
+		DescriptionAttribute("Degree offset can be used to center the Mega Tree."),
+		DisplayName("Degree Offset")]
+		public int DegreeOffset
+		{
+			get
+			{
+				return _degreeOffset;
+			}
+			set
+			{
+				_degreeOffset = value;
+				Layout();
+			}
+		}
+
 		[CategoryAttribute("Settings"),
 		 DisplayName("Lights Per String"),
 		 DescriptionAttribute("The number of lights on each string of the Mega Tree")]
@@ -377,16 +397,10 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 							outPixels.Add(pixel);
 						}
 					}
-
 					return outPixels;
 				}
-				else {
-					return _pixels;
-				}
-			}
-			set
-			{
-				_pixels = value;
+				
+				return _pixels;
 			}
 		}
 
@@ -411,14 +425,14 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 																  _topHeight,
 																  totalStringsInEllipse,
 																  _degrees,
-																  0);
+																  _degreeOffset);
 				_baseEllipsePoints = PreviewTools.GetEllipsePoints(_topLeft.X,
 																   bottomTopOffset,
 																   width,
 																   _baseHeight,
 																   totalStringsInEllipse,
 																   _degrees,
-																   0);
+																   _degreeOffset);
 
 				for (int stringNum = 0; stringNum < (int)_stringCount; stringNum++)
 				{

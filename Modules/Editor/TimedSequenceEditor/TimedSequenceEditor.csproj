@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>VixenModules.Editor.TimedSequenceEditor</RootNamespace>
     <AssemblyName>TimedSequenceEditor</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
@@ -63,6 +63,9 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <OutputPath>..\..\..\Debug64\Modules\Editor\</OutputPath>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)\Vixen.System\Vixen.csproj">
       <Project>{50B78623-FCF4-48AF-93FF-FA87C937028F}</Project>
@@ -91,8 +94,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="NLog, Version=3.1.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\..\..\packages\NLog.3.1.0.0\lib\net45\NLog.dll</HintPath>
+    <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\NLog.4.4.1\lib\net45\NLog.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="PresentationCore" />
@@ -109,8 +112,12 @@
       <HintPath>..\..\..\Common\Libraries\TabControlEX.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="WeifenLuo.WinFormsUI.Docking">
-      <HintPath>..\..\..\packages\DockPanelSuite.2.9.0.0\lib\net40\WeifenLuo.WinFormsUI.Docking.dll</HintPath>
+    <Reference Include="WeifenLuo.WinFormsUI.Docking, Version=2.11.0.0, Culture=neutral, PublicKeyToken=5cded1a1a0a7b481, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\DockPanelSuite.2.12.0\lib\net40\WeifenLuo.WinFormsUI.Docking.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="WeifenLuo.WinFormsUI.Docking.ThemeVS2015, Version=2.11.0.0, Culture=neutral, PublicKeyToken=5cded1a1a0a7b481, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\DockPanelSuite.ThemeVS2015.2.12.0\lib\net40\WeifenLuo.WinFormsUI.Docking.ThemeVS2015.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="WindowsBase" />
@@ -128,6 +135,12 @@
     </Compile>
     <Compile Include="AutomaticMusicDetection.Designer.cs">
       <DependentUpon>AutomaticMusicDetection.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FindEffectForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FindEffectForm.Designer.cs">
+      <DependentUpon>FindEffectForm.cs</DependentUpon>
     </Compile>
     <Compile Include="BulkEffectMoveForm.cs">
       <SubType>Form</SubType>
@@ -262,6 +275,10 @@
     <Compile Include="Form_ToolPalette.Designer.cs">
       <DependentUpon>Form_ToolPalette.cs</DependentUpon>
     </Compile>
+    <Compile Include="Undo\MarksMovedUndoAction.cs" />
+    <Compile Include="Undo\MarksRemovedUndoAction.cs" />
+    <Compile Include="Undo\MarksAddedUndoAction .cs" />
+    <Compile Include="Undo\MarksAddedRemovedUndoAction.cs" />
     <Compile Include="Undo\EffectsAddedRemovedUndoAction.cs" />
     <Compile Include="Undo\EffectsAddedUndoAction.cs" />
     <Compile Include="Undo\EffectsLayerChangedUndoAction.cs" />
@@ -277,6 +294,8 @@
     <Compile Include="LayerEditor.Designer.cs">
       <DependentUpon>LayerEditor.cs</DependentUpon>
     </Compile>
+    <Compile Include="User32.cs" />
+    <Compile Include="Shell32.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
@@ -288,6 +307,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="AutomaticMusicDetection.resx">
       <DependentUpon>AutomaticMusicDetection.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FindEffectForm.resx">
+      <DependentUpon>FindEffectForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="BulkEffectMoveForm.resx">
       <DependentUpon>BulkEffectMoveForm.cs</DependentUpon>

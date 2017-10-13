@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -11,6 +10,7 @@ using Common.Controls.Scaling;
 using Common.Controls.Theme;
 using Common.Resources;
 using Common.Resources.Properties;
+using Vixen.Sys;
 
 namespace VixenModules.App.Shows
 {
@@ -96,7 +96,7 @@ namespace VixenModules.App.Shows
 			}
 		}
 
-		private void EditSelectedShow()
+		private async void EditSelectedShow()
 		{
 			if (listViewShows.SelectedItems.Count > 0)
 			{
@@ -112,12 +112,13 @@ namespace VixenModules.App.Shows
 						Data.Shows[showIndex] = form.ShowData;
 						lvItem.Tag = form.ShowData;
 						lvItem.Text = form.ShowData.Name;
+						await VixenSystem.SaveModuleConfigAsync();
 					}
 				}
 			}
 		}
 
-		private void DeleteSelectedShow()
+		private async void DeleteSelectedShow()
 		{
 			if (listViewShows.SelectedItems.Count > 0)
 			{
@@ -133,6 +134,7 @@ namespace VixenModules.App.Shows
 					{
 						Data.Shows.Remove(lvItem.Tag as Show);
 						listViewShows.Items.Remove(lvItem);
+						await VixenSystem.SaveModuleConfigAsync();
 					}
 				}
 			}

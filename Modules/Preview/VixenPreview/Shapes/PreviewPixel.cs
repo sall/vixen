@@ -80,7 +80,7 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 			set { _maxAlpha = value; }
 		}
 
-		[DataMember]
+		[DataMember(EmitDefaultValue = false)]
 		public Guid NodeId
 		{
 			get { return _nodeId; }
@@ -139,7 +139,6 @@ namespace VixenModules.Preview.VixenPreview.Shapes
 			}
 		}
 
-		[DataMember]
 		public int Z
 		{
 			get { return _z; }

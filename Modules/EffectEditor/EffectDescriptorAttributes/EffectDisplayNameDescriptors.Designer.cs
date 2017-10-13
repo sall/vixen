@@ -89,11 +89,65 @@ namespace VixenModules.EffectEditor.EffectDescriptorAttributes {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to BackGround Color.
+        /// </summary>
+        internal static string BackGroundColor {
+            get {
+                return ResourceManager.GetString("BackGroundColor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Background Skips.
         /// </summary>
         internal static string BackgroundSkips {
             get {
                 return ResourceManager.GetString("BackgroundSkips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ball Count.
+        /// </summary>
+        internal static string BallCount {
+            get {
+                return ResourceManager.GetString("BallCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Width.
+        /// </summary>
+        internal static string BallEdgeWidth {
+            get {
+                return ResourceManager.GetString("BallEdgeWidth", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fill.
+        /// </summary>
+        internal static string BallFill {
+            get {
+                return ResourceManager.GetString("BallFill", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Size.
+        /// </summary>
+        internal static string BallSize {
+            get {
+                return ResourceManager.GetString("BallSize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type.
+        /// </summary>
+        internal static string BallType {
+            get {
+                return ResourceManager.GetString("BallType", resourceCulture);
             }
         }
         
@@ -116,6 +170,15 @@ namespace VixenModules.EffectEditor.EffectDescriptorAttributes {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Blade Type.
+        /// </summary>
+        internal static string BladeType {
+            get {
+                return ResourceManager.GetString("BladeType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Blend.
         /// </summary>
         internal static string Blend {
@@ -125,11 +188,65 @@ namespace VixenModules.EffectEditor.EffectDescriptorAttributes {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Border Mode.
+        /// </summary>
+        internal static string BorderMode {
+            get {
+                return ResourceManager.GetString("BorderMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Size.
+        /// </summary>
+        internal static string BorderSize {
+            get {
+                return ResourceManager.GetString("BorderSize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Border Type.
+        /// </summary>
+        internal static string BorderType {
+            get {
+                return ResourceManager.GetString("BorderType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Width.
+        /// </summary>
+        internal static string BorderWidth {
+            get {
+                return ResourceManager.GetString("BorderWidth", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Bottom Width.
+        /// </summary>
+        internal static string BottomBorderWidth {
+            get {
+                return ResourceManager.GetString("BottomBorderWidth", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Intensity.
         /// </summary>
         internal static string Brightness {
             get {
                 return ResourceManager.GetString("Brightness", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Build-up Speed.
+        /// </summary>
+        internal static string BuildUpSpeed {
+            get {
+                return ResourceManager.GetString("BuildUpSpeed", resourceCulture);
             }
         }
         
@@ -170,11 +287,56 @@ namespace VixenModules.EffectEditor.EffectDescriptorAttributes {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Collide Color.
+        /// </summary>
+        internal static string ChangeCollideColor {
+            get {
+                return ResourceManager.GetString("ChangeCollideColor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Change Percent.
         /// </summary>
         internal static string ChangePercent {
             get {
                 return ResourceManager.GetString("ChangePercent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Circles.
+        /// </summary>
+        internal static string CircleCount {
+            get {
+                return ResourceManager.GetString("CircleCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Width.
+        /// </summary>
+        internal static string CircleEdgeWidth {
+            get {
+                return ResourceManager.GetString("CircleEdgeWidth", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fill.
+        /// </summary>
+        internal static string CircleFill {
+            get {
+                return ResourceManager.GetString("CircleFill", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Collide.
+        /// </summary>
+        internal static string Collide {
+            get {
+                return ResourceManager.GetString("Collide", resourceCulture);
             }
         }
         
@@ -251,6 +413,15 @@ namespace VixenModules.EffectEditor.EffectDescriptorAttributes {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Color Type.
+        /// </summary>
+        internal static string ColorType {
+            get {
+                return ResourceManager.GetString("ColorType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Coverage.
         /// </summary>
         internal static string Coverage {
@@ -301,6 +472,15 @@ namespace VixenModules.EffectEditor.EffectDescriptorAttributes {
         internal static string Direction {
             get {
                 return ResourceManager.GetString("Direction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ground Level.
+        /// </summary>
+        internal static string EnableGroundLevel {
+            get {
+                return ResourceManager.GetString("EnableGroundLevel", resourceCulture);
             }
         }
         
@@ -368,6 +548,15 @@ namespace VixenModules.EffectEditor.EffectDescriptorAttributes {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Flake Type.
+        /// </summary>
+        internal static string FlakeType {
+            get {
+                return ResourceManager.GetString("FlakeType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Flicker.
         /// </summary>
         internal static string FlickerPercent {
@@ -400,6 +589,15 @@ namespace VixenModules.EffectEditor.EffectDescriptorAttributes {
         internal static string Gain {
             get {
                 return ResourceManager.GetString("Gain", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Garland Type.
+        /// </summary>
+        internal static string GarlandType {
+            get {
+                return ResourceManager.GetString("GarlandType", resourceCulture);
             }
         }
         
@@ -494,6 +692,15 @@ namespace VixenModules.EffectEditor.EffectDescriptorAttributes {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Horizontal Offset.
+        /// </summary>
+        internal static string HorizontalOffset {
+            get {
+                return ResourceManager.GetString("HorizontalOffset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Hue Shift.
         /// </summary>
         internal static string HueShift {
@@ -503,11 +710,29 @@ namespace VixenModules.EffectEditor.EffectDescriptorAttributes {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Individual Elements.
+        ///   Looks up a localized string similar to Include 45Pt.
+        /// </summary>
+        internal static string Include45Pt {
+            get {
+                return ResourceManager.GetString("Include45Pt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Choose Effect Depth.
         /// </summary>
         internal static string IndividualElements {
             get {
                 return ResourceManager.GetString("IndividualElements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Initial Build-up.
+        /// </summary>
+        internal static string InitialBuildUp {
+            get {
+                return ResourceManager.GetString("InitialBuildUp", resourceCulture);
             }
         }
         
@@ -539,6 +764,15 @@ namespace VixenModules.EffectEditor.EffectDescriptorAttributes {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Left Width.
+        /// </summary>
+        internal static string LeftBorderWidth {
+            get {
+                return ResourceManager.GetString("LeftBorderWidth", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Location.
         /// </summary>
         internal static string Location {
@@ -566,11 +800,29 @@ namespace VixenModules.EffectEditor.EffectDescriptorAttributes {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Max Angle.
+        /// </summary>
+        internal static string MaxAngle {
+            get {
+                return ResourceManager.GetString("MaxAngle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Max.
         /// </summary>
         internal static string MaxBrightness {
             get {
                 return ResourceManager.GetString("MaxBrightness", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Max Direction.
+        /// </summary>
+        internal static string MaxDirection {
+            get {
+                return ResourceManager.GetString("MaxDirection", resourceCulture);
             }
         }
         
@@ -584,11 +836,29 @@ namespace VixenModules.EffectEditor.EffectDescriptorAttributes {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Min Angle.
+        /// </summary>
+        internal static string MinAngle {
+            get {
+                return ResourceManager.GetString("MinAngle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Min.
         /// </summary>
         internal static string MinBrightness {
             get {
                 return ResourceManager.GetString("MinBrightness", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Min Direction.
+        /// </summary>
+        internal static string MinDirection {
+            get {
+                return ResourceManager.GetString("MinDirection", resourceCulture);
             }
         }
         
@@ -611,11 +881,38 @@ namespace VixenModules.EffectEditor.EffectDescriptorAttributes {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to String Orientation.
+        ///   Looks up a localized string similar to Movement.
+        /// </summary>
+        internal static string Movement {
+            get {
+                return ResourceManager.GetString("Movement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Movement Type.
+        /// </summary>
+        internal static string MovementType {
+            get {
+                return ResourceManager.GetString("MovementType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Orientation.
         /// </summary>
         internal static string Orientation {
             get {
                 return ResourceManager.GetString("Orientation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Outer Border Starts.
+        /// </summary>
+        internal static string OuterBorderStarts {
+            get {
+                return ResourceManager.GetString("OuterBorderStarts", resourceCulture);
             }
         }
         
@@ -710,11 +1007,74 @@ namespace VixenModules.EffectEditor.EffectDescriptorAttributes {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Direction.
+        /// </summary>
+        internal static string RadialDirection {
+            get {
+                return ResourceManager.GetString("RadialDirection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Speed.
+        /// </summary>
+        internal static string RadialSpeed {
+            get {
+                return ResourceManager.GetString("RadialSpeed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Random Intensity.
+        /// </summary>
+        internal static string RandomIntensity {
+            get {
+                return ResourceManager.GetString("RandomIntensity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Random Position.
+        /// </summary>
+        internal static string RandomPosition {
+            get {
+                return ResourceManager.GetString("RandomPosition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Random Radius.
+        /// </summary>
+        internal static string RandomRadius {
+            get {
+                return ResourceManager.GetString("RandomRadius", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Random Speed.
+        /// </summary>
+        internal static string RandomSpeed {
+            get {
+                return ResourceManager.GetString("RandomSpeed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Repeat.
         /// </summary>
         internal static string Repeat {
             get {
                 return ResourceManager.GetString("Repeat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reverse Direction.
+        /// </summary>
+        internal static string ReverseDirection {
+            get {
+                return ResourceManager.GetString("ReverseDirection", resourceCulture);
             }
         }
         
@@ -746,11 +1106,29 @@ namespace VixenModules.EffectEditor.EffectDescriptorAttributes {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Right Width.
+        /// </summary>
+        internal static string RightBorderWidth {
+            get {
+                return ResourceManager.GetString("RightBorderWidth", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Rotation.
         /// </summary>
         internal static string Rotation {
             get {
                 return ResourceManager.GetString("Rotation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Round Edges.
+        /// </summary>
+        internal static string RoundEdges {
+            get {
+                return ResourceManager.GetString("RoundEdges", resourceCulture);
             }
         }
         
@@ -782,11 +1160,29 @@ namespace VixenModules.EffectEditor.EffectDescriptorAttributes {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Snowflake Type.
+        ///   Looks up a localized string similar to Size.
         /// </summary>
-        internal static string SnowflakeType {
+        internal static string Size {
             get {
-                return ResourceManager.GetString("SnowflakeType", resourceCulture);
+                return ResourceManager.GetString("Size", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Snow Build-up.
+        /// </summary>
+        internal static string SnowBuildUp {
+            get {
+                return ResourceManager.GetString("SnowBuildUp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Spacing.
+        /// </summary>
+        internal static string Spacing {
+            get {
+                return ResourceManager.GetString("Spacing", resourceCulture);
             }
         }
         
@@ -809,6 +1205,15 @@ namespace VixenModules.EffectEditor.EffectDescriptorAttributes {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Speed Variation.
+        /// </summary>
+        internal static string SpeedVariation {
+            get {
+                return ResourceManager.GetString("SpeedVariation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Static Effect.
         /// </summary>
         internal static string StaticEffect {
@@ -823,6 +1228,15 @@ namespace VixenModules.EffectEditor.EffectDescriptorAttributes {
         internal static string StringCount {
             get {
                 return ResourceManager.GetString("StringCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tail Length.
+        /// </summary>
+        internal static string TailLength {
+            get {
+                return ResourceManager.GetString("TailLength", resourceCulture);
             }
         }
         
@@ -872,6 +1286,15 @@ namespace VixenModules.EffectEditor.EffectDescriptorAttributes {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Top Width.
+        /// </summary>
+        internal static string TopBorderWidth {
+            get {
+                return ResourceManager.GetString("TopBorderWidth", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Type.
         /// </summary>
         internal static string Type {
@@ -917,11 +1340,38 @@ namespace VixenModules.EffectEditor.EffectDescriptorAttributes {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Vertical Offset.
+        /// </summary>
+        internal static string VerticalOffset {
+            get {
+                return ResourceManager.GetString("VerticalOffset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Wipe Count.
         /// </summary>
         internal static string WipeCount {
             get {
                 return ResourceManager.GetString("WipeCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wipe Off.
+        /// </summary>
+        internal static string WipeOff {
+            get {
+                return ResourceManager.GetString("WipeOff", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wipe On.
+        /// </summary>
+        internal static string WipeOn {
+            get {
+                return ResourceManager.GetString("WipeOn", resourceCulture);
             }
         }
         

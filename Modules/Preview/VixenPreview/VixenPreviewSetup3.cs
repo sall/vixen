@@ -7,13 +7,18 @@ using Common.Controls;
 using Common.Controls.Theme;
 using Common.Resources;
 using System.IO;
+using System.Threading.Tasks;
+using System.Windows.Input;
 using Common.Controls.Scaling;
 using VixenModules.Editor.VixenPreviewSetup3.Undo;
 using VixenModules.Preview.VixenPreview.Shapes;
 using VixenModules.Property.Location;
 using Common.Resources.Properties;
+using Vixen.Sys;
+using WeifenLuo.WinFormsUI.Docking;
 using Button = System.Windows.Forms.Button;
 using Control = System.Windows.Forms.Control;
+using Cursors = System.Windows.Forms.Cursors;
 
 namespace VixenModules.Preview.VixenPreview {
 	public partial class VixenPreviewSetup3 : BaseForm
@@ -51,6 +56,13 @@ namespace VixenModules.Preview.VixenPreview {
 			menuStrip.Renderer = new ThemeToolStripRenderer();
 			ForeColor = ThemeColorTable.ForeColor;
 			BackColor = ThemeColorTable.BackgroundColor;
+			int iconSize = (int)(24 * ScalingTools.GetScaleFactor());
+			undoButton.Image = Tools.GetIcon(Resources.arrow_undo, iconSize);
+			undoButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
+			redoButton.Image = Tools.GetIcon(Resources.arrow_redo, iconSize);
+			redoButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
+			redoButton.ButtonType = UndoButtonType.RedoButton;
+			tlpToolBar.BorderStyle = BorderStyle.FixedSingle;
 			ThemeUpdateControls.UpdateControls(this);
 			panel10.BackColor = Color.Black;
 			foreach (Control c in panel10.Controls)
@@ -58,6 +70,10 @@ namespace VixenModules.Preview.VixenPreview {
 				c.BackColor = Color.Black;
 			}
 			dockPanel.BackColor = ThemeColorTable.BackgroundColor;
+
+			var theme = new VS2015DarkTheme();
+			dockPanel.Theme = theme;
+
 			label9.ForeColor = Color.Turquoise;
 			label10.ForeColor = Color.LimeGreen;
 			label11.ForeColor = Color.White;
@@ -65,12 +81,6 @@ namespace VixenModules.Preview.VixenPreview {
 			label13.ForeColor = Color.Yellow;
 
 			this.ShowInTaskbar = false;
-			int iconSize = (int)(24 * ScalingTools.GetScaleFactor());
-			undoButton.Image = Tools.GetIcon(Resources.arrow_undo, iconSize);
-		    undoButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
-		    redoButton.Image = Tools.GetIcon(Resources.arrow_redo, iconSize);
-		    redoButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
-		    redoButton.ButtonType = UndoButtonType.RedoButton;
 
 			undoToolStripMenuItem.Enabled = false;
 			redoToolStripMenuItem.Enabled = false;
@@ -125,6 +135,11 @@ namespace VixenModules.Preview.VixenPreview {
 			InitUndo();
 		}
 
+	    private bool IsVisibleOnAnyScreen(Rectangle rect)
+	    {
+		    return Screen.AllScreens.Any(screen => screen.WorkingArea.IntersectsWith(rect));
+	    }
+
 		private void VixenPreviewSetup3_FormClosing(object sender, FormClosingEventArgs e)
 		{
 			PreviewItemsAlignNew -= vixenpreviewControl_PreviewItemsAlignNew;
@@ -136,6 +151,7 @@ namespace VixenModules.Preview.VixenPreview {
 			_undoMgr.RedoItemsChanged -= _undoMgr_RedoItemsChanged;
 			undoButton.ItemChosen -= undoButton_ItemChosen;
 			redoButton.ItemChosen -= redoButton_ItemChosen;
+			CloseSetup();
 		}
 
 		private void buttonSetBackground_Click(object sender, EventArgs e) {
@@ -178,8 +194,10 @@ namespace VixenModules.Preview.VixenPreview {
 	    {
 		    Button button = sender as Button;
 		    buttonShapeSelected(button);
-		    //reenableToolButtons();
-
+			//reenableToolButtons();
+		    previewForm.Preview.ItemIndex = 1;
+		    previewForm.Preview.ItemName = String.Empty;
+		   
 		    // There must be a way to iterate through an enum so we don't have to do all this crap...
 
 		    // Select Button
@@ -188,6 +206,43 @@ namespace VixenModules.Preview.VixenPreview {
 				previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.Select;
 			else if (button == buttonDrawPixel)
 			{
+				if (Keyboard.Modifiers == System.Windows.Input.ModifierKeys.Control)
+				{
+					using (PreviewPixelSetupForm inputDialog = new PreviewPixelSetupForm("Pixel", 1, 3))
+					{
+						if (inputDialog.ShowDialog() == DialogResult.OK)
+						{
+							if (inputDialog.PrefixName != string.Empty)
+							{
+								previewForm.Preview.ItemName = inputDialog.PrefixName;
+							}
+							previewForm.Preview.ItemIndex = inputDialog.StartingIndex;
+							previewForm.Preview.ItemBulbSize = inputDialog.LightSize;
+						}
+					}
+					//using (TextDialog textDialog = new TextDialog("Item Name?", "Item Name", "Pixel", true))
+					//{
+					//	if (textDialog.ShowDialog() == DialogResult.OK)
+					//	{
+					//		if (textDialog.Response != string.Empty)
+					//		{
+					//			previewForm.Preview.ItemName = textDialog.Response;
+					//		}
+					//	}
+					//}
+
+					//if (previewForm.Preview.ItemName != String.Empty)
+					//{
+					//	using (NumberDialog numberDialog = new NumberDialog("Item Index", "Item Start Index", 1, 1))
+					//	{
+					//		if (numberDialog.ShowDialog() == DialogResult.OK)
+					//		{
+					//			previewForm.Preview.ItemIndex = numberDialog.Value;
+					//		}
+					//	}
+					//}
+
+				}
 				DrawShape = "Pixel";
 				previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.Single;
 			}
@@ -238,8 +293,6 @@ namespace VixenModules.Preview.VixenPreview {
 				DrawShape = "Star Burst";
 				previewForm.Preview.CurrentTool = VixenPreviewControl.Tools.StarBurst;
 			}
-			else if (button == buttonHelp)
-				Common.VixenHelp.VixenHelp.ShowHelp(Common.VixenHelp.VixenHelp.HelpStrings.Preview_Main);
 			else if (button == buttonMegaTree)
 			{
 				DrawShape = "Mega Tree";
@@ -324,19 +377,36 @@ namespace VixenModules.Preview.VixenPreview {
 			previewForm.Preview.BackgroundAlpha = trackBarBackgroundAlpha.Value;
 		}
 
-		public void Setup() {
-			SetDesktopLocation(Data.SetupLeft, Data.SetupTop);
-			Size = new Size(Data.SetupWidth, Data.SetupHeight);
+		public void Setup()
+		{
+
+			var desktopBounds =
+				new Rectangle(
+					new Point(Data.SetupLeft, Data.SetupTop),
+					new Size(Data.SetupWidth, Data.SetupHeight));
+
+			if (IsVisibleOnAnyScreen(desktopBounds))
+			{
+				StartPosition = FormStartPosition.Manual;
+				DesktopBounds = desktopBounds;
+			}
+			else
+			{
+				StartPosition = FormStartPosition.WindowsDefaultLocation;
+			}
+
+			//SetDesktopLocation(Data.SetupLeft, Data.SetupTop);
+			//Size = new Size(Data.SetupWidth, Data.SetupHeight);
 		}
 
-		private void buttonSave_Click(object sender, EventArgs e) {
-			SaveLocationDataForElements();
-			DialogResult = System.Windows.Forms.DialogResult.OK;
-			previewForm.Close();
-			Close();
-		}
+		private void CloseSetup()
+	    {
+		    SaveLocationDataForElements();
+		    DialogResult = DialogResult.OK;
+		    previewForm.Close();
+	    }
 
-		private void VixenPreviewSetup3_Move(object sender, EventArgs e) {
+	    private void VixenPreviewSetup3_Move(object sender, EventArgs e) {
 			if (Data == null) {
 				Logging.Warn("VixenPreviewSetup3_Move: Data is null. abandoning move. (Thread ID: " +
 											System.Threading.Thread.CurrentThread.ManagedThreadId + ")");
@@ -375,7 +445,6 @@ namespace VixenModules.Preview.VixenPreview {
 		}
 
 		private void exitToolStripMenuItem_Click(object sender, EventArgs e) {
-			SaveLocationDataForElements();
 			Close();
 		}
 
@@ -450,7 +519,7 @@ namespace VixenModules.Preview.VixenPreview {
 				if (System.IO.File.Exists(templateItem.FileName)) {
 					//messageBox Arguments are (Text, Title, No Button Visible, Cancel Button Visible)
 					MessageBoxForm.msgIcon = SystemIcons.Question; //this is used if you want to add a system icon to the message form.
-					var messageBox = new MessageBoxForm("Are you sure you want to delete the template '" + templateItem.FileName + "'", "Delete Template", true, false);
+					var messageBox = new MessageBoxForm("Are you sure you want to delete the template '" + templateItem.Caption + "'?", "Delete Template", true, false);
 					messageBox.ShowDialog();
 					if (messageBox.DialogResult == DialogResult.OK)
 					{
@@ -474,22 +543,14 @@ namespace VixenModules.Preview.VixenPreview {
 				Cursor = Cursors.WaitCursor;
 				foreach (var d in _data.DisplayItems)
 				{
-					//_data.DisplayItems.ForEach(d => {
 					foreach (var p in d.Shape.Pixels.Where(pi => pi != null && pi.Node != null))
 					{
-
-						//LocationModule prop= null;
 						if (!p.Node.Properties.Contains(LocationDescriptor._typeId))
 							p.Node.Properties.Add(LocationDescriptor._typeId);
 
-						//d.Shape._pixels.ForEach(p => {
-
 						var prop = p.Node.Properties.Get(LocationDescriptor._typeId);
-						((LocationData) prop.ModuleData).X = p.X;
-						((LocationData) prop.ModuleData).Y = p.Y;
-
-						//});
-						//});
+					    ((LocationData) prop.ModuleData).X = p.X + Convert.ToInt32(Data.LocationOffset.X);
+						((LocationData) prop.ModuleData).Y = p.Y + Convert.ToInt32(Data.LocationOffset.Y);
 					}
 				}
 				Cursor = Cursors.Default;
@@ -623,28 +684,80 @@ namespace VixenModules.Preview.VixenPreview {
 
 		private void buttonShapeSelected(Control selectedButton)
 	    {
-			foreach (Control c in panel3.Controls)
-			{
-				if (c is Button)
-				{
-					c.BackColor = ThemeColorTable.BackgroundColor;
-				}
-			}
-			foreach (Control c in panel4.Controls)
-			{
-				if (c is Button)
-				{
-					c.BackColor = ThemeColorTable.BackgroundColor;
-				}
-			}
+			//foreach (Control c in pnlBasicDrawing.Controls)
+			//{
+			//	if (c is Button)
+			//	{
+			//		c.BackColor = ThemeColorTable.BackgroundColor;
+			//	}
+			//}
+			//foreach (Control c in pnlSmartObjects.Controls)
+			//{
+			//	if (c is Button)
+			//	{
+			//		c.BackColor = ThemeColorTable.BackgroundColor;
+			//	}
+			//}
+			ResetButtonBackground(pnlBasicDrawing);
+			ResetButtonBackground(pnlSmartObjects);
 			selectedButton.BackColor = ThemeColorTable.TextBoxBackgroundColor;
 	    }
+
+	    private void ResetButtonBackground(Control c)
+	    {
+		    if (c is Button)
+		    {
+			    c.BackColor = ThemeColorTable.BackgroundColor;
+		    }
+		    else
+		    {
+			    foreach (Control cControl in c.Controls)
+			    {
+				    ResetButtonBackground(cControl);
+			    }
+		    }
+		}
 
 		private void comboBox_DrawItem(object sender, DrawItemEventArgs e)
 		{
 			ThemeComboBoxRenderer.DrawItem(sender, e);
 		}
 
+		private async void saveToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			SaveLocationDataForElements();
+			await VixenSystem.SaveSystemAndModuleConfigAsync();
+		}
+
+		private void viewHelpToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			Common.VixenHelp.VixenHelp.ShowHelp(Common.VixenHelp.VixenHelp.HelpStrings.Preview_Main);
+		}
+
+        private void locationOffsetSetupToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            LocationOffsetForm offsetForm = new LocationOffsetForm(Data.LocationOffset);
+	        var result = offsetForm.ShowDialog();
+	        if (result == DialogResult.OK)
+	        {
+		        Data.LocationOffset = offsetForm.Offset;
+	        }
+        }
+
+		private void label14_Click(object sender, EventArgs e)
+		{
+
+		}
+
+		private void label3_Click(object sender, EventArgs e)
+		{
+
+		}
+
+		private void label4_Click(object sender, EventArgs e)
+		{
+
+		}
 	}
 
 

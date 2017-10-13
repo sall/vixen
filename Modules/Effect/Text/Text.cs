@@ -100,17 +100,16 @@ namespace VixenModules.Effect.Text
 
 		[Value]
 		[ProviderCategory(@"Movement", 1)]
-		[ProviderDisplayName(@"Position")]
-		[ProviderDescription(@"Position")]
-		[PropertyEditor("SliderEditor")]
-		[NumberRange(-100, 100, 1)]
+		[ProviderDisplayName(@"Vertical Offset")]
+		[ProviderDescription(@"Vertical Offset")]
+		//[NumberRange(-100, 100, 1)]
 		[PropertyOrder(2)]
-		public int Position
+		public Curve YOffsetCurve
 		{
-			get { return _data.Position; }
+			get { return _data.YOffsetCurve; }
 			set
 			{
-				_data.Position = value;
+				_data.YOffsetCurve = value;
 				IsDirty = true;
 				OnPropertyChanged();
 			}
@@ -118,17 +117,16 @@ namespace VixenModules.Effect.Text
 
 		[Value]
 		[ProviderCategory(@"Movement", 1)]
-		[ProviderDisplayName(@"PositionX")]
-		[ProviderDescription(@"Position")]
-		[PropertyEditor("SliderEditor")]
-		[NumberRange(-100, 100, 1)]
+		[ProviderDisplayName(@"Horizontal Offset")]
+		[ProviderDescription(@"Horizontal Offset")]
+		//[NumberRange(-100, 100, 1)]
 		[PropertyOrder(2)]
-		public int PositionX
+		public Curve XOffsetCurve
 		{
-			get { return _data.PositionX; }
+			get { return _data.XOffsetCurve; }
 			set
 			{
-				_data.PositionX = value;
+				_data.XOffsetCurve = value;
 				IsDirty = true;
 				OnPropertyChanged();
 			}
@@ -222,8 +220,8 @@ namespace VixenModules.Effect.Text
 
 		[Value]
 		[ProviderCategory(@"Text", 2)]
-		[ProviderDisplayName(@"TextMode")]
-		[ProviderDescription(@"TextMode")]
+		[ProviderDisplayName(@"Text Layout")]
+		[ProviderDescription(@"Text Layout")]
 		[PropertyOrder(5)]
 		public TextMode TextMode
 		{
@@ -244,7 +242,6 @@ namespace VixenModules.Effect.Text
 		[ProviderCategory(@"Color", 3)]
 		[ProviderDisplayName(@"TextColors")]
 		[ProviderDescription(@"Color")]
-		[MergableProperty(false)]
 		[PropertyOrder(0)]
 		public List<ColorGradient> Colors
 		{
@@ -355,6 +352,20 @@ namespace VixenModules.Effect.Text
 			}
 		}
 
+		#region Information
+
+		public override string Information
+		{
+			get { return "Visit the Vixen Lights website for more information on this effect."; }
+		}
+
+		public override string InformationLink
+		{
+			get { return "http://www.vixenlights.com/vixen-3-documentation/sequencer/effects/text/"; }
+		}
+
+		#endregion
+
 		protected override EffectTypeModuleData EffectModuleData
 		{
 			get { return _data; }
@@ -401,15 +412,29 @@ namespace VixenModules.Effect.Text
 			}
 		}
 
-		private void UpdatePositionXAttribute(bool refresh=true)
+		private void UpdatePositionXAttribute(bool refresh = true)
 		{
-			Dictionary<string, bool> propertyStates = new Dictionary<string, bool>(1)
+			bool hideXOffsetCurve = false, hideYOffsetCurve = false;
+			switch (Direction)
 			{
-				{"PositionX", Direction==TextDirection.None}
+				case TextDirection.Left:
+				case TextDirection.Right:
+					hideXOffsetCurve = true;
+					break;
+				case TextDirection.Up:
+				case TextDirection.Down:
+					hideYOffsetCurve = true;
+					break;
+			}
+			Dictionary<string, bool> propertyStates = new Dictionary<string, bool>(2)
+			{
+				{"XOffsetCurve", !hideXOffsetCurve},
+				
+				{"YOffsetCurve", !hideYOffsetCurve}
 			};
 			SetBrowsable(propertyStates);
 
-			if(refresh)
+			if (refresh)
 			{
 				TypeDescriptor.Refresh(this);
 			}
@@ -440,13 +465,13 @@ namespace VixenModules.Effect.Text
 			using (var bitmap = new Bitmap(BufferWi, BufferHt))
 			{
 				InitialRender(frame, bitmap);
-
+				double level = LevelCurve.GetValue(GetEffectTimeIntervalPosition(frame) * 100) / 100;
 				// copy to frameBuffer
 				for (int x = 0; x < BufferWi; x++)
 				{
 					for (int y = 0; y < BufferHt; y++)
 					{
-						CalculatePixel(x, y, bitmap, frame, frameBuffer);
+						CalculatePixel(x, y, bitmap, level, frameBuffer);
 					}
 				}
 			}
@@ -457,6 +482,7 @@ namespace VixenModules.Effect.Text
 			var nodes = frameBuffer.ElementLocations.OrderBy(x => x.X).ThenBy(x => x.Y).GroupBy(x => x.X);
 			for (int frame = 0; frame < numFrames; frame++)
 			{
+				frameBuffer.CurrentFrame = frame;
 				double level = LevelCurve.GetValue(GetEffectTimeIntervalPosition(frame)*100)/100;
 				using (var bitmap = new Bitmap(BufferWi, BufferHt))
 				{
@@ -495,9 +521,24 @@ namespace VixenModules.Effect.Text
 					}
 				}
 				_maxTextSize = Convert.ToInt32(textsize.Width*.95);
+				var intervalPos = GetEffectTimeIntervalPosition(frame);
+				var intervalPosFactor = intervalPos * 100;
 				int maxht = Convert.ToInt32(textsize.Height*numberLines);
-				int offsetLeft = (((BufferWi - _maxTextSize)/2)*2 + Position)/2;
-				int offsetTop = (((BufferHt - maxht)/2)*2 + Position)/2;
+				int xOffset = CalculateXOffset(intervalPosFactor);
+				int yOffset = CalculateYOffset(intervalPosFactor);
+				switch (Direction)
+				{
+					case TextDirection.Left:
+					case TextDirection.Right:
+						xOffset = 0;
+						break;
+					case TextDirection.Up:
+					case TextDirection.Down:
+						yOffset = 0;
+						break;
+				}
+				int offsetLeft = (((BufferWi - _maxTextSize) / 2) * 2 + xOffset) / 2;
+				int offsetTop = (((BufferHt - maxht) / 2) * 2 + yOffset) / 2;
 				double intervalPosition = (GetEffectTimeIntervalPosition(frame)*Speed)%1;
 				Point point;
 
@@ -543,11 +584,20 @@ namespace VixenModules.Effect.Text
 						break;
 					default:
 						// no movement - centered
-						point = new Point(((BufferWi - _maxTextSize)/2) + PositionX, offsetTop);
+						point = new Point(((BufferWi - _maxTextSize) / 2) + xOffset, offsetTop);
 						DrawText(text, graphics, point);
 						break;
 				}
 			}
+		}
+		private int CalculateXOffset(double intervalPos)
+		{
+			return (int)ScaleCurveToValue(XOffsetCurve.GetValue(intervalPos), 100, -100);
+		}
+
+		private int CalculateYOffset(double intervalPos)
+		{
+			return (int)ScaleCurveToValue(YOffsetCurve.GetValue(intervalPos), 100, -100);
 		}
 
 		private void CalculatePixel(int x, int y, Bitmap bitmap, double level, IPixelFrameBuffer frameBuffer)

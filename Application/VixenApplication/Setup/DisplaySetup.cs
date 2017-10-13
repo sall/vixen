@@ -71,8 +71,9 @@ namespace VixenApplication
 			activateElementControl(_setupElementsTree);
 			
 			radioButtonPatchingSimple.Checked = true;
-			splitContainer1.SplitterDistance = tableLayoutPanelElementSetup.Width + 10;
-			splitContainer2.SplitterDistance = patchingPaneFlowLayoutPanel.Width + 6;
+			splitContainer1.SplitterDistance = tableLayoutPanelElementSetup.Width + 6;
+			splitContainer2.SplitterDistance = (int)(tableLayoutPanelPatchingSetup.Width + (10 * ScalingTools.GetScaleFactor()));
+
 		}
 
 
@@ -92,7 +93,7 @@ namespace VixenApplication
 			tableLayoutPanelElementSetup.Controls.Add(control.SetupElementsControl,0,2);
 			
 
-			control.UpdatePatching();
+			//control.UpdatePatching(); //Occurs in load triggered by the table layout add above.
 		}
 
 		void control_ElementsChanged(object sender, EventArgs e)
@@ -176,7 +177,7 @@ namespace VixenApplication
 			//tableLayoutPanelControllerSetup.Controls.Clear();
 			tableLayoutPanelControllerSetup.Controls.Add(control.SetupControllersControl,0,2);
 
-			control.UpdatePatching();
+			//control.UpdatePatching();  //On load does this 
 		}
 
 		void control_ControllersChanged(object sender, EventArgs e)
@@ -215,14 +216,18 @@ namespace VixenApplication
 			Common.VixenHelp.VixenHelp.ShowHelp(Common.VixenHelp.VixenHelp.HelpStrings.Setup_Main);
 		}
 
-		public void SelectElements(IEnumerable<ElementNode> elements)
+		public void SelectElements(IEnumerable<ElementNode> elements, Boolean updateScrollPosition = false)
 		{
 			_currentElementControl.SelectedElements = elements;
+			if (updateScrollPosition)
+				_currentElementControl.UpdateScrollPosition();
 		}
 
-		public void SelectControllersAndOutputs(ControllersAndOutputsSet controllersAndOutputs)
+		public void SelectControllersAndOutputs(ControllersAndOutputsSet controllersAndOutputs, Boolean updateScrollPosition = false)
 		{
 			_currentControllersControl.SelectedControllersAndOutputs = controllersAndOutputs;
+			if (updateScrollPosition)  
+				_currentControllersControl.UpdateScrollPosition();
 		}
 
 		private void buttonOk_Click(object sender, EventArgs e)
@@ -231,6 +236,7 @@ namespace VixenApplication
 			//Until we can fix up a better way to visualize unconnected filters, we will just clean them up from here.
 			//Just doing it in Ok as if we cancel it reloads the system anyway.
 			VixenSystem.Filters.RemoveOrphanedFilters();
+			Vixen.Sys.PropertyManager.RemoveOrphanedProperties();
 		}
 
 		private void buttonBackground_MouseHover(object sender, EventArgs e)

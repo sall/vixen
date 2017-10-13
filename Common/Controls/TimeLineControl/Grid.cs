@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -712,6 +713,34 @@ namespace Common.Controls.Timeline
 			return true;
 		}
 
+		//Locates and Displays selected effects on the Find Effects Form
+		public void DisplaySelectedEffects(List<Element> elements)
+		{
+			//int rowVerticleOffset = 0;
+			if (!elements.Any()) return;
+			foreach (var element in elements)
+			{
+				element.Selected = true;
+				element.Row.Visible = true;
+
+				//Make selected effect and any Parent nodes visible and Tree expanded.
+				Row parent = element.Row.ParentRow;
+				while (parent != null)
+				{
+					parent.TreeOpen = true;
+					parent.Visible = true;
+					parent = parent.ParentRow;	
+				} 
+				element.EndUpdate();
+			}
+
+			var lastElement = elements.Last();
+			VisibleTimeStart = lastElement.StartTime; //Adjusts the Horixontal Start Time position so the last selected effect is visible
+			VerticalOffset = lastElement.Row.DisplayTop; //Adjust the vertical grid position so the last selected effect is visible.
+			_SelectionChanged(); //Ensures Effect editor docker is updated with the Selected effects.
+			Refresh();
+		}
+
 		/// <summary>
 		/// Aligns the elements start times to the reference element as a single atomic operation
 		/// </summary>
@@ -966,19 +995,25 @@ namespace Common.Controls.Timeline
 		/// </summary>
 		public void CloseGapsBetweenElements()
 		{
+			List<Row> processRows;
 			if (!SelectedElements.Any())
 			{
 				//messageBox Arguments are (Text, Title, No Button Visible, Cancel Button Visible)
 				MessageBoxForm.msgIcon = SystemIcons.Warning; //this is used if you want to add a system icon to the message form.
-				var messageBox = new MessageBoxForm("This action will apply to your entire sequence, are you sure ?",
+				var messageBox = new MessageBoxForm("No effects have been selected and action will be applied to your entire sequence. This can take a considerable length of time, are you sure ?",
 					@"Close element gaps", true, false);
 				messageBox.ShowDialog();
 				if (messageBox.DialogResult == DialogResult.No) return;
+				processRows = Rows;
+			}
+			else
+			{
+				processRows = VisibleRows;
 			}
 
 			Dictionary<Element, Tuple<TimeSpan, TimeSpan>> moveElements = new Dictionary<Element, Tuple<TimeSpan, TimeSpan>>();
-	
-			foreach (Row row in Rows)
+
+			foreach (Row row in processRows)
 			{
 				List<Element> elements = new List<Element>();
 				elements = SelectedElements.Any() ? row.SelectedElements.ToList() : row.ToList();
@@ -1093,9 +1128,9 @@ namespace Common.Controls.Timeline
 		/// Moves the discovered elements within a range by the given amount of time. This is similar to the mouse dragging events, except
 		/// it's a single 'atomic' operation that moves the elements and raises an event to indicate they have moved.
 		/// </summary>
-		public void MoveElementsInRangeByTime(TimeSpan startTime, TimeSpan endTime, TimeSpan offset)
+		public void MoveElementsInRangeByTime(TimeSpan startTime, TimeSpan endTime, TimeSpan offset, bool processVisibleRows)
 		{
-			IEnumerable<Element> elementsToMove = ElementsWithinRange(startTime, endTime);
+			IEnumerable<Element> elementsToMove = ElementsWithinRange(startTime, endTime, processVisibleRows);
 			MoveElementsByTime(elementsToMove, offset);
 		}
 
@@ -1123,6 +1158,7 @@ namespace Common.Controls.Timeline
 				elem.BeginUpdate();
 				elem.StartTime += offset;
 				elem.EndUpdate();
+				RenderElement(elem);
 			}
 
 			MultiElementEventArgs evargs = new MultiElementEventArgs {Elements = elements};
@@ -1147,10 +1183,7 @@ namespace Common.Controls.Timeline
 		{
 			Row containingRow = null;
 			int curheight = 0;
-			foreach (Row row in Rows) {
-				if (!row.Visible)
-					continue;
-
+			foreach (Row row in VisibleRows) {
 				if (p.Y < curheight + row.Height) {
 					containingRow = row;
 					break;
@@ -1261,10 +1294,11 @@ namespace Common.Controls.Timeline
 		/// <param name="startTime"></param>
 		/// <param name="endTime"></param>
 		/// <returns></returns>
-		public IEnumerable<Element> ElementsWithinRange(TimeSpan startTime, TimeSpan endTime)
+		public IEnumerable<Element> ElementsWithinRange(TimeSpan startTime, TimeSpan endTime, bool processVisibleRows)
 		{
+			List<Row> processRows = processVisibleRows ? VisibleRows : Rows;
 			List<Element> result = new List<Element>();
-			foreach (Row row in Rows)
+			foreach (Row row in processRows)
 			{
 				foreach (Element elem in row)
 				{
@@ -1285,14 +1319,14 @@ namespace Common.Controls.Timeline
 		} 
 
 		/// <summary>
-		/// Get a list of elements that contain the specified time.
+		/// Get a list of elements that contain the specified time in the Visible rows.
 		/// </summary>
 		/// <param name="time"></param>
 		/// <returns>List of Element</returns>
 		public List<Element> ElementsAtTime(TimeSpan time)
 		{
 			List<Element> result = new List<Element>();
-			foreach (Row row in Rows) {
+			foreach (Row row in VisibleRows) {
 				foreach (Element elem in row) {
 					if ((time >= elem.StartTime) && (time < (elem.StartTime + elem.Duration)))
 						result.Add(elem);
@@ -1489,10 +1523,10 @@ namespace Common.Controls.Timeline
 		/// <returns>A dictionary which maps each supplied element to an int, for the number of times it exists.</returns>
 		private Dictionary<Element, int> CountRowsForElements(IEnumerable<Element> elements, bool visibleOnly)
 		{
+			List<Row> processRows = visibleOnly ? VisibleRows : Rows;
 			Dictionary<Element, int> result = elements.ToDictionary(e => e, e => 0);
-			foreach (Row row in Rows) {
-				if (visibleOnly && !row.Visible)
-					continue;
+			foreach (Row row in processRows)
+			{
 
 				foreach (Element element in row) {
 					if (result.ContainsKey(element))
@@ -1535,30 +1569,29 @@ namespace Common.Controls.Timeline
 
 			// we either go forwards through the row list to find the highest row possible, or backwards to find the
 			// lowest, based on which one was requested through findTopLimitRow
-			for (int i = findTopLimitRow ? 0 : Rows.Count - 1;
-			     findTopLimitRow ? (i < Rows.Count) : (i >= 0);
+			List<Row> processRows = visibleOnly ? VisibleRows : Rows;
+			for (int i = findTopLimitRow ? 0 : processRows.Count - 1;
+				 findTopLimitRow ? (i < processRows.Count) : (i >= 0);
 			     i += (findTopLimitRow ? 1 : -1)) {
-				// skip this row if it's not visible
-				if (visibleOnly && !Rows[i].Visible)
-					continue;
 
 				// iterate through each element we're checking for a grid limit, and check if it's in this row
 				foreach (Element element in elements) {
-					if (Rows[i].ContainsElement(element)) {
+					if (processRows[i].ContainsElement(element))
+					{
 						// if we're not bothering to check for duplicates, then this is the first row that
 						// contains an element: good enough, return it!
 						if (skipDuplicatesUnlessInRow == null)
-							return Rows[i];
+							return processRows[i];
 
 						// if this row shouldn't be checked for duplicates, end here, as we've found a 'good enough' match
-						if (Rows[i] == skipDuplicatesUnlessInRow)
-							return Rows[i];
+						if (VisibleRows[i] == skipDuplicatesUnlessInRow)
+							return processRows[i];
 
 						// decrement the 'element duplicate counter': if this was the last instance of this element seen,
 						// then it must stop here, so return it.
 						elementsLeft[element]--;
 						if (elementsLeft[element] <= 0)
-							return Rows[i];
+							return processRows[i];
 					}
 				}
 			}
@@ -1735,12 +1768,7 @@ namespace Common.Controls.Timeline
 			if (Rows.IndexOf(destRow) == CurrentRowIndexUnderMouse)
 				return;
 
-			List<Row> visibleRows = new List<Row>();
-
-			for (int i = 0; i < Rows.Count; i++) {
-				if (Rows[i].Visible)
-					visibleRows.Add(Rows[i]);
-			}
+			List<Row> visibleRows = VisibleRows;
 
 			int visibleRowsToMove = visibleRows.IndexOf(destRow) - visibleRows.IndexOf(Rows[CurrentRowIndexUnderMouse]);
 
@@ -1790,7 +1818,8 @@ namespace Common.Controls.Timeline
 			// the next duplicate instance of that element later on. This will probably need to be revisited later.
 			// (maybe some way of trying to move the elements closest vertically, to the current mouse row? This would work best for when
 			// the user selects a block of elements and moves it. The spurious ones that are also selected at extremities would be ignored.)
-			for (int i = 0; i < visibleRows.Count; i++) {
+			for (int i = 0; i < visibleRows.Count; i++)
+			{
 				List<Element> elementsMoved = new List<Element>();
 
 				// go through each element that hasn't been moved yet, and move it if it's in this row.
@@ -1808,13 +1837,15 @@ namespace Common.Controls.Timeline
 
 					// if the current element is in the current visble row, move it to wherever it needs
 					// to go, and also flag that it has been moved
-					if (visibleRows[i].ContainsElement(element)) {
+					if (visibleRows[i].ContainsElement(element))
+					{
 						// note that we've seen another of this type of element
 						elementCounts[element]--;
 
 						// if the element would be moved outside the bounds of the grid, the ignore it. (check that there will
 						// be another instance later: there should be, otherwise the calculations were wrong before!)
-						if (i + visibleRowsToMove < 0 || i + visibleRowsToMove >= visibleRows.Count) {
+						if (i + visibleRowsToMove < 0 || i + visibleRowsToMove >= visibleRows.Count)
+						{
 							if (elementCounts[element] <= 0)
 								throw new Exception(
 									"Trying to move element off-grid, but there's no more instances of this element to move instead!");
@@ -1897,23 +1928,22 @@ namespace Common.Controls.Timeline
 			if (!SuppressInvalidate) Invalidate();
 		}
 
-		private void CalculateVisibleRowDisplayTops()
+		private void CalculateVisibleRowDisplayTops(bool visibleRowsOnly = true)
 		{
 			int top = 0;
-			foreach (var visibleRow in VisibleRows)
+			List<Row> processRows = visibleRowsOnly ? VisibleRows : Rows;
+			foreach (var visibleRow in processRows)
 			{
 				visibleRow.DisplayTop = top;
 				top += visibleRow.Height;
 			}
 		}
 
-		private int CalculateAllRowsHeight(bool visibleRowsOnly = true)
+		private int CalculateAllRowsHeight()
 		{
 			int total = 0;
 
-			foreach (Row row in Rows) {
-				if (visibleRowsOnly && !row.Visible)
-					continue;
+			foreach (Row row in VisibleRows) {
 
 				total += row.Height;
 			}
@@ -2115,10 +2145,11 @@ namespace Common.Controls.Timeline
 			_RenderProgressChanged(e.ProgressPercentage);
 		}
 
-		private int _renderQueueSize = 0;
+		private long _renderQueueSize = 0;
+		private long _processed = 0;
 
-        //This whole thing need to be redone as a task once we get to .NET 4.5 where we can easily report progress
-        //from it.
+		//This whole thing need to be redone as a task once we get to .NET 4.5 where we can easily report progress
+		//from it.
 		private void renderWorker_DoWork(object sender, DoWorkEventArgs e)
 		{
 			BackgroundWorker worker = sender as BackgroundWorker;
@@ -2129,18 +2160,17 @@ namespace Common.Controls.Timeline
             CancellationTokenSource cts = new CancellationTokenSource();
             ParallelOptions po = new ParallelOptions();
             po.CancellationToken = cts.Token;
-            //po.MaxDegreeOfParallelism = Environment.ProcessorCount;
-
-			long processed = 0;
+            po.MaxDegreeOfParallelism = Environment.ProcessorCount;
+			
 			try
 		    {
 		        if (_blockingElementQueue != null)
 		        {
                     //Use or fancy multi cpu boxes more effectively.
-		            foreach (Element element in _blockingElementQueue.GetConsumingEnumerable()) 
-		            //Parallel.ForEach(_blockingElementQueue.GetConsumingPartitioner(), po, element =>
+		            //foreach (Element element in _blockingElementQueue.GetConsumingEnumerable()) 
+		            Parallel.ForEach(_blockingElementQueue.GetConsumingPartitioner(), po, element =>
 		            {
-			            Interlocked.Increment(ref processed);
+			            
 		                // This will likely never be hit: the blocking element queue above will always block waiting for more
 		                // elements, until it completes because CompleteAdding() is called. At which point it will exit the loop,
 		                // as it will be empty, and this function will terminate normally.
@@ -2165,21 +2195,18 @@ namespace Common.Controls.Timeline
                             //in a task. Reporting progress from Tasks is not well supported until 4.5
                             //With the multi-threading the last element can be processed before the count is 
                             //fully updated
-							var progress = (int)(((float)(Interlocked.Read(ref processed)) / _renderQueueSize) * 100);
-							worker.ReportProgress(progress);
-			                if (_blockingElementQueue.Count == 0)
+			                lock (worker)
 			                {
-				                _renderQueueSize = 0;
-				                Interlocked.Exchange(ref processed, 0);
-				                worker.ReportProgress(100);
-			                }
-			               
-		                }
+								var progress = (int)((float)Interlocked.Increment(ref _processed) / _renderQueueSize * 100);
+								worker.ReportProgress(progress);
+							}
+						}
 		                catch (Exception ex)
 		                {
-		                    Logging.Error("Error in rendering.", ex);
+							worker.ReportProgress(100);
+							Logging.Error(ex, "Error in rendering.");
 		                }
-		            }//);
+		            });
 		        }
 		    }
 		    catch (OperationCanceledException ce)
@@ -2256,6 +2283,8 @@ namespace Common.Controls.Timeline
 				_blockingElementQueue.TryTake(out element);
 			}
 	        _renderQueueSize = 0;
+	        _processed = 0;
+			renderWorker.ReportProgress(100);
 			SupressRendering=false;
 			
         }

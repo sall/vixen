@@ -3,6 +3,9 @@ using System.Linq;
 using System.Runtime.Serialization;
 using Vixen.Module;
 using System;
+using System.Threading.Tasks;
+using Vixen.Services;
+using Vixen.Sys;
 
 namespace VixenModules.App.Shows
 {

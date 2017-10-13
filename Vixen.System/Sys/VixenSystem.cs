@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.IO;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Vixen.Module;
 using Vixen.Instrumentation;
 using Vixen.Services;
@@ -25,8 +26,17 @@ namespace Vixen.Sys
 		};
 
 		private static RunState _state = RunState.Stopped;
+		private static bool _systemConfigSaving;
+		private static bool _moduleConfigSaving;
 
-		public static void Start(IApplication clientApplication, bool openExecution = true, bool disableDevices = false,
+		internal static bool MigrationOccured { get; set; }	
+
+		public static bool IsSaving()
+		{
+			return _systemConfigSaving || _moduleConfigSaving;
+		}
+
+		public static bool Start(IApplication clientApplication, bool openExecution = true, bool disableDevices = false,
 		                         string dataRootDirectory = null)
 		{
 			if (_state == RunState.Stopped) {
@@ -71,9 +81,23 @@ namespace Vixen.Sys
 					if (disableDevices) {
 						SystemConfig.DisabledDevices = OutputDeviceManagement.Devices;
 					}
+
+					if (MigrationOccured)
+					{
+						//save the configs to ensure they do not get lost. We no longer automatically save on close.
+						SaveSystemAndModuleConfigAsync();
+						MigrationOccured = false;
+					}
+
 					if (openExecution) {
 						Execution.OpenExecution();
 					}
+
+					//var temp = Modules.ModuleManagement.GetEffect(new Guid("{32cff8e0-5b10-4466-a093-0d232c55aac0}"));
+					//if (temp == null)
+					//{
+					//	Logging.Error("Module Management init error!");
+					//}
 
 					_state = RunState.Started;
 					Logging.Info("Vixen System successfully started.");
@@ -81,13 +105,15 @@ namespace Vixen.Sys
 				catch (Exception ex) {
 					// The client is expected to have subscribed to the logging event
 					// so that it knows that an exception occurred during loading.
-					Logging.Error("Error during system startup; the system has been stopped.", ex);
-					Stop();
+					Logging.Error("Error during system startup!", ex);
+					return false;
 				}
 			}
+
+			return true;
 		}
 
-		public static void Stop()
+		public static async Task Stop(bool save = true)
 		{
 			if (_state == RunState.Starting || _state == RunState.Started) {
 				_state = RunState.Stopping;
@@ -97,11 +123,14 @@ namespace Vixen.Sys
 				SaveDisabledDevices();
 				Execution.CloseExecution();
 				Modules.ClearRepositories();
-				Queue<Task> queue = SaveSystemConfig();
-				Task.WaitAll(queue.ToArray());
+				if (save)
+				{
+					await SaveSystemAndModuleConfigAsync();
+				}
 				_state = RunState.Stopped;
 				Logging.Info("Vixen System successfully stopped.");
 			}
+
 		}
 
 		public static void SaveDisabledDevices()
@@ -111,40 +140,81 @@ namespace Vixen.Sys
 			}
 		}
 
-		/// <summary>
-		/// Saves the system config. 
-		/// </summary>
-		/// <returns>Queue of Tasks that are processing the saving. Can be monitored if next steps require saving to be complete.</returns>
-		public static Queue<Task> SaveSystemConfig()
+		public static async Task<bool> SaveSystemAndModuleConfigAsync()
 		{
-			var taskQueue = new Queue<Task>();
-			if (SystemConfig != null) {
+			var systemConfig = SaveSystemConfigAsync();
+			var moduleConfig = SaveModuleConfigAsync();
+			await systemConfig;
+			await moduleConfig;
+			return true;
+		}
+
+		public static async Task<bool> SaveSystemConfigAsync()
+		{
+			if (SystemConfig != null)
+			{
+				Logging.Info("Saving System Config.");
+				if (_systemConfigSaving)
+				{
+					Logging.Error("System config is already being saved. Skipping duplicate request.");
+					return false;
+				}
+				_systemConfigSaving = true;
 				// 'copy' the current details (nodes/elements/controllers) from the executing state
 				// to the SystemConfig, so they're there for writing when we save
 
 				// we may not want to always save the disabled devices to the config (ie. if the system is stopped at the
 				// moment) since the disabled devices are inferred from the running status of active devices
-				if (_state == RunState.Started) {
+				if (_state == RunState.Started)
+				{
 					SaveDisabledDevices();
 				}
 
 				SystemConfig.OutputControllers = OutputControllers;
-				SystemConfig.SmartOutputControllers = SmartOutputControllers;
+				//SystemConfig.SmartOutputControllers = SmartOutputControllers;
 				SystemConfig.Previews = Previews;
 				SystemConfig.Elements = Elements;
 				SystemConfig.Nodes = Nodes.GetRootNodes();
-				SystemConfig.ControllerLinking = ControllerLinking;
 				SystemConfig.Filters = Filters;
 				SystemConfig.DataFlow = DataFlow;
-
-				taskQueue.Enqueue(Task.Factory.StartNew(() => SystemConfig.Save()));
+			
+				return await Task.Factory.StartNew(() =>
+				{
+					SystemConfig.Save();
+					_systemConfigSaving = false;
+					Logging.Info("System Config saved.");
+					return true;
+				});
+				
 			}
 
-			if (ModuleStore != null) {
-				taskQueue.Enqueue(Task.Factory.StartNew(() => ModuleStore.Save()));
-			}
+			return false;
+		}
 
-			return taskQueue;
+		public static async Task<bool> SaveModuleConfigAsync()
+		{
+			
+			if (ModuleStore != null)
+			{
+				if (_moduleConfigSaving)
+				{
+					Logging.Error("Module config is already being saved. Skipping duplicate request.");
+					return false;
+				}
+
+				_moduleConfigSaving = true;
+				Logging.Info("Saving Module Config.");
+				return await Task.Factory.StartNew(() =>
+				{
+					ModuleStore.Save();
+					_moduleConfigSaving = false;
+					Logging.Info("Module Config saved.");
+					return true;
+				});
+
+			}
+			return false;
+
 		}
 
 		public static void LoadSystemConfig()
@@ -154,25 +224,24 @@ namespace Vixen.Sys
 			Elements = new ElementManager();
 			Nodes = new NodeManager();
 			OutputControllers = new OutputControllerManager(
-				new ControllerLinkingManagement<OutputController>(),
 				new OutputDeviceCollection<OutputController>(),
 				new OutputDeviceExecution<OutputController>());
-			SmartOutputControllers = new SmartOutputControllerManager(
-				new ControllerLinkingManagement<SmartOutputController>(),
-				new OutputDeviceCollection<SmartOutputController>(),
-				new OutputDeviceExecution<SmartOutputController>());
+			//SmartOutputControllers = new SmartOutputControllerManager(
+			//	new ControllerLinkingManagement<SmartOutputController>(),
+			//	new OutputDeviceCollection<SmartOutputController>(),
+			//	new OutputDeviceExecution<SmartOutputController>());
 			Previews = new PreviewManager(
 				new OutputDeviceCollection<OutputPreview>(),
 				new OutputDeviceExecution<OutputPreview>());
 			Contexts = new ContextManager();
 			Filters = new FilterManager(DataFlow);
-			ControllerLinking = new ControllerLinker();
+			
 			ControllerManagement = new ControllerFacade();
 			ControllerManagement.AddParticipant(OutputControllers);
-			ControllerManagement.AddParticipant(SmartOutputControllers);
+			//ControllerManagement.AddParticipant(SmartOutputControllers);
 			OutputDeviceManagement = new OutputDeviceFacade();
 			OutputDeviceManagement.AddParticipant(OutputControllers);
-			OutputDeviceManagement.AddParticipant(SmartOutputControllers);
+			//OutputDeviceManagement.AddParticipant(SmartOutputControllers);
 			OutputDeviceManagement.AddParticipant(Previews);
 
 			// Load system data in order of dependency.
@@ -187,9 +256,8 @@ namespace Vixen.Sys
 			Elements.AddElements(SystemConfig.Elements);
 			Nodes.AddNodes(SystemConfig.Nodes);
 			OutputControllers.AddRange(SystemConfig.OutputControllers.Cast<OutputController>());
-			SmartOutputControllers.AddRange(SystemConfig.SmartOutputControllers.Cast<SmartOutputController>());
+			//SmartOutputControllers.AddRange(SystemConfig.SmartOutputControllers.Cast<SmartOutputController>());
 			Previews.AddRange(SystemConfig.Previews.Cast<OutputPreview>());
-			ControllerLinking.AddRange(SystemConfig.ControllerLinking);
 			Filters.AddRange(SystemConfig.Filters);
 
 			DataFlow.Initialize(SystemConfig.DataFlow);
@@ -199,20 +267,7 @@ namespace Vixen.Sys
 		{
 			bool wasRunning = Execution.IsOpen;
 			Execution.CloseExecution();
-
-			// purge all existing elements, nodes, and controllers (to try and clean up a bit).
-			// might not actually matter, since we're going to make new Managers for them all
-			// in a tick, but better safe than sorry.
-			foreach (ElementNode cn in Nodes.ToArray())
-				Nodes.RemoveNode(cn, null, true);
-			foreach (OutputController oc in OutputControllers.ToArray())
-				OutputControllers.Remove(oc);
-			foreach (SmartOutputController smartOutputController in SmartOutputControllers.ToArray()) {
-				SmartOutputControllers.Remove(smartOutputController);
-			}
-			foreach (OutputPreview outputPreview in Previews.ToArray())
-				Previews.Remove(outputPreview);
-
+			
 			LoadSystemConfig();
 
 			if (wasRunning)
@@ -258,12 +313,11 @@ namespace Vixen.Sys
 		public static ElementManager Elements { get; private set; }
 		public static NodeManager Nodes { get; private set; }
 		public static OutputControllerManager OutputControllers { get; private set; }
-		public static SmartOutputControllerManager SmartOutputControllers { get; private set; }
+		//public static SmartOutputControllerManager SmartOutputControllers { get; private set; }
 		public static PreviewManager Previews { get; private set; }
 		public static ContextManager Contexts { get; private set; }
 		public static FilterManager Filters { get; private set; }
 		public static IInstrumentation Instrumentation { get; private set; }
-		public static ControllerLinker ControllerLinking { get; private set; }
 		public static DataFlowManager DataFlow { get; private set; }
 		public static ControllerFacade ControllerManagement { get; private set; }
 		public static OutputDeviceFacade OutputDeviceManagement { get; private set; }

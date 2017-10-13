@@ -155,12 +155,14 @@ namespace Vixen.Execution.Context
 
 		private void _SequenceExecutorSequenceStarted(object sender, SequenceStartedEventArgs e)
 		{
+			CurrentEffects.Reset();
 			OnContextStarted(EventArgs.Empty);
 			OnSequenceStarted(e);
 		}
 
 		private void _sequenceExecutor_SequenceReStarted(object sender, SequenceStartedEventArgs e)
 		{
+			CurrentEffects.Reset();
 			OnSequenceReStarted(e);
 		}
 
@@ -184,6 +186,7 @@ namespace Vixen.Execution.Context
 
 		private void _SequenceExecutorSequenceEnded(object sender, SequenceEventArgs e)
 		{
+			CurrentEffects.Reset();
 			OnSequenceEnded(e);
 			OnContextEnded(EventArgs.Empty);
 		}

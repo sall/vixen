@@ -1,5 +1,4 @@
 ﻿using System.Runtime.Serialization;
-using Vixen.Module;
 using VixenModules.App.ColorGradients;
 using VixenModules.App.Curves;
 using System.Drawing;
@@ -19,7 +18,7 @@ namespace VixenModules.Effect.Wipe {
 			Direction = WipeDirection.Right;
 			ColorGradient = new ColorGradient(Color.White);
 			PulseTime = 1000;
-			WipeByCount = false;
+			WipeByCount = true;
 			PassCount = 1;
 			PulsePercent = 33;
 		}
@@ -44,6 +43,12 @@ namespace VixenModules.Effect.Wipe {
 
 		[DataMember]
 		public double PulsePercent { get; set; }
+
+		[DataMember]
+		public bool WipeOn { get; set; }
+
+		[DataMember]
+		public bool WipeOff { get; set; }
 		
 		protected override EffectTypeModuleData CreateInstanceForClone()
 		{

@@ -45,13 +45,14 @@ namespace VixenModules.App.Shows
 					_application.AppCommands.Add(schedulerMenu);
 				} 
 
-				AppCommand rootCommand = new AppCommand("ShowEditor", "Show Editor...");
+				AppCommand rootCommand = new AppCommand("ShowEditor", "Shows"); 
 				rootCommand.Click += (sender, e) =>
 				{
 					using (ShowListForm form = new ShowListForm(_data))
 					{
 						if (form.ShowDialog() == System.Windows.Forms.DialogResult.OK)
 						{
+							
 						}
 					}
 				};

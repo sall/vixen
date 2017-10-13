@@ -205,16 +205,31 @@ namespace VixenModules.Effect.Wipe
 				if (WipeByCount)
 				{
 					int count = 0;
-					double pulseSegment = (TimeSpan.TotalMilliseconds / PassCount) * (PulsePercent / 100);
-					TimeSpan intervalTime = TimeSpan.FromMilliseconds((TimeSpan.TotalMilliseconds - pulseSegment) / (renderNodes.Count() * PassCount));
-					TimeSpan segmentPulse = TimeSpan.FromMilliseconds(pulseSegment);
+					double pulseSegment = TimeSpan.Ticks / (double)PassCount * (PulsePercent / 100);
+
+					var maxKey = renderNodes.Select(x => x.Key).Max();
+					var minKey = renderNodes.Select(x => x.Key).Min();
+					double adjustedMax = maxKey - minKey;
+
+					TimeSpan totalWipeTime = TimeSpan.FromTicks( (long) ( (TimeSpan.Ticks - pulseSegment) / PassCount));
+					TimeSpan segmentPulse = TimeSpan.FromTicks((long)pulseSegment);
 
 					while (count < PassCount)
 					{
 						foreach (var item in renderNodes)
 						{
 							if (tokenSource != null && tokenSource.IsCancellationRequested) return;
-							EffectIntents result;
+
+							switch (Direction)
+							{
+								case WipeDirection.Left:
+								case WipeDirection.Up:
+									effectTime = TimeSpan.FromTicks((long) (totalWipeTime.Ticks * (1 - (item.Key - minKey) / adjustedMax) + count * totalWipeTime.Ticks));
+									break;
+								default:
+									effectTime = TimeSpan.FromTicks((long)(totalWipeTime.Ticks * (item.Key - minKey) / adjustedMax + count * totalWipeTime.Ticks));
+									break;
+							}
 
 							foreach (ElementNode element in item)
 							{
@@ -223,19 +238,28 @@ namespace VixenModules.Effect.Wipe
 									return;
 								if (element != null)
 								{
-
-									//pulse.TimeSpan = segmentPulse;
-									//pulse.ColorGradient = _data.ColorGradient;
-									//pulse.LevelCurve = _data.Curve;
-									//pulse.TargetNodes = new ElementNode[] { element };
-									//result = pulse.Render();
-									result = PulseRenderer.RenderNode(element, _data.Curve, _data.ColorGradient, segmentPulse, HasDiscreteColors);
+									var result = PulseRenderer.RenderNode(element, _data.Curve, _data.ColorGradient, segmentPulse, HasDiscreteColors);
 									result.OffsetAllCommandsByTime(effectTime);
-									bool discreteElement = HasDiscreteColors && ColorModule.isElementNodeDiscreteColored(element);
-									_elementData.Add(IntentBuilder.ConvertToStaticArrayIntents(result, TimeSpan, discreteElement));
+
+									if (WipeOff && count == 0)
+									{
+										foreach (var effectIntent in result.FirstOrDefault().Value)
+										{
+											_elementData.Add(PulseRenderer.GenerateStartingStaticPulse(element, effectIntent, HasDiscreteColors));
+										}
+									}
+
+									_elementData.Add(result);
+
+									if (WipeOn && count == PassCount - 1)
+									{
+										foreach (var effectIntent in result.FirstOrDefault().Value)
+										{
+											_elementData.Add(PulseRenderer.GenerateExtendedStaticPulse(element, effectIntent, TimeSpan, HasDiscreteColors));
+										}
+									}
 								}
 							}
-							effectTime += intervalTime;
 
 						}
 						count++;
@@ -258,6 +282,7 @@ namespace VixenModules.Effect.Wipe
 
 							if (tokenSource != null && tokenSource.IsCancellationRequested)
 								return;
+
 							foreach (ElementNode element in item)
 							{
 								if (element != null)
@@ -265,11 +290,6 @@ namespace VixenModules.Effect.Wipe
 
 									if (tokenSource != null && tokenSource.IsCancellationRequested)
 										return;
-									//pulse.TimeSpan = segmentPulse;
-									//pulse.ColorGradient = _data.ColorGradient;
-									//pulse.LevelCurve = _data.Curve;
-									//pulse.TargetNodes = new ElementNode[] { element };
-									//result = pulse.Render();
 									result = PulseRenderer.RenderNode(element, _data.Curve, _data.ColorGradient, segmentPulse, HasDiscreteColors);
 									result.OffsetAllCommandsByTime(effectTime);
 									bool discreteElement = HasDiscreteColors && ColorModule.isElementNodeDiscreteColored(element);
@@ -379,10 +399,11 @@ namespace VixenModules.Effect.Wipe
 				TimeSpan effectTime = TimeSpan.Zero;
 				if (WipeByCount)
 				{
+					
 					int count = 0;
-					double pulseSegment = (TimeSpan.TotalMilliseconds / PassCount) * (PulsePercent / 100);
-					TimeSpan intervalTime = TimeSpan.FromMilliseconds((TimeSpan.TotalMilliseconds - pulseSegment) / (renderNodes.Count() * PassCount));
-					TimeSpan segmentPulse = TimeSpan.FromMilliseconds(pulseSegment);
+					double pulseSegment = TimeSpan.Ticks / (double)PassCount * (PulsePercent / 100);
+					TimeSpan intervalTime = TimeSpan.FromTicks((long)((TimeSpan.Ticks - pulseSegment) / (renderNodes.Count() * PassCount)));
+					TimeSpan segmentPulse = TimeSpan.FromTicks((long)pulseSegment);
 
 					while (count < PassCount)
 					{
@@ -598,6 +619,36 @@ namespace VixenModules.Effect.Wipe
 		}
 
 		[Value]
+		[ProviderCategory(@"Type", 1)]
+		[ProviderDisplayName(@"WipeOn")]
+		[ProviderDescription(@"ExtendPulseEnd")]
+		public bool WipeOn
+		{
+			get { return _data.WipeOn; }
+			set
+			{
+				_data.WipeOn = value;
+				IsDirty = true;
+				OnPropertyChanged();
+			}
+		}
+
+		[Value]
+		[ProviderCategory(@"Type", 1)]
+		[ProviderDisplayName(@"WipeOff")]
+		[ProviderDescription(@"ExtendPulseStart")]
+		public bool WipeOff
+		{
+			get { return _data.WipeOff; }
+			set
+			{
+				_data.WipeOff = value;
+				IsDirty = true;
+				OnPropertyChanged();
+			}
+		}
+
+		[Value]
 		[ProviderCategory(@"Pulse",7)]
 		[ProviderDisplayName(@"PulsePercent")]
 		[ProviderDescription(@"WipePulsePercent")]
@@ -621,6 +672,8 @@ namespace VixenModules.Effect.Wipe
 			{
 				{"PassCount", WipeByCount},
 				{"PulsePercent", WipeByCount},
+				{"WipeOn", WipeByCount},
+				{"WipeOff", WipeByCount},
 				{"PulseTime", !WipeByCount}
 			};
 			SetBrowsable(propertyStates);

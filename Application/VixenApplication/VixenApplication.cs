@@ -10,6 +10,8 @@ using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
 using System.Runtime;
+using System.Threading;
+using System.Threading.Tasks;
 using Vixen.Module.Editor;
 using Vixen.Module.SequenceType;
 using Vixen.Services;
@@ -19,12 +21,17 @@ using Common.Resources.Properties;
 using Common.Controls;
 using Common.Controls.Scaling;
 using Common.Controls.Theme;
+using Timer = System.Windows.Forms.Timer;
 
 namespace VixenApplication
 {
 	public partial class VixenApplication : BaseForm, IApplication
 	{
 		private static NLog.Logger Logging = LogManager.GetCurrentClassLogger();
+		private const string ErrorMsg = "An application error occurred. Please contact the Vixen Dev Team " +
+									"with the following information:\n\n";
+
+		private const string LockFile = ".lock";
 
 		private Guid _guid = new Guid("7b903272-73d0-416c-94b1-6932758b1963");
 		private bool stopping;
@@ -34,7 +41,7 @@ namespace VixenApplication
 		private string _rootDataDirectory;
 		private CpuUsage _cpuUsage;
 		private bool _perfCountersAvailable;
-
+		
 		private VixenApplicationData _applicationData;
 
 		public VixenApplication()
@@ -57,24 +64,46 @@ namespace VixenApplication
 			toolStripStatusLabelExecutionLight.ForeColor = ThemeColorTable.ForeColor;
 			toolStripStatusLabelExecutionState.ForeColor = ThemeColorTable.ForeColor;
 			toolStripStatusLabel_memory.ForeColor = ThemeColorTable.ForeColor;
+			contextMenuStripRecent.Renderer = new ThemeToolStripRenderer();
 
 			string[] args = Environment.GetCommandLineArgs();
 			foreach (string arg in args) {
 				_ProcessArg(arg);
 			}
 
+			Logging.Info("Starting JIT Profiler");
 			StartJITProfiler();
+			Logging.Info("Completed JIT Profiler");
 
 			if (_rootDataDirectory == null)
+			{
+				Logging.Info("Processing Profiles");
 				ProcessProfiles();
+				Logging.Info("Finished Processing Profiles");
+			}
 
 			_applicationData = new VixenApplicationData(_rootDataDirectory);
 
+			_rootDataDirectory = _applicationData.DataFileDirectory;
+
+			if (IsProfileLocked(_rootDataDirectory) || !CreateLockFile())
+			{
+				var form = new MessageBoxForm("Profile is already in use or unable to the lock the profile.","Error",MessageBoxButtons.OK, SystemIcons.Error);
+				form.ShowDialog();
+				form.Dispose(); 
+				Environment.Exit(0);
+			}
+			
 			stopping = false;
 			PopulateVersionStrings();
 			AppCommands = new AppCommand(this);
 			Execution.ExecutionStateChanged += executionStateChangedHandler;
-			VixenSystem.Start(this, _openExecution, _disableControllers, _applicationData.DataFileDirectory);
+			if(!VixenSystem.Start(this, _openExecution, _disableControllers, _applicationData.DataFileDirectory))
+			{
+				var messageBox = new MessageBoxForm("An error occured starting the system and the application will be halted.", "Error",MessageBoxButtons.OK, SystemIcons.Error);
+				messageBox.ShowDialog();
+				Application.Exit();
+			}
 
 			InitStats();
 
@@ -84,10 +113,136 @@ namespace VixenApplication
 			{
 				toolsMenu = new AppCommand("Tools", "Tools");
 				AppCommands.Add(toolsMenu);
-		}
+			}
 			var myMenu = new AppCommand("Options", "Options...");
 			myMenu.Click += optionsToolStripMenuItem_Click;
 			toolsMenu.Add(myMenu);
+
+			toolStripItemClearSequences.Click += (mySender, myE) => ClearRecentSequencesList();
+		}
+
+		public string LockFilePath { get; set; }
+
+		private static string _uniqueProcessId = null;
+
+		public static string GetUniqueProcessId()
+		{
+			if (_uniqueProcessId == null)
+			{
+				var id = Process.GetCurrentProcess().Id;
+				var machineName = Environment.MachineName;
+				_uniqueProcessId = string.Format("{0}@{1}", id, machineName);
+			}
+
+			return _uniqueProcessId;
+		}
+		
+		private bool CreateLockFile()
+		{
+			bool success = false;
+			try
+			{
+				if (!Directory.Exists(_rootDataDirectory))
+				{
+					//Our startup folder is not present, so create it.
+					Directory.CreateDirectory(_rootDataDirectory);
+				}
+				LockFilePath = Path.Combine(_rootDataDirectory, LockFile);
+				if (!File.Exists(LockFilePath))
+				{
+					File.WriteAllText(LockFilePath, GetUniqueProcessId());
+					//Set this back on the root app to use in case of system errors and we need a failsafe way to delete the lock
+					Program.LockFilePath = LockFilePath;
+					success = true;
+				}
+
+			}
+			catch (Exception e)
+			{
+				Logging.Error(e, "An error occured creating the profile lock file.");
+			}
+
+			return success;
+		}
+
+		internal bool RemoveLockFile()
+		{
+			return RemoveLockFile(LockFilePath);
+		}
+
+		internal static bool RemoveLockFile(string lockFilePath)
+		{
+			bool success = false;
+			try
+			{
+				if (File.Exists(lockFilePath))
+				{
+					File.Delete(lockFilePath);
+					success = true;
+				}
+			}
+			catch (Exception e)
+			{
+				Logging.Error(e, "An error occured removing the profile lock file.");
+			}
+
+			return success;
+		}
+
+		internal static bool IsProfileLocked(string path)
+		{
+			bool locked = false;
+			try
+			{
+				if (Directory.Exists(path))
+				{
+					var lockFilePath = Path.Combine(path, LockFile);
+					if (File.Exists(lockFilePath))
+					{
+						var lockProcessInfo = File.ReadAllText(lockFilePath).Split('@');
+						var myProcessInfo = GetUniqueProcessId().Split('@');
+						if (lockProcessInfo[1].Equals(myProcessInfo[1]))
+						{
+							//The machine name is the same so it was locked by this machine
+							var lockProcessId = Convert.ToInt32(lockProcessInfo[0]);
+							try
+							{
+								//See if the locking process is still running
+								var process = Process.GetProcessById(lockProcessId);
+								if (process.ProcessName.StartsWith("Vixen"))
+								{
+									//The process is running and it is Vixen so we ae locked.
+									locked = true;
+								}
+								else
+								{
+									//Process is something other than Vixen so we can release the lock
+									RemoveLockFile(lockFilePath);
+								}
+
+							}
+							catch (Exception e)
+							{
+								//No process with that id so release the lock.
+								RemoveLockFile(lockFilePath);
+							}
+						}
+						else
+						{
+							//The machine name is not us, so we have to assume it is locked on some other device.
+							locked = true;
+						}
+						
+					}
+				}
+			}
+			catch (Exception e)
+			{
+				Logging.Error(e, "An error occured checking the profile lock file.");
+				locked = true;  //If we cannot determine if it is locked, then we can't assume it isn't.
+			}
+
+			return locked;
 		}
 
 		private void StartJITProfiler()
@@ -108,17 +263,25 @@ namespace VixenApplication
 			}
 		}
 
-		private void VixenApp_FormClosing(object sender, FormClosingEventArgs e)
+		private async void VixenApp_FormClosing(object sender, FormClosingEventArgs e)
 		{
 			// close all open editors
 			foreach (IEditorUserInterface editor in _openEditors.ToArray()) {
 				editor.CloseEditor();
 			}
 
+			while (VixenSystem.IsSaving())
+			{
+				Logging.Warn("Waiting for save to finish before closing.");
+				Thread.Sleep(250);
+			}
+
 			stopping = true;
-			VixenSystem.Stop();
+			await VixenSystem.Stop(false);
 
 			_applicationData.SaveData();
+			RemoveLockFile(LockFilePath);
+			
 			Application.Exit();
 		}
 
@@ -142,10 +305,16 @@ namespace VixenApplication
 			PopulateRecentSequencesList();
 		}
 
-		private void VixenApplication_Shown(object sender, EventArgs e)
+		private async void VixenApplication_Shown(object sender, EventArgs e)
 		{
 			CheckForTestBuild();
 			//Try to make sure at load we are on top.
+			await Task.Delay(750);
+			MakeTopMost();
+		}
+
+		private void MakeTopMost()
+		{
 			TopMost = true;
 			TopMost = false;
 		}
@@ -177,6 +346,10 @@ namespace VixenApplication
 			}
 			
 			labelDebugVersion.Visible = true;
+
+			//Log the runtime versions 
+			var runtimeVersion = FileVersionInfo.GetVersionInfo(typeof (int).Assembly.Location).ProductVersion;
+			Logging.Info(".NET Runtime is: {0}", runtimeVersion);
 		}
 
 		private void CheckForTestBuild()
@@ -230,7 +403,8 @@ namespace VixenApplication
 			if (loadAction != "Ask" && profileToLoad > -1 && profileToLoad < profileCount)
 			{
 				string directory = profile.GetSetting(XMLProfileSettings.SettingType.Profiles, "Profile" + profileToLoad + "/DataFolder", string.Empty);
-				if (!string.IsNullOrEmpty(directory) && Directory.Exists(directory))
+				var isLocked = IsProfileLocked(directory);
+				if (!string.IsNullOrEmpty(directory) && Directory.Exists(directory) && !isLocked)
 				{
 					_rootDataDirectory = directory;
 					string profileName = profile.GetSetting(XMLProfileSettings.SettingType.Profiles, "Profile" + profileToLoad + "/Name", string.Empty);
@@ -239,13 +413,7 @@ namespace VixenApplication
 				else
 				{
 					string name = profile.GetSetting(XMLProfileSettings.SettingType.Profiles, "Profile" + profileToLoad + "/Name", string.Empty);
-					//messageBox Arguments are (Text, Title, No Button Visible, Cancel Button Visible)
-					MessageBoxForm.msgIcon = SystemIcons.Error; //this is used if you want to add a system icon to the message form.
-					var messageBox = new MessageBoxForm("Selected profile '" + name + "' data directory does not exist!" + Environment.NewLine + Environment.NewLine +
-									directory + Environment.NewLine + Environment.NewLine +
-									"Select a different profile to load or use the Profile Editor to create a new profile.",
-									"Error", false, false);
-					messageBox.ShowDialog();
+					ShowLoadProfileErrorMessage(name, isLocked);
 				}
 			}
 
@@ -259,27 +427,20 @@ namespace VixenApplication
 				if (result == DialogResult.OK)
 				{
 					string directory = selectProfile.DataFolder;
-					if (!string.IsNullOrEmpty(directory) && Directory.Exists(directory))
+					var isLocked = IsProfileLocked(directory);
+					if (!string.IsNullOrEmpty(directory) && Directory.Exists(directory) && !isLocked)
 					{
 						_rootDataDirectory = directory;
 						UpdateTitleWithProfileName(selectProfile.ProfileName);
 						break;
 					}
-					//messageBox Arguments are (Text, Title, No Button Visible, Cancel Button Visible)
-					MessageBoxForm.msgIcon = SystemIcons.Error; //this is used if you want to add a system icon to the message form.
-					var messageBox = new MessageBoxForm("The data directory for the selected profile does not exist!" + Environment.NewLine + Environment.NewLine +
-						directory + Environment.NewLine + Environment.NewLine +
-						"Select a different profile to load or use the Profile Editor to create a new profile.",
-						"Error", false, false);
-					messageBox.ShowDialog();
+					ShowLoadProfileErrorMessage(selectProfile.ProfileName, isLocked);
 				}
 				else if (result == DialogResult.Cancel)
 				{
-					//messageBox Arguments are (Text, Title, No Button Visible, Cancel Button Visible)
-					MessageBoxForm.msgIcon = SystemIcons.Warning;
 					var messageBox = new MessageBoxForm(Application.ProductName + " cannot continue without a vaild profile." + Environment.NewLine + Environment.NewLine +
 						"Are you sure you want to exit " + Application.ProductName + "?",
-						Application.ProductName, true, false);
+						Application.ProductName,MessageBoxButtons.YesNo, SystemIcons.Warning);
 					messageBox.ShowDialog();
 					if (messageBox.DialogResult == DialogResult.OK)
 					{
@@ -294,6 +455,16 @@ namespace VixenApplication
 			}
 
 			SetLogFilePaths();
+		}
+
+		private static void ShowLoadProfileErrorMessage(string name, bool isLocked)
+		{
+			var message =
+				String.Format(
+					"Selected profile {0} {1}!\n\nSelect a different profile to load or use the Profile Editor to create a new profile.",
+					name, isLocked ? "is locked by another instance" : "data directory does not exist");
+			var messageBox = new MessageBoxForm(message, "Error", MessageBoxButtons.OK, SystemIcons.Error);
+			messageBox.ShowDialog();
 		}
 
 		private void UpdateTitleWithProfileName(string profileName)
@@ -535,51 +706,12 @@ namespace VixenApplication
 			}
 		}
 
-		private void SetupElements()
-		{
-			using (ConfigElements form = new ConfigElements()) {
-				DialogResult result = form.ShowDialog();
-				if (result == DialogResult.OK) {
-					VixenSystem.SaveSystemConfig();
-				}
-				else {
-					VixenSystem.ReloadSystemConfig();
-				}
-			}
-		}
-
-		private void SetupControllers()
-		{
-			using (ConfigControllers form = new ConfigControllers()) {
-				DialogResult result = form.ShowDialog();
-				if (result == DialogResult.OK) {
-					VixenSystem.SaveSystemConfig();
-				}
-				else {
-					VixenSystem.ReloadSystemConfig();
-				}
-			}
-		}
-
-		private void SetupFiltersAndPatching()
-		{
-			using (ConfigFiltersAndPatching form = new ConfigFiltersAndPatching(_applicationData)) {
-				DialogResult result = form.ShowDialog();
-				if (result == DialogResult.OK) {
-					VixenSystem.SaveSystemConfig();
-				}
-				else {
-					VixenSystem.ReloadSystemConfig();
-				}
-			}
-		}
-
-		private void SetupPreviews()
+		private async void SetupPreviews()
 		{
 			using (ConfigPreviews form = new ConfigPreviews()) {
 				DialogResult result = form.ShowDialog();
 				if (result == DialogResult.OK) {
-					VixenSystem.SaveSystemConfig();
+					await VixenSystem.SaveSystemAndModuleConfigAsync();
 				}
 				else {
 					VixenSystem.ReloadSystemConfig();
@@ -587,13 +719,13 @@ namespace VixenApplication
 			}
 		}
 
-		private void SetupDisplay()
+		private async void SetupDisplay()
 		{
 			using (DisplaySetup form = new DisplaySetup()) {
 				DialogResult dr = form.ShowDialog();
 
 				if (dr == DialogResult.OK) {
-					VixenSystem.SaveSystemConfig();
+					await VixenSystem.SaveSystemAndModuleConfigAsync();
 				}
 				else {
 					VixenSystem.ReloadSystemConfig();
@@ -627,13 +759,15 @@ namespace VixenApplication
 				updateExecutionState();
 		}
 
-		private void optionsToolStripMenuItem_Click(object sender, EventArgs e)
+		private async void optionsToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			var dlg = new OptionsDialog();
 			var res = dlg.ShowDialog();
 			// so far the dialog box does it all, no real need for this check...
-			if( res != DialogResult.OK)
-				return;
+			if (res == DialogResult.OK)
+			{
+				await VixenSystem.SaveSystemConfigAsync();
+			}
 		}
 
 		// we can't get passed in a state to display, since it may be called out-of-order if we're invoking across threads, etc.
@@ -672,7 +806,7 @@ namespace VixenApplication
 
 		#region Recent Sequences list
 
-		private const int _maxRecentSequences = 10;
+		private const int _maxRecentSequences = 20;
 
 		private void listViewRecentSequences_DoubleClick(object sender, EventArgs e)
 		{
@@ -820,21 +954,6 @@ namespace VixenApplication
 			}
 		}
 
-		private void setupElementsGroupsToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			SetupElements();
-		}
-
-		private void setupControllersToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			SetupControllers();
-		}
-
-		private void setupFiltersPatchingToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			SetupFiltersAndPatching();
-		}
-
 		private void setupDisplayToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			SetupDisplay();
@@ -883,6 +1002,12 @@ namespace VixenApplication
 		{
 			var btn = (Button)sender;
 			btn.BackgroundImage = Resources.ButtonBackgroundImage;
+		}
+
+		private void ClearRecentSequencesList()
+		{
+			_applicationData.RecentSequences.Clear();
+			listViewRecentSequences.Items.Clear();
 		}
 	}
 }

@@ -91,12 +91,15 @@ namespace VixenModules.Editor.EffectEditor
 
 		private void LoadCollectionValues()
 		{
-			_collectionValues = (IList)_property.GetValue();
+			_collectionValues = _property.GetValue() as IList;
 			_collectionItemValues.Clear();
-			for (int i = 0; i < _collectionValues.Count; i++)
+			if (_collectionValues != null)
 			{
-				var collectionitem = new CollectionItemValue(this, i);
-				_collectionItemValues.Add(collectionitem);
+				for (int i = 0; i < _collectionValues.Count; i++)
+				{
+					var collectionitem = new CollectionItemValue(this, i);
+					_collectionItemValues.Add(collectionitem);
+				}
 			}
 		}
 
@@ -265,7 +268,7 @@ namespace VixenModules.Editor.EffectEditor
 
 		public bool IsDraggable(UIElement dragElt)
 		{
-			if (SupportsCurve() || SupportsColor())
+			if ( (SupportsCurve() || SupportsColor()) && Value!=null)
 			{
 				return true;	
 			}

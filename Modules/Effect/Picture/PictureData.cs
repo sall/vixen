@@ -17,16 +17,17 @@ namespace VixenModules.Effect.Picture
 			EffectType = EffectType.RenderPictureNone;
 			Speed = 1;
 			FileName = String.Empty;
-			Orientation=StringOrientation.Vertical;
-			XOffset = 0;
-			YOffset = 0;
+			Orientation = StringOrientation.Vertical;
+			XOffsetCurve = new Curve(new PointPairList(new[] { 0.0, 100.0 }, new[] { 50.0, 50.0 }));
+			YOffsetCurve = new Curve(new PointPairList(new[] { 0.0, 100.0 }, new[] { 50.0, 50.0 }));
 			LevelCurve = new Curve(new PointPairList(new[] { 0.0, 100.0 }, new[] { 100.0, 100.0 }));
 			Colors = new ColorGradient(Color.DodgerBlue);
 			ColorEffect = ColorEffect.None;
 			ScalePercent = 50;
+			Source = PictureSource.Embedded;
 			MovementRate = 4;
 			Direction = 0;
-			IncreaseBrightness = 10;
+			IncreaseBrightnessCurve = new Curve(new PointPairList(new[] { 0.0, 100.0 }, new[] { 0.0, 0.0 }));
 			ScaleToGrid = true;
 			TilePictures = TilePictures.BlueGlowDots;
 			GifSpeed = 1;
@@ -37,6 +38,9 @@ namespace VixenModules.Effect.Picture
 
 		[DataMember]
 		public EffectType EffectType { get; set; }
+
+		[DataMember]
+		public PictureSource Source { get; set; }
 
 		[DataMember]
 		public TilePictures TilePictures { get; set; }
@@ -59,11 +63,17 @@ namespace VixenModules.Effect.Picture
 		[DataMember]
 		public int ScalePercent { get; set; }
 
-		[DataMember]
+		[DataMember(EmitDefaultValue = false)]
 		public int XOffset { get; set; }
 
 		[DataMember]
+		public Curve XOffsetCurve { get; set; }
+
+		[DataMember(EmitDefaultValue = false)]
 		public int YOffset { get; set; }
+
+		[DataMember]
+		public Curve YOffsetCurve { get; set; }
 
 		[DataMember]
 		public StringOrientation Orientation { get; set; }
@@ -77,11 +87,50 @@ namespace VixenModules.Effect.Picture
 		[DataMember]
 		public int Direction { get; set; }
 
-		[DataMember]
+		[DataMember(EmitDefaultValue = false)]
 		public int IncreaseBrightness { get; set; }
 
 		[DataMember]
+		public Curve IncreaseBrightnessCurve { get; set; }
+
+		[DataMember]
 		public bool FitToTime { get; set; }
+
+		[OnDeserialized]
+		public void OnDeserialized(StreamingContext c)
+		{
+			//The following is due to adding the PictureSource datamember and also no longer requiring the None selection for Embedded picture tiles.
+			if (string.IsNullOrEmpty(FileName))
+			{
+				Source = PictureSource.Embedded;
+			}
+			if (TilePictures == TilePictures.None)
+				TilePictures = TilePictures.BlueGlowDots;
+
+			//if one of them is null the others probably are, and if this one is not then they all should be good.
+			//Try to save some cycles on every load
+
+			if (XOffsetCurve == null)
+			{
+				double value = PixelEffectBase.ScaleValueToCurve(XOffset, 100, -100);
+				XOffsetCurve = new Curve(new PointPairList(new[] { 0.0, 100.0 }, new[] { value, value }));
+				XOffset = 0;
+
+				if (YOffsetCurve == null)
+				{
+					value = PixelEffectBase.ScaleValueToCurve(YOffset, 100, -100);
+					YOffsetCurve = new Curve(new PointPairList(new[] { 0.0, 100.0 }, new[] { value, value }));
+					YOffset = 0;
+				}
+
+				if (IncreaseBrightnessCurve == null)
+				{
+					value = PixelEffectBase.ScaleValueToCurve(IncreaseBrightness, 100, 10);
+					IncreaseBrightnessCurve = new Curve(new PointPairList(new[] { 0.0, 100.0 }, new[] { value, value }));
+					IncreaseBrightness = 0;
+				}
+			}
+		}
 
 		protected override EffectTypeModuleData CreateInstanceForClone()
 		{
@@ -89,8 +138,9 @@ namespace VixenModules.Effect.Picture
 			{
 				EffectType = EffectType,
 				FitToTime = FitToTime,
-				XOffset = XOffset,
-				YOffset = YOffset,
+				YOffsetCurve = new Curve(YOffsetCurve),
+				XOffsetCurve = new Curve(XOffsetCurve),
+				IncreaseBrightnessCurve = new Curve(IncreaseBrightnessCurve),
 				Speed = Speed,
 				ScalePercent = ScalePercent,
 				ScaleToGrid = ScaleToGrid,
@@ -102,8 +152,8 @@ namespace VixenModules.Effect.Picture
 				TilePictures = TilePictures,
 				Direction = Direction,
 				GifSpeed = GifSpeed,
-				IncreaseBrightness = IncreaseBrightness,
-				Colors = Colors
+				Colors = Colors,
+				Source = Source
 			};
 			return result;
 		}

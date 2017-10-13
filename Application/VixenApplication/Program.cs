@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using Common.Controls;
+using Vixen.Sys;
 
 namespace VixenApplication
 {
@@ -13,43 +15,27 @@ namespace VixenApplication
 		private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
 		private const string ErrorMsg = "An application error occurred. Please contact the Vixen Dev Team " +
 									"with the following information:\n\n";
-
+		private static VixenApplication _app;
+		internal static string LockFilePath = string.Empty;
 		/// <summary>
 		/// The main entry point for the application.
 		/// </summary>
 		[STAThread]
 		private static void Main()
 		{
-
 			try
 			{
+				Logging.Info("Vixen app starting.");
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				Application.ThreadException += Application_ThreadException;
-			 
-				bool result;
-				var mutex = new Mutex(true, "Vixen3RunningInstance", out result);
-
-				if (!result)
-				{
-					//messageBox Arguments are (Text, Title, No Button Visible, Cancel Button Visible)
-					MessageBoxForm.msgIcon = SystemIcons.Warning; //this is used if you want to add a system icon to the message form.
-					var messageBox = new MessageBoxForm("Another instance is already running; please close that one before trying to start another.",
-									"Vixen 3 already active", false, false);
-					messageBox.ShowDialog();
-					return;
-				}
-
 				Application.EnableVisualStyles();
 				Application.SetCompatibleTextRenderingDefault(false);
-				Application.Run(new VixenApplication());
-
-				// mutex shouldn't be released - important line
-				GC.KeepAlive(mutex);
+				_app = new VixenApplication();
+				Application.Run(_app);
 			}
 			catch (Exception ex)
 			{
-				Logging.Fatal(ErrorMsg, ex);
-				Environment.Exit(1);
+				LogMessageAndExit(ex);
 			}
 		}
 
@@ -68,7 +54,21 @@ namespace VixenApplication
 		private static void LogMessageAndExit(Exception ex)
 		{
 			// Since we can't prevent the app from terminating, log this to the event log. 
-			Logging.Fatal(ErrorMsg, ex);
+			Logging.Fatal(ex, ErrorMsg);
+			if (VixenSystem.IsSaving())
+			{
+				Logging.Fatal("Save was in progress during the fatal crash. Trying to pause 5 seconds to give it a chance to complete.");
+				Thread.Sleep(5000);
+			}
+			if (_app != null)
+			{
+				_app.RemoveLockFile();
+			}
+			else 
+			{
+				//try the failsafe to clean up the lock file.
+				VixenApplication.RemoveLockFile(LockFilePath);
+			}
 			Environment.Exit(1);
 		}
 

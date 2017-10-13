@@ -9,14 +9,24 @@
   
   <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
 
-	<Style TargetType="ToolTip">
+    <!-- This is a start on extracting the colors to variables. This needs a lot more work. -->
+    <Color x:Key="ForeColor">#EBEBEB</Color>
+    <Color x:Key="BackColor">#444444</Color>
+    <Color x:Key="BorderColor">#888888</Color>
+    
+    <SolidColorBrush x:Key="ForeColorBrush" Color="{StaticResource ForeColor}"></SolidColorBrush>
+    <SolidColorBrush x:Key="BackColorBrush" Color="{StaticResource BackColor}"></SolidColorBrush>
+    <SolidColorBrush x:Key="BorderColorBrush" Color="{StaticResource BorderColor}"></SolidColorBrush>
+    
+    
+    <Style x:Key="{x:Type ToolTip}" TargetType="ToolTip">
 		<Setter Property="OverridesDefaultStyle" Value="True"/>
-		<Setter Property="Foreground" Value="#DDD"/>
+		<Setter Property="Foreground" Value="{StaticResource ForeColorBrush}"/>
 		<Setter Property="Template">
 			<Setter.Value>
 				<ControlTemplate TargetType="{x:Type ToolTip}" >
 					<StackPanel Margin="7,1" >
-						<Border Background="#444444" CornerRadius="3" BorderThickness="1" BorderBrush="#888888">
+						<Border Background="{StaticResource BackColorBrush}" CornerRadius="3" BorderThickness="1" BorderBrush="{StaticResource BorderColorBrush}">
 							<ContentPresenter Margin="7" HorizontalAlignment="Center" VerticalAlignment="Top"/>
 						</Border>
 					</StackPanel>
@@ -26,7 +36,7 @@
 		<Setter Property="ContentTemplate">
 			<Setter.Value>
 				<DataTemplate>
-					<TextBlock TextWrapping="Wrap" MaxWidth="400" TextAlignment="Left" Text="{Binding}" Foreground="#DDD" Background="#444444"/>
+					<TextBlock TextWrapping="Wrap" MaxWidth="400" TextAlignment="Left" Text="{Binding}" Foreground="{StaticResource ForeColorBrush}" Background="{StaticResource BackColorBrush}"/>
 				</DataTemplate>
 			</Setter.Value>
 		</Setter>
@@ -50,7 +60,7 @@
     <Setter Property="SnapsToDevicePixels" Value="true"/>
     <Setter Property="OverridesDefaultStyle" Value="true"/>
     <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-    <Setter Property="Foreground" Value="#DDD"/>
+    <Setter Property="Foreground" Value="{StaticResource ForeColorBrush}"/>
     <!--<Setter Property="FontSize" Value="7.5pt"/>-->
     <Setter Property="MinHeight" Value="20"/>
     <Setter Property="VerticalContentAlignment" Value="Center"/>
@@ -60,7 +70,7 @@
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type Button}">
           <Grid>
-            <Border x:Name="Background" CornerRadius="3" BorderBrush="#888888" BorderThickness="0,1,0,0">
+            <Border x:Name="Background" CornerRadius="3" BorderBrush="{StaticResource BorderColorBrush}" BorderThickness="0,1,0,0">
               <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                   <GradientStop Offset="0.0" Color="#585858" />
@@ -84,7 +94,7 @@
               <Trigger.EnterActions>
                 <BeginStoryboard>
                   <Storyboard>
-                    <ColorAnimation Storyboard.TargetName="Background" Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)" To="#888888" Duration="0:0:0.1" />
+                    <ColorAnimation Storyboard.TargetName="Background" Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)" To="{StaticResource BorderColor}" Duration="0:0:0.1" />
                     <ColorAnimation Storyboard.TargetName="Background" Storyboard.TargetProperty="(Border.Background).(LinearGradientBrush.GradientStops)[0].(GradientStop.Color)" To="#686868" Duration="0:0:0.1" />
                     <ColorAnimation Storyboard.TargetName="Background" Storyboard.TargetProperty="(Border.Background).(LinearGradientBrush.GradientStops)[1].(GradientStop.Color)" To="#282828" Duration="0:0:0.1" />
                   </Storyboard>
@@ -151,7 +161,7 @@
     <Setter Property="SnapsToDevicePixels" Value="true"/>
     <Setter Property="OverridesDefaultStyle" Value="true"/>
     <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-    <Setter Property="Foreground" Value="#DDD"/>
+    <Setter Property="Foreground" Value="{StaticResource ForeColorBrush}"/>
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type CheckBox}">
@@ -195,41 +205,97 @@
 	<!-- Label -->
 	
 	<Style TargetType="{x:Type Label}">
-		<Setter Property="Foreground" Value="#DDD"/>
+		<Setter Property="Foreground" Value="{StaticResource ForeColorBrush}"/>
 	</Style>
 
 	<!-- ListView -->
 
-	<Style TargetType="{x:Type ListView}">
-		<Style.Resources>
-			<SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#808080" />
-			<SolidColorBrush x:Key="{x:Static SystemColors.ControlBrushKey}" Color="#FF333333" />
-			<SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="Black" />
-			<SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#FF333333"/>
-		</Style.Resources>
-		<Setter Property="Foreground" Value="#DDD"/>
+    <Style TargetType="{x:Type ListView}">
+        <Setter Property="Foreground" Value="{StaticResource ForeColorBrush}"/>
 		<Setter Property="Background" Value="#FF333333"/>
 		<Setter Property="BorderThickness" Value="0"/>
 	</Style>
 
 	<Style TargetType="{x:Type ItemsControl}">
-		<Setter Property="Foreground" Value="#DDD"/>
+		<Setter Property="Foreground" Value="{StaticResource ForeColorBrush}"/>
 		<Setter Property="Background" Value="#FF333333"/>
-		<Setter Property="BorderThickness" Value="0"/>
+		<Setter Property="BorderThickness" Value="1"/>
 		
 	</Style>
-	
-	<Style TargetType="{x:Type ListViewItem}">
+    <Style x:Key="FocusVisual">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Rectangle Margin="2" SnapsToDevicePixels="true" Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" StrokeThickness="1" StrokeDashArray="1 2"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style TargetType="{x:Type ListViewItem}">
+        <Style.Resources>
+            <SolidColorBrush x:Key="Item.MouseOver.Background" Color="#1F26A0DA"/>
+            <SolidColorBrush x:Key="Item.MouseOver.Border" Color="#a826A0Da"/>
+            <SolidColorBrush x:Key="Item.SelectedInactive.Background" Color="#3DDADADA"/>
+            <SolidColorBrush x:Key="Item.SelectedInactive.Border" Color="#FFDADADA"/>
+            <SolidColorBrush x:Key="Item.SelectedActive.Background" Color="#3D26A0DA"/>
+            <SolidColorBrush x:Key="Item.SelectedActive.Border" Color="#FF26A0DA"/>
+        </Style.Resources>
 		<Setter Property="Background" Value="#FF333333"/>
-		<Setter Property="IsTabStop" Value="False"/>
-	</Style>
+        <Setter Property="IsTabStop" Value="False"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Padding" Value="4,1"/>
+        <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+        <Setter Property="VerticalContentAlignment" Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+            
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="1"/>
 
-		<!-- TextBox -->
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                    <Border x:Name="Bd" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="true">
+                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <!--<MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter Property="Background" TargetName="Bd" Value="{StaticResource Item.MouseOver.Background}"/>
+                            <Setter Property="BorderBrush" TargetName="Bd" Value="{StaticResource Item.MouseOver.Border}"/>
+                        </MultiTrigger>-->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="Selector.IsSelectionActive" Value="False"/>
+                                <Condition Property="IsSelected" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter Property="Background" TargetName="Bd" Value="{StaticResource Item.SelectedInactive.Background}"/>
+                            <Setter Property="BorderBrush" TargetName="Bd" Value="{StaticResource Item.SelectedInactive.Border}"/>
+                        </MultiTrigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="Selector.IsSelectionActive" Value="True"/>
+                                <Condition Property="IsSelected" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter Property="Background" TargetName="Bd" Value="{StaticResource Item.SelectedActive.Background}"/>
+                            <Setter Property="BorderBrush" TargetName="Bd" Value="{StaticResource Item.SelectedActive.Border}"/>
+                        </MultiTrigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="TextElement.Foreground" TargetName="Bd" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+  
+    <!-- TextBox -->
 
 	<Style TargetType="{x:Type TextBox}">
 		<Setter Property="SnapsToDevicePixels" Value="True"/>
 		<Setter Property="OverridesDefaultStyle" Value="True"/>
-		<Setter Property="Foreground" Value="#DDD"/>
+		<Setter Property="Foreground" Value="{StaticResource ForeColorBrush}"/>
 		<Setter Property="KeyboardNavigation.TabNavigation" Value="None"/>
 		<Setter Property="FocusVisualStyle" Value="{x:Null}"/>
 		<Setter Property="MinWidth" Value="200"/>
@@ -240,14 +306,14 @@
 			<Setter.Value>
 				<ControlTemplate TargetType="{x:Type TextBoxBase}">
 					<Grid>
-						<Border x:Name="Background" Background="#444444" CornerRadius="2" />
+						<Border x:Name="Background" Background="{StaticResource BackColorBrush}" CornerRadius="2" />
 						<Border x:Name="BackgroundHighlighted" BorderBrush="#808080" BorderThickness="0,0,0,1" CornerRadius="2" />
 						<Border x:Name="BackgroundSunken" BorderBrush="#101010" BorderThickness="0,1,0,0" CornerRadius="2" />
 						<ScrollViewer Margin="0,2,0,0" x:Name="PART_ContentHost" />
 					</Grid>
 					<ControlTemplate.Triggers>
 						<Trigger Property="IsEnabled" Value="False">
-							<Setter Property="Foreground" Value="#DDD"/>
+							<Setter Property="Foreground" Value="{StaticResource ForeColorBrush}"/>
 							<Setter Property="Opacity" Value="1"/>
 							<Setter Property="IsTabStop" Value="False"/>
 						</Trigger>
@@ -265,7 +331,7 @@
   <Style TargetType="{x:Type PasswordBox}">
     <Setter Property="SnapsToDevicePixels" Value="True"/>
     <Setter Property="OverridesDefaultStyle" Value="True"/>
-    <Setter Property="Foreground" Value="#DDD"/>
+    <Setter Property="Foreground" Value="{StaticResource ForeColorBrush}"/>
     <Setter Property="KeyboardNavigation.TabNavigation" Value="None"/>
     <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
     <Setter Property="MinWidth" Value="100"/>
@@ -275,7 +341,7 @@
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type PasswordBox}">
           <Grid>
-            <Border x:Name="Bg" Background="#444444" CornerRadius="2" />
+            <Border x:Name="Bg" Background="{StaticResource BackColorBrush}" CornerRadius="2" />
             <Border x:Name="Hl" BorderBrush="#808080" BorderThickness="0,0,0,1" CornerRadius="2" />
             <Border x:Name="Sh" BorderBrush="#101010" BorderThickness="0,1,0,0" CornerRadius="2" />
             <ScrollViewer Margin="0,2,0,0" x:Name="PART_ContentHost" />
@@ -500,7 +566,107 @@
     </Setter>
   </Style>
 
-  <ControlTemplate x:Key="HorizontalSliderTemplate" TargetType="{x:Type Slider}">
+    <Style x:Key="SliderPointStyle" TargetType="{x:Type controls:BaseInlineGradientEditor}">
+       <Setter Property="SliderStyle">
+            <Setter.Value>
+                <Style>
+                    <Setter Property="Polygon.Fill">
+                        <Setter.Value>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Offset="0.05" Color="#C5C5C5"/>
+                                <GradientStop Offset="0.5" Color="#606060"/>
+                                <GradientStop Offset="0.95" Color="#404040"/>
+                            </LinearGradientBrush>
+                        </Setter.Value>
+                    </Setter>
+                    <Setter Property="Polygon.Stroke">
+                        <Setter.Value>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Offset="0.0" Color="#C5C5C5"/>
+                                <GradientStop Offset="0.5" Color="#808080"/>
+                                <GradientStop Offset="0.95" Color="#606060"/>
+                            </LinearGradientBrush>
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <Trigger Property="Polygon.IsFocused">
+                            <Trigger.Value>True</Trigger.Value>
+                            <Setter Property="Polygon.Fill">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <GradientStop Offset="0.05" Color="#D7D7D7"/>
+                                        <GradientStop Offset="0.5" Color="#909090"/>
+                                        <GradientStop Offset="0.95" Color="#606060"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                            <Setter Property="Polygon.Stroke">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Offset="0.0" Color="#C5C5C5"/>
+                                        <GradientStop Offset="0.5" Color="#808080"/>
+                                        <GradientStop Offset="0.95" Color="#606060"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="CurveSliderPointStyle" TargetType="{x:Type controls:BaseInlineCurveEditor}">
+        <Setter Property="SliderStyle">
+            <Setter.Value>
+                <Style>
+                    <Setter Property="Polygon.Fill">
+                        <Setter.Value>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Offset="0.05" Color="#C5C5C5"/>
+                                <GradientStop Offset="0.5" Color="#606060"/>
+                                <GradientStop Offset="0.95" Color="#404040"/>
+                            </LinearGradientBrush>
+                        </Setter.Value>
+                    </Setter>
+                    <Setter Property="Polygon.Stroke">
+                        <Setter.Value>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Offset="0.0" Color="#C5C5C5"/>
+                                <GradientStop Offset="0.5" Color="#808080"/>
+                                <GradientStop Offset="0.95" Color="#606060"/>
+                            </LinearGradientBrush>
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <Trigger Property="Polygon.IsFocused">
+                            <Trigger.Value>True</Trigger.Value>
+                            <Setter Property="Polygon.Fill">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <GradientStop Offset="0.05" Color="#D7D7D7"/>
+                                        <GradientStop Offset="0.5" Color="#909090"/>
+                                        <GradientStop Offset="0.95" Color="#606060"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                            <Setter Property="Polygon.Stroke">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Offset="0.0" Color="#C5C5C5"/>
+                                        <GradientStop Offset="0.5" Color="#808080"/>
+                                        <GradientStop Offset="0.95" Color="#606060"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <ControlTemplate x:Key="HorizontalSliderTemplate" TargetType="{x:Type Slider}">
     <Grid>
       <TickBar x:Name="TopTick" Height="1" Fill="#7FFF" Placement="Top" SnapsToDevicePixels="True" Visibility="Collapsed"/>
       <Path Height="12" Canvas.Top="11.98" Margin="4,0" Stretch="Fill" Stroke="#2FFF" StrokeThickness="1" Data="M80,320 L560,320 560,290 80,315 z">
@@ -557,7 +723,7 @@
         <ColumnDefinition Width="20" />
       </Grid.ColumnDefinitions>
       <Grid Grid.ColumnSpan="2">
-        <Border x:Name="Bg" CornerRadius="3" BorderBrush="#888888" BorderThickness="0,1,0,0">
+        <Border x:Name="Bg" CornerRadius="3" BorderBrush="{StaticResource BorderColorBrush}" BorderThickness="0,1,0,0">
           <Border.Background>
             <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
               <GradientStop Offset="0.0" Color="#585858" />
@@ -583,7 +749,7 @@
         <Trigger.EnterActions>
           <BeginStoryboard>
             <Storyboard>
-              <ColorAnimation Storyboard.TargetName="Bg" Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)" To="#888888" Duration="0:0:0.1" />
+              <ColorAnimation Storyboard.TargetName="Bg" Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)" To="{StaticResource BorderColor}" Duration="0:0:0.1" />
               <ColorAnimation Storyboard.TargetName="Bg" Storyboard.TargetProperty="(Border.Background).(LinearGradientBrush.GradientStops)[0].(GradientStop.Color)" To="#686868" Duration="0:0:0.1" />
               <ColorAnimation Storyboard.TargetName="Bg" Storyboard.TargetProperty="(Border.Background).(LinearGradientBrush.GradientStops)[1].(GradientStop.Color)" To="#282828" Duration="0:0:0.1" />
             </Storyboard>
@@ -617,7 +783,7 @@
     <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
     <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
     <Setter Property="ScrollViewer.CanContentScroll" Value="true"/>
-    <Setter Property="Foreground" Value="#DDD"/>
+    <Setter Property="Foreground" Value="{StaticResource ForeColorBrush}"/>
     <Setter Property="MinHeight" Value="20"/>
     <Setter Property="MinWidth" Value="70"/>
     <!--<Setter Property="ItemContainerStyle" Value="{DynamicResource ComboBoxItem}"/>-->
@@ -817,7 +983,7 @@
     <Setter Property="SnapsToDevicePixels" Value="true"/>
     <Setter Property="OverridesDefaultStyle" Value="true"/>
     <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-    <Setter Property="Foreground" Value="#DDD"/>
+    <Setter Property="Foreground" Value="{StaticResource ForeColorBrush}"/>
     <!--<Setter Property="FontSize" Value="7.5pt"/>-->
     <Setter Property="MinHeight" Value="20"/>
     <Setter Property="MinWidth" Value="20"/>
@@ -828,7 +994,7 @@
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type ToggleButton}">
           <Grid>
-            <Border x:Name="Bg" CornerRadius="3" BorderBrush="#888888" BorderThickness="0,1,0,0">
+            <Border x:Name="Bg" CornerRadius="3" BorderBrush="{StaticResource BorderColorBrush}" BorderThickness="0,1,0,0">
               <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                   <GradientStop Offset="0.0" Color="#585858" />
@@ -852,7 +1018,7 @@
               <Trigger.EnterActions>
                 <BeginStoryboard>
                   <Storyboard>
-                    <ColorAnimation Storyboard.TargetName="Bg" Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)" To="#888888" Duration="0:0:0.1" />
+                    <ColorAnimation Storyboard.TargetName="Bg" Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)" To="{StaticResource BorderColor}" Duration="0:0:0.1" />
                     <ColorAnimation Storyboard.TargetName="Bg" Storyboard.TargetProperty="(Border.Background).(LinearGradientBrush.GradientStops)[0].(GradientStop.Color)" To="#686868" Duration="0:0:0.1" />
                     <ColorAnimation Storyboard.TargetName="Bg" Storyboard.TargetProperty="(Border.Background).(LinearGradientBrush.GradientStops)[1].(GradientStop.Color)" To="#282828" Duration="0:0:0.1" />
                   </Storyboard>
@@ -922,7 +1088,7 @@
     <Setter Property="SnapsToDevicePixels" Value="true"/>
     <Setter Property="OverridesDefaultStyle" Value="true"/>
     <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-    <Setter Property="Foreground" Value="#DDD"/>
+    <Setter Property="Foreground" Value="{StaticResource ForeColorBrush}"/>
     <Setter Property="FontSize" Value="7.5pt"/>
     <Setter Property="MinHeight" Value="20"/>
     <Setter Property="MinWidth" Value="70"/>
@@ -933,7 +1099,7 @@
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type ToggleButton}">
           <Grid>
-            <Border x:Name="Bg" CornerRadius="3" BorderBrush="#888888" BorderThickness="0,1,0,0">
+            <Border x:Name="Bg" CornerRadius="3" BorderBrush="{StaticResource BorderColorBrush}" BorderThickness="0,1,0,0">
               <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                   <GradientStop Offset="0.0" Color="#585858" />
@@ -957,7 +1123,7 @@
               <Trigger.EnterActions>
                 <BeginStoryboard>
                   <Storyboard>
-                    <ColorAnimation Storyboard.TargetName="Bg" Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)" To="#888888" Duration="0:0:0.1" />
+                    <ColorAnimation Storyboard.TargetName="Bg" Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)" To="{StaticResource BorderColorBrush}" Duration="0:0:0.1" />
                     <ColorAnimation Storyboard.TargetName="Bg" Storyboard.TargetProperty="(Border.Background).(LinearGradientBrush.GradientStops)[0].(GradientStop.Color)" To="#686868" Duration="0:0:0.1" />
                     <ColorAnimation Storyboard.TargetName="Bg" Storyboard.TargetProperty="(Border.Background).(LinearGradientBrush.GradientStops)[1].(GradientStop.Color)" To="#282828" Duration="0:0:0.1" />
                   </Storyboard>
@@ -1026,7 +1192,7 @@
 	<Style TargetType="{x:Type controls:ToggleSwitch}">
 		<Setter Property="Background" Value="Black"/>
 		<Setter Property="BorderThickness" Value="1"/>
-		<Setter Property="CheckedForeground" Value="#DDD"/>
+		<Setter Property="CheckedForeground" Value="{StaticResource ForeColorBrush}"/>
 		<Setter Property="CornerRadius" Value="3"/>
 		<!--<Setter Property="FontSize" Value="7.5pt"/>
 		<Setter Property="FontWeight" Value="Normal"/>-->
@@ -1034,7 +1200,7 @@
 		<Setter Property="ThumbCornerRadius" Value="3"/>
 		<Setter Property="ThumbGlowColor" Value="#FCFCF6"/>
 		<Setter Property="ThumbShineCornerRadius" Value="6,6,5,5"/>
-		<Setter Property="UncheckedForeground" Value="#DDD"/>
+		<Setter Property="UncheckedForeground" Value="{StaticResource ForeColorBrush}"/>
 		<Setter Property="BorderBrush">
 			<Setter.Value>
 				<LinearGradientBrush EndPoint="0,0"
@@ -1105,7 +1271,7 @@
       </Setter.Value>
     </Setter>
     <Setter Property="ItemsBackground" Value="#FF333333"/>
-    <Setter Property="ItemsForeground" Value="#DDDDDD"/>
+    <Setter Property="ItemsForeground" Value="{StaticResource ForeColorBrush}"/>
   </Style>
   
   <!-- TabbedLayout -->

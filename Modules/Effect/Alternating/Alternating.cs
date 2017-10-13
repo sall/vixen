@@ -33,6 +33,11 @@ namespace VixenModules.Effect.Alternating
 			if (TargetNodes.Any())
 			{
 				CheckForInvalidColorData();
+				var firstNode = TargetNodes.FirstOrDefault();
+				if (firstNode != null && DepthOfEffect > firstNode.GetMaxChildDepth() - 1)
+				{
+					DepthOfEffect = 0;
+				}
 			}
 		}
 
@@ -40,13 +45,34 @@ namespace VixenModules.Effect.Alternating
 		{
 			_elementData = new EffectIntents();
 
-			foreach (ElementNode node in TargetNodes)
-			{
-				if (node != null)
-					_elementData.Add(RenderNode(node));
-			}
+			var renderNodes = GetNodesToRenderOn();
+			
+			_elementData.Add(RenderNode(renderNodes));
 
-			//_elementData = IntentBuilder.ConvertToStaticArrayIntents(_elementData, TimeSpan, IsDiscrete());
+		}
+
+		private IEnumerable<ElementNode> GetNodesToRenderOn()
+		{
+			IEnumerable<ElementNode> renderNodes = TargetNodes;
+
+			if (!EnableDepth)
+			{
+				renderNodes = TargetNodes.SelectMany(x => x.GetLeafEnumerator());
+			}
+			else
+			{
+				for (int i = 0; i < DepthOfEffect; i++)
+				{
+					renderNodes = renderNodes.SelectMany(x => x.Children);
+				}
+			}
+			
+			// If the given DepthOfEffect results in no nodes (because it goes "too deep" and misses all nodes), 
+			// then we'll default to the LeafElements, which will at least return 1 element (the TargetNode)
+			if (!renderNodes.Any())
+				renderNodes = TargetNodes.SelectMany(x => x.GetLeafEnumerator());
+
+			return renderNodes;
 		}
 
 		//Validate that the we are using valid colors and set appropriate defaults if not.
@@ -101,7 +127,6 @@ namespace VixenModules.Effect.Alternating
 		[ProviderCategory(@"Color", 2)]
 		[ProviderDisplayName(@"GradientLevelPair")]
 		[ProviderDescription(@"GradientLevelPair")]
-		[MergableProperty(false)]
 		public List<GradientLevelPair> Colors
 		{
 			get { return _data.Colors; }
@@ -192,12 +217,50 @@ namespace VixenModules.Effect.Alternating
 
 		#endregion
 
+		#region Depth
+
+		[Value]
+		[ProviderCategory(@"Depth", 4)]
+		[ProviderDisplayName(@"Depth")]
+		[ProviderDescription(@"Depth")]
+		[TypeConverter(typeof(TargetElementDepthConverter))]
+		[PropertyEditor("SelectionEditor")]
+		public int DepthOfEffect
+		{
+			get { return _data.DepthOfEffect; }
+			set
+			{
+				_data.DepthOfEffect = value;
+				IsDirty = true;
+				OnPropertyChanged();
+			}
+		}
+
+		[Value]
+		[ProviderCategory(@"Depth", 10)]
+		[ProviderDisplayName(@"IndividualElements")]
+		[ProviderDescription(@"AlternatingDepth")]
+		public bool EnableDepth
+		{
+			get { return (bool)_data.EnableDepth; }
+			set
+			{
+				_data.EnableDepth = value;
+				IsDirty = true;
+				UpdateDepthAttributes();
+				TypeDescriptor.Refresh(this);
+				OnPropertyChanged();
+			}
+		}
+
+		#endregion
 
 		#region Attributes
 
 		private void InitAllAttributes()
 		{
 			UpdateIntervalAttribute(false);
+			UpdateDepthAttributes();
 			TypeDescriptor.Refresh(this);
 		}
 
@@ -213,6 +276,15 @@ namespace VixenModules.Effect.Alternating
 			{
 				TypeDescriptor.Refresh(this);
 			}
+		}
+
+		private void UpdateDepthAttributes()
+		{
+			Dictionary<string, bool> propertyStates = new Dictionary<string, bool>(1)
+			{
+				{"DepthOfEffect", EnableDepth}
+			};
+			SetBrowsable(propertyStates);
 		}
 
 		#endregion
@@ -251,7 +323,7 @@ namespace VixenModules.Effect.Alternating
 
 		// renders the given node to the internal ElementData dictionary. If the given node is
 		// not a element, will recursively descend until we render its elements.
-		private EffectIntents RenderNode(ElementNode node)
+		private EffectIntents RenderNode(IEnumerable<ElementNode> nodes)
 		{
 			EffectIntents effectIntents = new EffectIntents();
 			int intervals = 1;
@@ -270,13 +342,11 @@ namespace VixenModules.Effect.Alternating
 			}
 
 			var startTime = TimeSpan.Zero;
-			var nodes = node.GetLeafEnumerator();
-
+			
 			var intervalTime = intervals == 1
 					? TimeSpan
 					: TimeSpan.FromMilliseconds(Interval);
 
-			
 			for (int i = 0; i < intervals; i++)
 			{
 				var elements = nodes.Select((x, index) => new { x, index })

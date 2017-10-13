@@ -119,10 +119,10 @@ VIAddVersionKey "FileVersion" "${AssemblyVersion_1}.${AssemblyVersion_2}.${Assem
 	!define PRODUCT_NAME_FULL "Vixen Development Build"
 	Name "${PRODUCT_NAME} Development Build ${BUILDNUMBER} (${BITS_READABLE})"
 	OutFile ".\${PRODUCT_NAME}-DevBuild-${BUILDNUMBER}-Setup-${BITS}bit.exe"
-	InstallDir "${PROG_FILES}\Vixen Development Build"
+	InstallDir "${PROG_FILES}\Vixen Development Build\"
 !else
 	!define PRODUCT_NAME_FULL "Vixen"
-	InstallDir "${PROG_FILES}\Vixen"
+	InstallDir "${PROG_FILES}\Vixen\"
 	!if ${PATCHNUMBER} == 0
 		Name "${PRODUCT_NAME} ${MAJORVERSION}.${MINORVERSION} (${BITS_READABLE})"
 		OutFile ".\${PRODUCT_NAME}-${MAJORVERSION}.${MINORVERSION}-Setup-${BITS}bit.exe"
@@ -184,7 +184,9 @@ VIAddVersionKey "FileVersion" "${AssemblyVersion_1}.${AssemblyVersion_2}.${Assem
 !insertmacro MUI_PAGE_LICENSE "${BUILD_DIR}\Release Notes.txt"
 
 ; Directory page
-DirText "Setup will install ${PRODUCT_NAME_FULL} in the following folder. $\n$\nTo install in a different folder (such as a USB Drive), click Browse and select another folder. $\nWhen ready, click next to continue."
+DirText "Setup will install ${PRODUCT_NAME_FULL} in the following folder. $\n$\nTo install in a different folder (such as a USB Drive), click Browse and select another folder. $\n$\nDO NOT select any of your profile folders! $\n$\nWhen ready, click next to continue."
+!define MUI_DIRECTORYPAGE_VERIFYONLEAVE
+!define MUI_PAGE_CUSTOMFUNCTION_LEAVE DirectoryLeave
 !insertmacro MUI_PAGE_DIRECTORY
 ; Start menu page
 var ICONS_GROUP
@@ -227,14 +229,23 @@ Function .onInit
 	${EndIf}
 
 
-	;Here we check for Client .NET 4.5.2 profile. To check for Full .NET 4.5.2, replace "Client" with "Full"
+	;Here we check for Client .NET 4.6.2 profile. 
 	ReadRegDWORD $0 HKLM 'SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full' Release
-	${If} $0 < '379893'
+	${If} $0 < '394802'
 		StrCpy $InstallDotNET "Yes"
-		MessageBox MB_OK|MB_ICONINFORMATION "${PRODUCT_NAME} requires that the Microsoft .NET Framework >= 4.5.2 is installed. The Microsoft .NET Framework will be downloaded and installed automatically during installation of ${PRODUCT_NAME}."
+		MessageBox MB_OK|MB_ICONINFORMATION "${PRODUCT_NAME} requires that the Microsoft .NET Framework >= 4.6.2 is installed. The Microsoft .NET Framework will be downloaded and installed automatically during installation of ${PRODUCT_NAME}."
 		Return
 	${EndIf}
 	
+FunctionEnd
+
+Function DirectoryLeave
+  GetInstDirError $0
+  
+  ;=== Does it look like a profile folder?
+	IfFileExists "$INSTDIR\SystemData\ModuleStore.xml" 0 +3
+		MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "'$INSTDIR' appears to be a Vixen profile folder. Any profile data in that folder will be permanently lost.$\n$\nAre you sure?" IDYES +2
+				Abort
 FunctionEnd
 
 
@@ -242,21 +253,22 @@ Section "Application" SEC01
 
 	; Get .NET if required
 	${If} $InstallDotNET == "Yes"
-		inetc::get /caption "Downloading Microsoft .NET Framework 4.6.1" /canceltext "Cancel" "https://download.microsoft.com/download/E/4/1/E4173890-A24A-4936-9FC9-AF930FE3FA40/NDP461-KB3102436-x86-x64-AllOS-ENU.exe" "$TEMP\NDP461-KB3102436-x86-x64-AllOS-ENU.exe" /end
+		inetc::get /caption "Downloading Microsoft .NET Framework 4.6.2" /canceltext "Cancel" "https://download.microsoft.com/download/F/9/4/F942F07D-F26F-4F30-B4E3-EBD54FABA377/NDP462-KB3151800-x86-x64-AllOS-ENU.exe" "$TEMP\NDP462-KB3151800-x86-x64-AllOS-ENU.exe" /end
 		Pop $1
  
 		${If} $1 != "OK"
-			Delete "$TEMP\NDP461-KB3102436-x86-x64-AllOS-ENU.exe"
+			Delete "$TEMP\NDP462-KB3151800-x86-x64-AllOS-ENU.exe"
 			Abort "Installation cancelled."
 		${EndIf}
 		 
-		ExecWait "$TEMP\NDP461-KB3102436-x86-x64-AllOS-ENU.exe"
-		Delete "$TEMP\NDP461-KB3102436-x86-x64-AllOS-ENU.exe"
+		ExecWait "$TEMP\NDP462-KB3151800-x86-x64-AllOS-ENU.exe"
+		Delete "$TEMP\NDP462-KB3151800-x86-x64-AllOS-ENU.exe"
 	${EndIf}
 	
 	; Remove any old modules that are no longer used in case someone installs over an old version
 	RMDir /r $INSTDIR\Modules
 	RMDir /r $INSTDIR\Common
+	RMDir /r $INSTDIR
 
   ; only overwrite these if this installer has a newer version
   SetOverwrite ifnewer

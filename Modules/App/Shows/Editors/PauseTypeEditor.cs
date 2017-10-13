@@ -5,7 +5,6 @@ using System.Linq;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.IO;
-using System.Xml.Serialization;
 using Common.Controls.Theme;
 using Vixen.Module.Editor;
 using Vixen.Module.SequenceType;
@@ -17,18 +16,14 @@ namespace VixenModules.App.Shows
 
 	public partial class PauseTypeEditor : TypeEditorBase
 	{
-		public static ShowItem _showItem;
-		public static Label ContolLabel1;
-		public static NumericUpDown ContolNumericUpDownPauseSeconds;
-
+		private readonly ShowItem _showItem;
+		
 		public PauseTypeEditor(ShowItem showItem)
 		{
 			InitializeComponent();
 			ForeColor = ThemeColorTable.ForeColor;
 			BackColor = ThemeColorTable.BackgroundColor;
 			ThemeUpdateControls.UpdateControls(this);
-			ContolLabel1 = label1;
-			ContolNumericUpDownPauseSeconds = numericUpDownPauseSeconds;
 			_showItem = showItem;
 		}
 

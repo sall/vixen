@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Web;
 using Vixen.Execution;
 using Vixen.Execution.Context;
+using Vixen.Module.Media;
 using Vixen.Services;
 using Vixen.Sys;
 using VixenModules.App.WebServer.Model;
@@ -18,11 +19,12 @@ namespace VixenModules.App.WebServer.Service
 
 		public static IEnumerable<Sequence> GetSequences()
 		{
-			var sequenceNames = SequenceService.Instance.GetAllSequenceFileNames().Select(Path.GetFileName);
+			var sequenceNames = SequenceService.Instance.GetAllSequenceFileNames();
+
 			var sequences = sequenceNames.Select(sequenceName => new Sequence
 			{
 				Name = Path.GetFileNameWithoutExtension(sequenceName),
-				FileName = sequenceName
+				FileName = sequenceName 
 			}).ToList();
 
 			return sequences;
@@ -68,6 +70,7 @@ namespace VixenModules.App.WebServer.Service
 					if (seq != null)
 					{
 						Logging.Info(string.Format("Web - Prerendering effects for sequence: {0}", sequence.Name));
+						LoadMedia(seq);
 						Parallel.ForEach(seq.SequenceData.EffectData.Cast<IEffectNode>(), effectNode => effectNode.Effect.PreRender());
 
 						ISequenceContext context = VixenSystem.Contexts.CreateSequenceContext(
@@ -97,6 +100,16 @@ namespace VixenModules.App.WebServer.Service
 			
 
 			return status;
+		}
+
+		private static void LoadMedia(ISequence sequence)
+		{
+			var sequenceMedia = sequence.GetAllMedia();
+			if (sequenceMedia != null && sequenceMedia.Any())
+				foreach (IMediaModuleInstance media in sequenceMedia)
+				{
+					media.LoadMedia(TimeSpan.Zero);
+				}
 		}
 
 		private static void context_ContextEnded(object sender, EventArgs e)

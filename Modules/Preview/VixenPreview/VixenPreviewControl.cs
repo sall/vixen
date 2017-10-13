@@ -50,6 +50,10 @@ namespace VixenModules.Preview.VixenPreview
 
 		private Tools _currentTool = Tools.Select;
 
+		internal string ItemName = String.Empty;
+		internal int ItemIndex = 0;
+		internal int ItemBulbSize = 0;
+
 
 		public DisplayMoveType Type { get; private set; }
 
@@ -349,6 +353,8 @@ namespace VixenModules.Preview.VixenPreview
 				if (_background == null)
 				{
 					DefaultBackground = true;
+					if (Width == 0 || Height == 0)
+						Width = Height = 1;
 					_background = new Bitmap(Width, Height, PixelFormat.Format32bppPArgb);
 
 					Graphics gfx = Graphics.FromImage(_background);
@@ -657,6 +663,11 @@ namespace VixenModules.Preview.VixenPreview
 							{
 								Shape = new PreviewSingle(translatedPoint, elementsForm.SelectedNode, ZoomLevel)
 							};
+							if (ItemName != String.Empty)
+							{
+								newDisplayItem.Shape.Name = ItemName + ItemIndex++;
+								newDisplayItem.Shape.PixelSize = ItemBulbSize;
+							}
 						}
 						else if (_currentTool == Tools.Ellipse)
 						{
@@ -727,7 +738,7 @@ namespace VixenModules.Preview.VixenPreview
 							AddDisplayItem(newDisplayItem);
 							newDisplayItem.ZoomLevel = ZoomLevel;
 							_selectedDisplayItem = newDisplayItem;
-							_selectedDisplayItem.Shape.PixelSize = 3;
+							//_selectedDisplayItem.Shape.PixelSize = 3;
 							_selectedDisplayItem.Shape.Select(true);
 							_selectedDisplayItem.Shape.SelectDefaultSelectPoint();
 							dragStart = translatedPoint.ToPoint();
@@ -1680,8 +1691,7 @@ namespace VixenModules.Preview.VixenPreview
 				{
 					newDisplayItem.Shape.Name = f.TemplateName;
 					newDisplayItem.Shape.Select(true);
-
-					string xml = PreviewTools.SerializeToString(newDisplayItem);
+					string xml = PreviewTools.SerializeToString(newDisplayItem.Clone());
 					string destFileName = PreviewTools.TemplateWithFolder(f.TemplateName + ".xml");
 					System.IO.File.WriteAllText(destFileName, xml);
 				}
@@ -1694,19 +1704,51 @@ namespace VixenModules.Preview.VixenPreview
 			if (System.IO.File.Exists(fileName))
 			{
 				// Read the entire template file (stoopid waste of resources, but how else?)
-				string xml = System.IO.File.ReadAllText(fileName);
+				string xml = File.ReadAllText(fileName);
 				DisplayItem newDisplayItem = PreviewTools.DeSerializeToDisplayItem(xml, typeof (DisplayItem));
+				
 				if (newDisplayItem != null)
 				{
+					foreach (var previewPixel in newDisplayItem.Shape.Pixels)
+					{
+						//Remove any node associations from the template that may have been saved in old versions
+						previewPixel.Node = null;
+						previewPixel.NodeId = Guid.Empty;
+					}
+
 					DeSelectSelectedDisplayItem();
+
+					if (elementsForm.SelectedNode != null)
+					{
+						//try to associate the template to the nodes by suffix for Previewsingle types
+
+						var children = elementsForm.SelectedNode.GetLeafEnumerator().GroupBy(l => l.Name).Select(x => x.FirstOrDefault()).ToDictionary(x => x.Name);
+						foreach (var previewBaseShape in newDisplayItem.Shape.Strings)
+						{
+							if (previewBaseShape is PreviewSingle)
+							{
+								var element = children.Keys.FirstOrDefault(x => x.Contains(previewBaseShape.Name));
+								if (element != null)
+								{
+									var pixel = previewBaseShape.Pixels.FirstOrDefault();
+									if (pixel != null)
+									{
+										var elementNode = children[element];
+										pixel.Node = elementNode;
+										pixel.NodeId = elementNode.Id;
+									}
+								}
+							}
+
+						}
+					}
 
 					AddDisplayItem(newDisplayItem);
 					_selectedDisplayItem = newDisplayItem;
-					OnSelectDisplayItem(this, _selectedDisplayItem);
+					if (OnSelectDisplayItem != null) OnSelectDisplayItem(this, _selectedDisplayItem);
 					_selectedDisplayItem.Shape.MoveTo(10, 10);
 					_selectedDisplayItem.Shape.Select(true);
 					_selectedDisplayItem.Shape.SetSelectPoint(null);
-					List<DisplayItem> selected = new List<DisplayItem> {_selectedDisplayItem};
 
 					PreviewItemAddAction(); //starts Undo_Redo Action
 				}

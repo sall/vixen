@@ -59,8 +59,8 @@ namespace VixenModules.Effect.Garlands
 
 		[Value]
 		[ProviderCategory(@"Config", 1)]
-		[ProviderDisplayName(@"Movement Type")]
-		[ProviderDescription(@"Switches between speed or iterations")]
+		[ProviderDisplayName(@"MovementType")]
+		[ProviderDescription(@"MovementType")]
 		[PropertyOrder(0)]
 		public MovementType MovementType
 		{
@@ -77,7 +77,7 @@ namespace VixenModules.Effect.Garlands
 		[Value]
 		[ProviderCategory(@"Config", 1)]
 		[ProviderDisplayName(@"Direction")]
-		[ProviderDescription(@"Changes the direction that the garlands stack.")]
+		[ProviderDescription(@"Direction")]
 		[PropertyOrder(1)]
 		public GarlandsDirection Direction
 		{
@@ -94,15 +94,14 @@ namespace VixenModules.Effect.Garlands
 		[ProviderCategory(@"Config", 1)]
 		[ProviderDisplayName(@"Speed")]
 		[ProviderDescription(@"Speed")]
-		[PropertyEditor("SliderEditor")]
-		[NumberRange(1, 100, 1)]
-		[PropertyOrder(2)]
-		public int Speed
+		//[NumberRange(1, 100, 1)]
+		[PropertyOrder(1)]
+		public Curve SpeedCurve
 		{
-			get { return _data.Speed; }
+			get { return _data.SpeedCurve; }
 			set
 			{
-				_data.Speed = value;
+				_data.SpeedCurve = value;
 				IsDirty = true;
 				OnPropertyChanged();
 			}
@@ -114,7 +113,7 @@ namespace VixenModules.Effect.Garlands
 		[ProviderDescription(@"Iterations")]
 		[PropertyEditor("SliderEditor")]
 		[NumberRange(1, 20, 1)]
-		[PropertyOrder(3)]
+		[PropertyOrder(2)]
 		public int Iterations
 		{
 			get { return _data.Iterations; }
@@ -128,8 +127,8 @@ namespace VixenModules.Effect.Garlands
 
 		[Value]
 		[ProviderCategory(@"Config", 1)]
-		[ProviderDisplayName(@"Garland Type")]
-		[ProviderDescription(@"Changes the garland type")]
+		[ProviderDisplayName(@"GarlandType")]
+		[ProviderDescription(@"GarlandType")]
 		[PropertyEditor("SliderEditor")]
 		[NumberRange(0, 4, 1)]
 		[PropertyOrder(4)]
@@ -147,16 +146,15 @@ namespace VixenModules.Effect.Garlands
 		[Value]
 		[ProviderCategory(@"Config", 1)]
 		[ProviderDisplayName(@"Spacing")]
-		[ProviderDescription(@"Adjusts the space between garlands.")]
-		[PropertyEditor("SliderEditor")]
-		[NumberRange(1, 20, 1)]
+		[ProviderDescription(@"Spacing")]
+		//[NumberRange(1, 20, 1)]
 		[PropertyOrder(5)]
-		public int Spacing
+		public Curve SpacingCurve
 		{
-			get { return _data.Spacing; }
+			get { return _data.SpacingCurve; }
 			set
 			{
-				_data.Spacing = value;
+				_data.SpacingCurve = value;
 				IsDirty = true;
 				OnPropertyChanged();
 			}
@@ -204,6 +202,20 @@ namespace VixenModules.Effect.Garlands
 
 		#endregion
 
+		#region Information
+
+		public override string Information
+		{
+			get { return "Visit the Vixen Lights website for more information on this effect."; }
+		}
+
+		public override string InformationLink
+		{
+			get { return "http://www.vixenlights.com/vixen-3-documentation/sequencer/effects/garlands/"; }
+		}
+
+		#endregion
+
 		private void UpdateAttributes()
 		{
 			UpdateMovementTypeAttribute(false);
@@ -230,7 +242,7 @@ namespace VixenModules.Effect.Garlands
 		{
 			bool movementType = MovementType == MovementType.Speed;
 			Dictionary<string, bool> propertyStates = new Dictionary<string, bool>(1);
-			propertyStates.Add("Speed", movementType);
+			propertyStates.Add("SpeedCurve", movementType);
 			propertyStates.Add("Iterations", !movementType);
 			SetBrowsable(propertyStates);
 			if (refresh)
@@ -251,11 +263,13 @@ namespace VixenModules.Effect.Garlands
 
 		protected override void RenderEffect(int frame, IPixelFrameBuffer frameBuffer)
 		{
-			double level = LevelCurve.GetValue(GetEffectTimeIntervalPosition(frame) * 100) / 100;
+			var intervalPos = GetEffectTimeIntervalPosition(frame);
+			var intervalPosFactor = intervalPos * 100;
+			double level = LevelCurve.GetValue(intervalPos * 100) / 100;
 			int width, height;
 			double totalFrames = (int)(TimeSpan.TotalMilliseconds / FrameTime) -1;
-			
-			int pixelSpacing = Spacing * BufferHt / 100 + 3;
+
+			int pixelSpacing = CalculateSpacing(intervalPosFactor) * BufferHt / 100 + 3;
 			if (Direction == GarlandsDirection.Up || Direction == GarlandsDirection.Down)
 			{
 				width = BufferWi;
@@ -276,7 +290,7 @@ namespace VixenModules.Effect.Garlands
 			}
 			else
 			{
-				_speed += Speed;
+				_speed += CalculateSpeed(intervalPosFactor);
 				garlandsState = (limit - _speed % limit) / 4; //Speed
 			}
 			_frames++;
@@ -349,7 +363,7 @@ namespace VixenModules.Effect.Garlands
 					{
 						case GarlandsDirection.Down:
 							if (yadj < ylimit) yadj = ylimit;
-							if (yadj < BufferHt) frameBuffer.SetPixel(x, BufferHt - yadj, hsv);
+							if (yadj < BufferHt) frameBuffer.SetPixel(x, BufferHt - 1 - yadj, hsv);
 						break;
 						case GarlandsDirection.Up:
 							if (yadj < ylimit) yadj = ylimit;
@@ -357,7 +371,7 @@ namespace VixenModules.Effect.Garlands
 						break;
 						case GarlandsDirection.Left:
 							if (yadj < ylimit) yadj = ylimit;
-							if (yadj < BufferWi) frameBuffer.SetPixel(BufferWi - yadj, x, hsv);
+							if (yadj < BufferWi) frameBuffer.SetPixel(BufferWi - 1 - yadj, x, hsv);
 						break;
 						case GarlandsDirection.Right:
 							if (yadj < ylimit) yadj = ylimit;
@@ -368,15 +382,26 @@ namespace VixenModules.Effect.Garlands
 			}
 		}
 
+		private int CalculateSpeed(double intervalPos)
+		{
+			var value = (int)Math.Round(ScaleCurveToValue(SpeedCurve.GetValue(intervalPos), 100, 1));
+			if (value < 1) value = 1;
+
+			return value;
+		}
+
+		private int CalculateSpacing(double intervalPos)
+		{
+			var value = (int)Math.Round(ScaleCurveToValue(SpacingCurve.GetValue(intervalPos), 20, 1));
+			if (value < 1) value = 1;
+
+			return value;
+		}
+
 		// return a value between c1 and c2
 		private int ChannelBlend(int c1, int c2, double ratio)
 		{
 			return c1 + (int)Math.Floor(ratio * (double)(c2 - c1) + 0.5);
-		}
-
-		public int GetColorCount()
-		{
-			return Colors.Count();
 		}
 
 		public Color Get2ColorBlend(int coloridx1, int coloridx2, double ratio, int frame)
@@ -392,7 +417,7 @@ namespace VixenModules.Effect.Garlands
 
 		public Color GetMultiColorBlend(double n, bool circular, int frame)
 		{
-			int colorcnt = GetColorCount();
+			int colorcnt = Colors.Count;
 			if (colorcnt <= 1)
 			{
 				return Colors[0].GetColorAt((GetEffectTimeIntervalPosition(frame) * 100) / 100);
