@@ -14,12 +14,14 @@ using Vixen.Sys;
 namespace VixenModules.App.LipSyncApp
 {
 	public partial class LipSyncNodeSelect : BaseForm
-    {
-        private bool _userAdd;
-        private bool _stringAreRows;
+	{
+		private bool _userAdd;
+		private bool _stringAreRows;
+		private List<String> _selectedNodeNames;
+		private bool _matrixOptsOnly;
 
-        public LipSyncNodeSelect()
-        {
+		public LipSyncNodeSelect()
+		{
 			Location = ActiveForm != null ? new Point(ActiveForm.Location.X + 50, ActiveForm.Location.Y + 50) : new Point(400, 200);
 			InitializeComponent();
 			FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -27,185 +29,221 @@ namespace VixenModules.App.LipSyncApp
 			BackColor = ThemeColorTable.BackgroundColor;
 			ThemeUpdateControls.UpdateControls(this);
 			Icon = Resources.Icon_Vixen3;
-            Changed = false;
-            _userAdd = false;
-            _matrixOptsOnly = false;
-            
-        }
-        
-        private bool _matrixOptsOnly;
+			Changed = false;
+			_userAdd = false;
+			_matrixOptsOnly = false;
+			allowGroupsCheckbox.Checked = false;
+			recurseCB.Checked = true;
+		}
 
-        public int MaxNodes { get; set; }
+		public int MaxNodes { get; set; }
+		public bool AllowGroups
+		{
+			get
+			{
+				return allowGroupsCheckbox.Checked;
+			}
 
-        public bool StringsAreRows
-        {
-            get
-            {
-                return rowsRadioButton.Checked;
-            }
+			set
+			{
+				allowGroupsCheckbox.Checked = value;
+			}
+		}
 
-            set
-            {
-                _stringAreRows = value;
-                rowsRadioButton.Checked = value;
-                colsRadioButton.Checked = !value;
-            }
-        }
+		public bool AllowRecursiveAdd
+		{
+			get
+			{
+				return recurseCB.Checked;
+			}
 
-        public bool MatrixOptionsOnly
-        {
-            get
-            {
-                return _matrixOptsOnly;
-            }
+			set
+			{
+				recurseCB.Checked = value;
+			}
+		}
 
-            set
-            {
-                _matrixOptsOnly = value;
-                stringsGroupBox.Visible = _matrixOptsOnly;
-                rowsRadioButton.Visible = _matrixOptsOnly;
-                colsRadioButton.Visible = _matrixOptsOnly;
-                allowGroupsCheckbox.Checked = false;
-                allowGroupsCheckbox.Visible = !_matrixOptsOnly;
-            }
-        }
+		public bool StringsAreRows
+		{
+			get
+			{
+				return rowsRadioButton.Checked;
+			}
 
-        public bool Changed { get; set; }
-        
-        private void BuildNode(TreeNode parentNode, ElementNode node)
-        {
-            foreach(ElementNode childNode in node.Children)
-            {
-                TreeNode newNode = new TreeNode(childNode.Name);
-                BuildNode(newNode, childNode);
-                parentNode.Nodes.Add(newNode);
-            }
-        }
+			set
+			{
+				_stringAreRows = value;
+				rowsRadioButton.Checked = value;
+				colsRadioButton.Checked = !value;
+			}
+		}
 
-        private void LipSyncNodeSelect_Load(object sender, EventArgs e)
-        {
-            foreach (ElementNode node in VixenSystem.Nodes.GetRootNodes())
-            {
-                TreeNode newNode = new TreeNode(node.Name);
-                BuildNode(newNode, node);
-                nodeTreeView.Nodes.Add(newNode);
+		public bool MatrixOptionsOnly
+		{
+			get
+			{
+				return _matrixOptsOnly;
+			}
 
-            }
-            
+			set
+			{
+				_matrixOptsOnly = value;
+				stringsGroupBox.Visible = _matrixOptsOnly;
+				rowsRadioButton.Visible = _matrixOptsOnly;
+				colsRadioButton.Visible = _matrixOptsOnly;
+				allowGroupsCheckbox.Checked = false;
+				allowGroupsCheckbox.Visible = !_matrixOptsOnly;
+			}
+		}
 
-        }
+		public bool Changed { get; set; }
+		
+		private void BuildNode(TreeNode parentNode, ElementNode node)
+		{
+			foreach(ElementNode childNode in node.Children)
+			{
+				TreeNode newNode = new TreeNode(childNode.Name);
+				BuildNode(newNode, childNode);
+				parentNode.Nodes.Add(newNode);
+			}
+		}
 
-        private List<String> _origNodeNames;
-        public List<string> NodeNames
-        {
-            get
-            {
-                List<string> retVal = new List<string>();
-                foreach (ElementNode element in chosenTargets.Items)
-                {
-                    retVal.Add(element.Name);
-                }
-                return retVal;
-            }
+		private void LipSyncNodeSelect_Load(object sender, EventArgs e)
+		{
+			foreach (ElementNode node in VixenSystem.Nodes.GetRootNodes())
+			{
+				TreeNode newNode = new TreeNode(node.Name);
+				BuildNode(newNode, node);
+				nodeTreeView.Nodes.Add(newNode);
 
-            set
-            {
-                List<string> names = value;
-                _origNodeNames = value;
-                if (names != null)
-                {
-                    names.ForEach(x => findAndAddElements(x, false));
-                }
-            }
-        }
+			}
+			
 
-        private void buttonReset_Click(object sender, EventArgs e)
-        {
-            _origNodeNames.Clear();
-            chosenTargets.Items.Clear();
-            Changed = true;
-        }
+		}
 
-        private void addToChosenTargets(ElementNode node)
-        {
-            bool found = false;
-            foreach (ElementNode chosenNode in chosenTargets.Items)
-            {
-                if (chosenNode.ToString().Equals(node.ToString()))
-                {
-                    found = true;
-                    break;
-                }
-            }
+		public List<ElementNode> SelectedElementNodes
+		{
+			get
+			{
+				List<ElementNode> retVal = new List<ElementNode>();
+				foreach (ElementNode element in chosenTargets.Items)
+				{
+					retVal.Add(element);
+				}
+				return retVal;
+			}
+		}
 
-            if ((found == false) && (chosenTargets.Items.Count < MaxNodes))
-            {
-                chosenTargets.Items.Add(node);
-            }
-            Changed = true;
-        }
+		public List<string> SelectedNodeNames
+		{
+			get
+			{
+				List<string> retVal = new List<string>();
+				foreach (ElementNode element in chosenTargets.Items)
+				{
+					retVal.Add(element.Name);
+				}
+				return retVal;
+			}
 
-        private void addElementNodes(ElementNode node, bool recurse)
-        {
-            if ((allowGroupsCheckbox.Checked == true) || (node.IsLeaf == true))
-            {
-                addToChosenTargets(node);
-            }
+			set
+			{
+				List<string> names = value;
+				_selectedNodeNames = value;
+				if (names != null)
+				{
+					names.ForEach(x => findAndAddElements(x, false));
+				}
+			}
+		}
 
-            if (recurse == true)
-            {
-                foreach (ElementNode childNode in node.Children)
-                {
-                    addElementNodes(childNode, recurse);
-                }
-            }
-        }
+		private void buttonReset_Click(object sender, EventArgs e)
+		{
+			_selectedNodeNames?.Clear();
+			chosenTargets.Items.Clear();
+			Changed = true;
+		}
 
-        private void findAndAddElements(string name, bool recurse)
-        {
-            foreach (ElementNode node in VixenSystem.Nodes)
-            {
-                if (node.Name.Equals(name))
-                {
-                    addElementNodes(node,recurse);
-                }
-            }
-        }
+		private void addToChosenTargets(ElementNode node)
+		{
+			bool found = false;
+			foreach (ElementNode chosenNode in chosenTargets.Items)
+			{
+				if (chosenNode.ToString().Equals(node.ToString()))
+				{
+					found = true;
+					break;
+				}
+			}
 
-        private void buttonAdd_Click(object sender, EventArgs e)
-        {
-            foreach (TreeNode treeNode in nodeTreeView.SelectedNodes)
-            {
-                findAndAddElements(treeNode.Text, recurseCB.Checked);
-            }
-            _userAdd = true;
-        }
+			if ((found == false) && (chosenTargets.Items.Count < MaxNodes))
+			{
+				chosenTargets.Items.Add(node);
+			}
+			Changed = true;
+		}
 
-        private void buttonRemove_Click(object sender, EventArgs e)
-        {
-            for (int i = chosenTargets.SelectedIndices.Count - 1; i >= 0; i--)
-            {
-                chosenTargets.Items.RemoveAt(chosenTargets.SelectedIndices[i]);
-                Changed = true;
-            }
-            _userAdd = true;
-        }
+		private void addElementNodes(ElementNode node, bool recurse)
+		{
+			if ((allowGroupsCheckbox.Checked == true) || (node.IsLeaf == true))
+			{
+				addToChosenTargets(node);
+			}
 
-        private void allowGroupsCheckbox_CheckedChanged(object sender, EventArgs e)
-        {
-            if (_userAdd == false)
-            {
-                chosenTargets.Items.Clear();
-                _origNodeNames.ForEach(x => findAndAddElements(x, false));
-                Changed = true;
-            }
+			if (recurse == true)
+			{
+				foreach (ElementNode childNode in node.Children)
+				{
+					addElementNodes(childNode, recurse);
+				}
+			}
+		}
 
-        }
+		private void findAndAddElements(string name, bool recurse)
+		{
+			foreach (ElementNode node in VixenSystem.Nodes)
+			{
+				if (node.Name.Equals(name))
+				{
+					addElementNodes(node,recurse);
+				}
+			}
+		}
 
-        private void LipSyncNodeSelect_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            if (_stringAreRows != StringsAreRows)
-            {
+		private void buttonAdd_Click(object sender, EventArgs e)
+		{
+			foreach (TreeNode treeNode in nodeTreeView.SelectedNodes)
+			{
+				findAndAddElements(treeNode.Text, recurseCB.Checked);
+			}
+			_userAdd = true;
+		}
+
+		private void buttonRemove_Click(object sender, EventArgs e)
+		{
+			for (int i = chosenTargets.SelectedIndices.Count - 1; i >= 0; i--)
+			{
+				chosenTargets.Items.RemoveAt(chosenTargets.SelectedIndices[i]);
+				Changed = true;
+			}
+			_userAdd = true;
+		}
+
+		private void allowGroupsCheckbox_CheckedChanged(object sender, EventArgs e)
+		{
+			if (_userAdd == false)
+			{
+				chosenTargets.Items.Clear();
+				_selectedNodeNames?.ForEach(x => findAndAddElements(x, false));
+				Changed = true;
+			}
+
+		}
+
+		private void LipSyncNodeSelect_FormClosing(object sender, FormClosingEventArgs e)
+		{
+			if (_stringAreRows != StringsAreRows)
+			{
 				//messageBox Arguments are (Text, Title, No Button Visible, Cancel Button Visible)
 				MessageBoxForm.msgIcon = SystemIcons.Question; //this is used if you want to add a system icon to the message form.
 				var messageBox = new MessageBoxForm("Changing Matrix Orientation will modify existing matrix data!" +
@@ -215,12 +253,12 @@ namespace VixenModules.App.LipSyncApp
 				messageBox.ShowDialog();
 
 				if (messageBox.DialogResult == DialogResult.Cancel)
-                {
-                    e.Cancel = true;
-                    StringsAreRows = _stringAreRows;
-                }
-            }
-        }
+				{
+					e.Cancel = true;
+					StringsAreRows = _stringAreRows;
+				}
+			}
+		}
 
 		private void buttonBackground_MouseHover(object sender, EventArgs e)
 		{

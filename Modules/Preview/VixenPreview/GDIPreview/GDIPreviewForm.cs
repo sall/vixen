@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml;
 using Common.Controls;
 using Common.Controls.Scaling;
 using Common.Controls.Theme;
@@ -34,11 +35,12 @@ namespace VixenModules.Preview.VixenPreview.GDIPreview
 		private bool _alwaysOnTop;
 		private bool _lockPosition;
 
-		public GDIPreviewForm(VixenPreviewData data)
+		public GDIPreviewForm(VixenPreviewData data, Guid instanceId)
 		{
 			Icon = Resources.Icon_Vixen3;
 			InitializeComponent();
 			Data = data;
+			InstanceId = instanceId;
 			gdiControl.Margin = Padding.Empty;
 			gdiControl.Padding = Padding.Empty;
 			gdiControl.MouseMove += GdiControl_MouseMove;
@@ -100,11 +102,31 @@ namespace VixenModules.Preview.VixenPreview.GDIPreview
 			}
 		}
 
+		private static double DistanceFromPoint(Point origin, Size point)
+		{
+			return Math.Sqrt(Math.Pow((point.Width - origin.X), 2) + Math.Pow((point.Height - origin.Y), 2));
+		}
+
+		private Size BorderOffset()
+		{
+			var screenRectangle = RectangleToScreen(ClientRectangle);
+			return new Size(screenRectangle.Left - Left, screenRectangle.Top - Top);
+		}
+
 		private void GdiControl_MouseMove(object sender, MouseEventArgs e)
 		{
-			if (_mouseGrabOffset.HasValue)
+			if (_mouseGrabOffset.HasValue && DistanceFromPoint(e.Location, _mouseGrabOffset.Value) > 2)
 			{
-				this.Location = Cursor.Position - _mouseGrabOffset.Value;
+				if (_showBorders)
+				{
+					
+					this.Location = Cursor.Position - _mouseGrabOffset.Value - BorderOffset();
+				}
+				else
+				{
+					this.Location = Cursor.Position - _mouseGrabOffset.Value;
+				}
+				
 			}
 		}
 
@@ -429,12 +451,16 @@ namespace VixenModules.Preview.VixenPreview.GDIPreview
 		private void SaveWindowState()
 		{
 			XMLProfileSettings xml = new XMLProfileSettings();
-			var name = string.Format("Preview_{0}", DisplayName.Replace(' ', '_'));
+			var name = $"Preview_{InstanceId}";
 
-			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/WindowHeight", name), Size.Height);
-			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/WindowWidth", name), Size.Width);
-			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/WindowLocationX", name), Location.X);
-			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/WindowLocationY", name), Location.Y);
+			if (WindowState != FormWindowState.Minimized)
+			{
+				xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/WindowHeight", name), Size.Height);
+				xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/WindowWidth", name), Size.Width);
+				xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/WindowLocationX", name), Location.X);
+				xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/WindowLocationY", name), Location.Y);
+			}
+			
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/WindowState", name),
 				WindowState.ToString());
 			xml.PutSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ShowStatus", name), _showStatus);
@@ -455,7 +481,7 @@ namespace VixenModules.Preview.VixenPreview.GDIPreview
 			WindowState = FormWindowState.Normal;
 			StartPosition = FormStartPosition.WindowsDefaultBounds;
 			XMLProfileSettings xml = new XMLProfileSettings();
-			var name = string.Format("Preview_{0}", DisplayName.Replace(' ', '_'));
+			var name = $"Preview_{InstanceId}";
 
 			_showStatus = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ShowStatus", name), true);
 			_showBorders = xml.GetSetting(XMLProfileSettings.SettingType.AppSettings, string.Format("{0}/ShowBorders", name), true);
@@ -530,6 +556,9 @@ namespace VixenModules.Preview.VixenPreview.GDIPreview
 				
 			}
 		}
+
+		/// <inheritdoc />
+		public Guid InstanceId { get; set; }
 
 		public void UpdateDisplayName()
 		{

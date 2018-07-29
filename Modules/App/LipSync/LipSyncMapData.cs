@@ -1,220 +1,301 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Runtime.Serialization;
-using System.Linq;
-using System.Text;
 using Vixen.Module;
-using Vixen.Module.App;
+using Vixen.Sys;
 using Common.Controls.ColorManagement.ColorModels;
+using VixenModules.Property.Face;
 
 namespace VixenModules.App.LipSyncApp
 {
-    public class LipSyncMapData : ModuleDataModelBase
-    {
-        public LipSyncMapData()
-        {
-            MapItems = new List<LipSyncMapItem>();
-            MapItems.Add(new LipSyncMapItem());
-            IsDefaultMapping = false;
-            MatrixStringCount = 1;
-            MatrixPixelsPerString = 1;
-            IsMatrix = false;
-            StartNode = "";
-            ZoomLevel = 1;
-            StringsAreRows = false;
-        }
+	public class LipSyncMapData : ModuleDataModelBase
+	{
+		private readonly ConcurrentDictionary<string, Image> _imageCache = new ConcurrentDictionary<string, Image>(StringComparer.OrdinalIgnoreCase);
+		public LipSyncMapData()
+		{
+			MapItems = new List<LipSyncMapItem>();
+			MapItems.Add(new LipSyncMapItem());
+			IsDefaultMapping = false;
+			StringsAreRows = false;
+			GroupsAllowed = false;
+			RecursionAllowed = true;
+			IsMatrix = true; //All maps are now matrix / image based
+			Notes = string.Empty;
+			UsingDefaults = true;
 
-        public LipSyncMapData(List<string> stringNames)
-        {
-            int stringNum = 0;
-            MapItems = new List<LipSyncMapItem>();
-            foreach(string stringName in stringNames)
-            {
-                MapItems.Add(new LipSyncMapItem(stringName,stringNum++));
-            }
-            MatrixStringCount = 1;
-            MatrixPixelsPerString = 1;
-            IsMatrix = false;
-            StartNode = "";
-            ZoomLevel = 1;
-            StringsAreRows = false;
-        }
+			StartNode = "";
+		}
 
-        public LipSyncMapData(LipSyncMapData data)
-        {
-            MapItems = new List<LipSyncMapItem>(data.MapItems);
-            IsCurrentLibraryMapping = data.IsCurrentLibraryMapping;
-            LibraryReferenceName = (string)data.LibraryReferenceName.Clone();
-            IsDefaultMapping = data.IsDefaultMapping;
-            StringCount = data.StringCount;
-            MatrixStringCount = data.MatrixStringCount;
-            MatrixPixelsPerString = data.MatrixPixelsPerString;
-            IsMatrix = data.IsMatrix;
-            StartNode = data.StartNode;
-            ZoomLevel = data.ZoomLevel;
-            StringsAreRows = data.StringsAreRows;
-        }
+		public LipSyncMapData(LipSyncMapData mapSetup)
+		{
+			MapItems = new List<LipSyncMapItem>(mapSetup.MapItems);
+			IsCurrentLibraryMapping = mapSetup.IsCurrentLibraryMapping;
+			LibraryReferenceName = (string)mapSetup.LibraryReferenceName.Clone();
+			IsDefaultMapping = mapSetup.IsDefaultMapping;
+			StringCount = mapSetup.StringCount;
+			StartNode = mapSetup.StartNode;
+			StringsAreRows = mapSetup.StringsAreRows;
+			GroupsAllowed = mapSetup.GroupsAllowed;
+			RecursionAllowed = mapSetup.RecursionAllowed;
+			IsMatrix = mapSetup.IsMatrix;
+			Notes = mapSetup.Notes;
+			UsingDefaults = mapSetup.UsingDefaults;
+		}
 
-        public override IModuleDataModel Clone()
-        {
-            LipSyncMapData newInstance = new LipSyncMapData();
-            newInstance.MapItems = new List<LipSyncMapItem>();
+		public override IModuleDataModel Clone()
+		{
+			LipSyncMapData newInstance = new LipSyncMapData();
+			newInstance.MapItems = new List<LipSyncMapItem>();
 
-            foreach (LipSyncMapItem item in MapItems)
-            {
-                newInstance.MapItems.Add(item.Clone());
-            }
-            newInstance.StringCount = StringCount;
-            newInstance.LibraryReferenceName = LibraryReferenceName;
-            newInstance.IsDefaultMapping = false;
-            newInstance.IsMatrix = IsMatrix;
-            newInstance.MatrixPixelsPerString = MatrixPixelsPerString;
-            newInstance.MatrixStringCount = MatrixStringCount;
-            newInstance.StartNode = StartNode;
-            newInstance.ZoomLevel = ZoomLevel;
-            newInstance.StringsAreRows = StringsAreRows;
+			foreach (LipSyncMapItem item in MapItems)
+			{
+				newInstance.MapItems.Add(item.Clone());
+			}
+			newInstance.StringCount = StringCount;
+			newInstance.LibraryReferenceName = LibraryReferenceName;
+			newInstance.IsDefaultMapping = false;
+			newInstance.StartNode = StartNode;
+			newInstance.StringsAreRows = StringsAreRows;
+			newInstance.GroupsAllowed = GroupsAllowed;
+			newInstance.RecursionAllowed = RecursionAllowed;
+			newInstance.IsMatrix = IsMatrix;
+			newInstance.Notes = Notes;
+			newInstance.UsingDefaults = UsingDefaults;
 
-            return newInstance;
-        }
+			return newInstance;
+		}
 
-        [DataMember]
-        public int StringCount { get; set; }
+		[DataMember]
+		public int StringCount { get; set; }
 
-        [DataMember]
-        public int MatrixStringCount { get; set; }
+		//Deprecated
+		[DataMember(EmitDefaultValue = false)]
+		[Obsolete("No longer used.", false)]
+		public int MatrixStringCount { get; set; }
 
-        [DataMember]
-        public int MatrixPixelsPerString { get; set; }
+		//Deprecated
+		[DataMember(EmitDefaultValue = false)]
+		[Obsolete("No longer used.", false)]
+		public int MatrixPixelsPerString { get; set; }
 
-        [DataMember]
-        public bool IsMatrix { get; set; }
+		[DataMember]
+		public bool IsMatrix { get; set; }
 
-        [DataMember]
-        public string StartNode { get; set; }
+		[DataMember]
+		public string StartNode { get; set; }
 
-        [DataMember]
-        public int ZoomLevel { get; set; }
+		//Deprecated
+		[DataMember(EmitDefaultValue = false)]
+		[Obsolete("No longer used.", false)]
+		public int ZoomLevel { get; set; }
 
-        [DataMember]
-        public bool StringsAreRows { get; set; }
+		[DataMember]
+		public bool StringsAreRows { get; set; }
 
-        [DataMember]
-        public List<LipSyncMapItem> MapItems { get; set; }
+		[DataMember]
+		public List<LipSyncMapItem> MapItems { get; set; }
 
-        [DataMember]
-        public bool IsCurrentLibraryMapping { get; set; }
+		[DataMember]
+		public bool IsCurrentLibraryMapping { get; set; }
 
-        [DataMember]
-        public bool IsDefaultMapping { get; set; }
+		[DataMember]
+		public bool IsDefaultMapping { get; set; }
 
-        [DataMember]
-        protected string _libraryReferenceName;
+		[DataMember]
+		public bool GroupsAllowed { get; set; }
 
-        public string LibraryReferenceName
-        {
-            get
-            {
-                if (_libraryReferenceName == null)
-                    return string.Empty;
-                else
-                    return _libraryReferenceName;
-            }
-            set { _libraryReferenceName = value; }
-        }
+		[DataMember]
+		public bool RecursionAllowed { get; set; }
 
-        public LipSyncMapItem FindMapItem(string itemName)
-        {
-            return MapItems.Find(x => x.Name.Equals(itemName));
-        }
+		[DataMember]
+		protected string _libraryReferenceName;
 
-        public double ConfiguredIntensity(string itemName, PhonemeType phoneme, LipSyncMapItem item = null)
-        {
-            double retVal = 0;
-            
-            if (item == null)
-            {
-                item = FindMapItem(itemName);
-            }
-            
-            if (item != null)
-            {
-                if (this.IsMatrix)
-                {
-                    if (item.ElementColors[phoneme] != Color.Black)
-                    {
-                        HSV hsvVal = HSV.FromRGB(new RGB(item.ElementColors[phoneme]));
-                        retVal = hsvVal.V;
-                        //retVal = 1.0;
-                    }
+		[DataMember]
+		public string PictureDirectory
+		{
+			get
+			{
+				return Paths.ModuleDataFilesPath + "\\LipSync\\" + LibraryReferenceName + "\\";
+			}
+		}
 
-                }
-                else 
-                {
-                    if (item.PhonemeList[phoneme.ToString()] == true)
-                    {
-                        HSV hsvVal = HSV.FromRGB(new RGB(item.ElementColor));
-                        retVal = hsvVal.V;
-                    }
-                }
-            }
-            return retVal;
+		[DataMember]
+		public string Notes { get; set; }
 
-        }
+		[DataMember]
+		public bool UsingDefaults { get; set; }
 
-        public Color ConfiguredColor(string itemName, PhonemeType phoneme, LipSyncMapItem item = null)
-        {
-            Color retVal = Color.Black;
-            
-            if (item == null)
-            {
-                item = FindMapItem(itemName);
-            }
-            
-            if (item != null)
-            {
-                if (this.IsMatrix) 
-                {
-                    if (item.ElementColors[phoneme] != Color.Black)
-                    {
-                        retVal = item.ElementColors[phoneme];
-                    }
-                }
-                else
-                {
-                    if (item.PhonemeList[phoneme.ToString()] == true)
-                    {
-                        HSV hsvVal = HSV.FromRGB(new RGB(item.ElementColor));
-                        hsvVal.V = 1;
-                        retVal = hsvVal.ToRGB().ToArgb();
-                    }
-                }
-            }
-            return retVal;
-        }
+		public string PictureFileName(PhonemeType phoneme)
+		{
+			return Path.Combine(PictureDirectory, $"{phoneme}.bmp");
+		}
 
-        public bool PhonemeState(string itemName, string phonemeName, LipSyncMapItem item = null)
-        {
-            bool retVal = false;
-            
-            if (item == null)
-            {
-                item = FindMapItem(itemName);
-            }
-            
-            if (item != null)
-            {
-                item.PhonemeList.TryGetValue(phonemeName, out retVal);
-            }
+		public Image ImageForPhoneme(PhonemeType phoneme)
+		{
+			return ImageForPhoneme(phoneme.ToString());
+		}
 
-            return retVal;
-        }
+		public Image ImageForPhoneme(string phoneme)
+		{
+			Image image;
+			if (!_imageCache.TryGetValue(phoneme, out image))
+			{
+				using (var fs = new FileStream(Path.Combine(PictureDirectory, $"{phoneme}.bmp"), FileMode.Open, FileAccess.Read))
+				{
+					image = Image.FromStream(fs);
+				}
 
+				_imageCache.TryAdd(phoneme, image);
+			}
 
-        public override string ToString()
-        {
-            return LibraryReferenceName;
-        }
-       
-    }
+			return image;
+
+		}
+
+		public string PictureFileName(string phoneme)
+		{
+			return Path.Combine(PictureDirectory, $"{phoneme}.bmp");
+		}
+
+		public string LibraryReferenceName
+		{
+			get
+			{
+				if (_libraryReferenceName == null)
+					return string.Empty;
+				else
+					return _libraryReferenceName;
+			}
+			set { _libraryReferenceName = value; }
+		}
+
+		public LipSyncMapItem FindMapItem(Guid id)
+		{
+			return MapItems.Find(x => x.ElementGuid.Equals(id));
+		}
+
+		internal void ClearImageCache()
+		{
+			var oldImages = _imageCache.Values;
+			_imageCache.Clear();
+			foreach (var oldImage in oldImages)
+			{
+				oldImage.Dispose();
+			}
+		}
+
+		public Tuple<double, Color> ConfiguredColorAndIntensity(Guid id)
+		{
+			var item = FindMapItem(id);
+			return ConfiguredColorAndIntensity(item);
+		}
+
+		public Tuple<double, Color> ConfiguredColorAndIntensity(LipSyncMapItem item)
+		{
+			double intensityRetVal = 0;
+			Color colorRetVal = Color.Black;
+
+			if (!IsMatrix)
+			{
+				if (item != null)
+				{
+					HSV hsvVal = HSV.FromRGB(item.ElementColor);
+					hsvVal.V = 1;
+					colorRetVal = hsvVal.ToRGB().ToArgb();
+					intensityRetVal = HSV.VFromRgb(item.ElementColor);
+				}
+			}
+			
+			return new Tuple<double, Color>(intensityRetVal, colorRetVal);
+		}
+
+		public double ConfiguredIntensity(Guid id)
+		{
+			var item = FindMapItem(id);
+			return ConfiguredIntensity(item);
+		}
+
+		public double ConfiguredIntensity(LipSyncMapItem item)
+		{
+			double retVal = 0;
+
+			if (!IsMatrix)
+			{
+				if (item != null)
+				{
+					retVal = HSV.VFromRgb(item.ElementColor);
+				}
+			}
+
+			return retVal;
+		}
+
+		public Color ConfiguredColor(Guid id)
+		{
+			var item = FindMapItem(id);
+			return ConfiguredColor(item);
+		}
+
+		public Color ConfiguredColor(LipSyncMapItem item)
+		{
+			Color retVal = Color.Black;
+
+			if (!IsMatrix)
+			{
+				if (item != null)
+				{
+					HSV hsvVal = HSV.FromRGB(item.ElementColor);
+					hsvVal.V = 1;
+					retVal = hsvVal.ToRGB().ToArgb();
+				}
+			}
+			
+			return retVal;
+		}
+
+		public bool PhonemeState(Guid id, string phonemeName)
+		{
+			var item = FindMapItem(id);
+			return PhonemeState(phonemeName, item);
+		}
+
+		public bool PhonemeState(string phonemeName, LipSyncMapItem item)
+		{
+			bool retVal = false;
+
+			item?.PhonemeList.TryGetValue(phonemeName, out retVal);
+
+			return retVal;
+		}
+
+		public bool IsFaceComponentType(FaceComponent type, LipSyncMapItem item)
+		{
+			bool retVal = false;
+
+			item?.FaceComponents.TryGetValue(type, out retVal);
+
+			return retVal;
+		}
+
+		//public bool IsNonMouth(Guid id)
+		//{
+		//	var item = FindMapItem(id);
+		//	return item.FaceComponents.Any(x => x.Key != FaceComponent.Mouth);
+		//}
+
+		//public List<FaceComponent> GetFaceComponents(Guid id)
+		//{
+		//	var item = FindMapItem(id);
+		//	return item.FaceComponents.Where(x => x.Value).Select(f => f.Key).ToList();
+		//}
+
+		public override string ToString()
+		{
+			return LibraryReferenceName;
+		}
+	   
+	}
 }

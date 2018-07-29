@@ -153,6 +153,91 @@ namespace Common.Controls.ColorManagement.ColorModels
 		#endregion
 	}
 
+	public struct RGBA
+	{
+		private double _r, _g, _b, _a;
+
+		#region ctor
+
+		public RGBA(double r, double g, double b, double a)
+		{
+			_r = r;
+			_g = g;
+			_b = b;
+			_a = a;
+		}
+
+		public RGBA(Color value) :
+			this(
+			(double)(value.R) / 255.0,
+			(double)(value.G) / 255.0,
+			(double)(value.B) / 255.0,
+			(double)(value.A) / 255.0)
+		{
+		}
+
+		#endregion
+
+		#region operators
+
+		public static bool operator ==(RGBA a, RGBA b)
+		{
+			return
+				a._r == b._r &&
+				a._g == b._g &&
+				a._b == b._b &&
+				a._a == b._a;
+		}
+
+		public static bool operator !=(RGBA a, RGBA b)
+		{
+			return !(a == b);
+		}
+
+		public override bool Equals(object obj)
+		{
+			if (obj is RGBA)
+			{
+				return ((RGBA)obj) == this;
+			}
+			return false;
+		}
+
+		public override int GetHashCode()
+		{
+
+			return string.Format("{0}:{1}:{2}:{3}", _r, _g, _b, _a).GetHashCode();
+
+		}
+
+		#endregion
+
+		public double R
+		{
+			get { return _r; }
+			set { _r = XYZ.ClipValue(value, 0.0, 1.0); }
+		}
+
+		public double G
+		{
+			get { return _g; }
+			set { _g = XYZ.ClipValue(value, 0.0, 1.0); }
+		}
+
+		public double B
+		{
+			get { return _b; }
+			set { _b = XYZ.ClipValue(value, 0.0, 1.0); }
+		}
+
+		public double A
+		{
+			get { return _a; }
+			set { _a = XYZ.ClipValue(value, 0.0, 1.0); }
+		}
+	}
+
+
 	[DataContract]
 	public struct RGB
 	{
@@ -411,6 +496,12 @@ namespace Common.Controls.ColorManagement.ColorModels
 			return max;
 		}
 
+		public static double VFromRgb(double r, double b, double g)
+		{
+			double max = Math.Max(Math.Max(r, g), b)/255d;
+			return max;
+		}
+
 		public static double VFromRgb(Color col)
 		{
 			return Math.Max(Math.Max(col.R, col.G), col.B)/255d;
@@ -428,15 +519,9 @@ namespace Common.Controls.ColorManagement.ColorModels
 				max = Math.Max(Math.Max(r, g), b),
 				delta_max = max - min;
 
-			HSV ret = new HSV(0, 0, 0);
-			ret._v = max;
+			HSV ret = new HSV {_v = max};
 
-			if (delta_max == 0.0)
-			{
-				ret._h = 0.0;
-				ret._s = 0.0;
-			}
-			else
+			if (delta_max > 0.0)
 			{
 				ret._s = delta_max / max;
 
@@ -581,6 +666,11 @@ namespace Common.Controls.ColorManagement.ColorModels
 			}
 		}
 
+		public void SetFullIntensity()
+		{
+			_v = 1;
+		}
+
 		public override string ToString()
 		{
 			return string.Format("HSV[\nH={0};\tS={1};\tV={2}\n]",
@@ -594,19 +684,24 @@ namespace Common.Controls.ColorManagement.ColorModels
 		public double H
 		{
 			get { return _h; }
-			set { _h = XYZ.ClipValue(value, 0.0, 1.0); }
+			set { _h = Clamp(value, 0.0, 1.0); }
 		}
 
 		public double S
 		{
 			get { return _s; }
-			set { _s = XYZ.ClipValue(value, 0.0, 1.0); }
+			set { _s = Clamp(value, 0.0, 1.0); }
 		}
 
 		public double V
 		{
 			get { return _v; }
-			set { _v = XYZ.ClipValue(value, 0.0, 1.0); }
+			set { _v = Clamp(value, 0.0, 1.0); }
+		}
+
+		public static double Clamp(double value, double min, double max)
+		{
+			return (value < min) ? min : (value > max) ? max : value;
 		}
 
 		#endregion

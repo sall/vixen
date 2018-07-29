@@ -9,7 +9,8 @@ namespace Vixen.Sys
 	[Serializable]
 	public class EffectNode : IEffectNode
 	{
-//, IEquatable<IEffectNode>, IEquatable<EffectNode> {
+
+		//, IEquatable<IEffectNode>, IEquatable<EffectNode> {
 		public EffectNode()
 			: this(null, TimeSpan.Zero)
 		{

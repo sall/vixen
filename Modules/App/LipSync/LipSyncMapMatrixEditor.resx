@@ -117,12 +117,12 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="lipSyncMapColorCtrl1.HSVColor" mimetype="application/x-microsoft.net.object.binary.base64">
+  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="renderedPicture.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
-        AAEAAAD/////AQAAAAAAAAAMAgAAADxWaXhlbiwgVmVyc2lvbj0zLjIuMC4yLCBDdWx0dXJlPW5ldXRy
-        YWwsIFB1YmxpY0tleVRva2VuPW51bGwFAQAAAC9Db21tb24uQ29udHJvbHMuQ29sb3JNYW5hZ2VtZW50
-        LkNvbG9yTW9kZWxzLkhTVgMAAAACX2gCX3MCX3YAAAAGBgYCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        APA/Cw==
+        iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
+        wQAADsEBuJFr7QAAADVJREFUSEvtzaEBAAAIhED3X8vB3mJHO1eIVJ76yQFygBwgB8gBqu3Zfs4cIAfI
+        AXKAHIBkAItsjJdgziOxAAAAAElFTkSuQmCC
 </value>
   </data>
 </root>

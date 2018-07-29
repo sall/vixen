@@ -37,7 +37,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <OutputPath>..\..\..\Debug\Modules\Effect\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
+    <Optimize>false</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x86</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
@@ -71,6 +71,7 @@
     <ProjectReference Include="..\AudioHelper\AudioHelper.csproj">
       <Project>{c5c25088-6305-4d15-8469-52995e03c611}</Project>
       <Name>AudioHelper</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\Effect\Effect.csproj">
       <Project>{af76c902-a776-49c3-9019-d7cb0a53fb2f}</Project>

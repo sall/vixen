@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
 using System.Threading;
 using Vixen.Attributes;
@@ -16,6 +17,7 @@ using VixenModules.Effect.Pulse;
 using VixenModules.EffectEditor.EffectDescriptorAttributes;
 using VixenModules.Property.Color;
 using VixenModules.Property.Location;
+using ZedGraph;
 
 namespace VixenModules.Effect.Wipe
 {
@@ -238,24 +240,91 @@ namespace VixenModules.Effect.Wipe
 									return;
 								if (element != null)
 								{
-									var result = PulseRenderer.RenderNode(element, _data.Curve, _data.ColorGradient, segmentPulse, HasDiscreteColors);
-									result.OffsetAllCommandsByTime(effectTime);
-
-									if (WipeOff && count == 0)
+									EffectIntents result;
+									if (ColorHandling == ColorHandling.GradientThroughWholeEffect)
 									{
-										foreach (var effectIntent in result.FirstOrDefault().Value)
+										result = PulseRenderer.RenderNode(element, _data.Curve, _data.ColorGradient, segmentPulse, HasDiscreteColors);
+										result.OffsetAllCommandsByTime(effectTime);
+
+										if (WipeOff && count == 0)
 										{
-											_elementData.Add(PulseRenderer.GenerateStartingStaticPulse(element, effectIntent, HasDiscreteColors));
+											foreach (var effectIntent in result.FirstOrDefault().Value)
+											{
+												_elementData.Add(PulseRenderer.GenerateStartingStaticPulse(element, effectIntent, HasDiscreteColors));
+											}
+										}
+
+										_elementData.Add(result);
+
+										if (WipeOn && count == PassCount - 1)
+										{
+											foreach (var effectIntent in result.FirstOrDefault().Value)
+											{
+												_elementData.Add(PulseRenderer.GenerateExtendedStaticPulse(element, effectIntent, TimeSpan, HasDiscreteColors));
+											}
 										}
 									}
-
-									_elementData.Add(result);
-
-									if (WipeOn && count == PassCount - 1)
+									else
 									{
-										foreach (var effectIntent in result.FirstOrDefault().Value)
+										double positionWithinGroup = effectTime.Ticks / (double)totalWipeTime.Ticks;
+										if (HasDiscreteColors)
 										{
-											_elementData.Add(PulseRenderer.GenerateExtendedStaticPulse(element, effectIntent, TimeSpan, HasDiscreteColors));
+											List<Tuple<Color, float>> colorsAtPosition =
+												ColorGradient.GetDiscreteColorsAndProportionsAt(positionWithinGroup);
+											foreach (Tuple<Color, float> colorProportion in colorsAtPosition)
+											{
+												float proportion = colorProportion.Item2;
+												// scale all levels of the pulse curve by the proportion that is applicable to this color
+												Curve newCurve = new Curve(Curve.Points);
+												foreach (PointPair pointPair in newCurve.Points)
+												{
+													pointPair.Y *= proportion;
+												}
+												result = PulseRenderer.RenderNode(element, newCurve, new ColorGradient(colorProportion.Item1), segmentPulse, HasDiscreteColors);
+												result.OffsetAllCommandsByTime(effectTime);
+
+												if (WipeOff && count == 0)
+												{
+													foreach (var effectIntent in result.FirstOrDefault().Value)
+													{
+														_elementData.Add(PulseRenderer.GenerateStartingStaticPulse(element, effectIntent, HasDiscreteColors, new ColorGradient(colorProportion.Item1)));
+													}
+												}
+
+												if (result.Count > 0) _elementData.Add(result);
+
+												if (WipeOn && count == PassCount - 1)
+												{
+													foreach (var effectIntent in result.FirstOrDefault().Value)
+													{
+														_elementData.Add(PulseRenderer.GenerateExtendedStaticPulse(element, effectIntent, TimeSpan, HasDiscreteColors, new ColorGradient(colorProportion.Item1)));
+													}
+												}
+											}
+										}
+										else
+										{
+											result = PulseRenderer.RenderNode(element, _data.Curve,
+												new ColorGradient(_data.ColorGradient.GetColorAt(positionWithinGroup)), segmentPulse, HasDiscreteColors);
+											result.OffsetAllCommandsByTime(effectTime);
+
+											if (WipeOff && count == 0)
+											{
+												foreach (var effectIntent in result.FirstOrDefault().Value)
+												{
+													_elementData.Add(PulseRenderer.GenerateStartingStaticPulse(element, effectIntent, HasDiscreteColors));
+												}
+											}
+
+											_elementData.Add(result);
+
+											if (WipeOn && count == PassCount - 1)
+											{
+												foreach (var effectIntent in result.FirstOrDefault().Value)
+												{
+													_elementData.Add(PulseRenderer.GenerateExtendedStaticPulse(element, effectIntent, TimeSpan, HasDiscreteColors));
+												}
+											}
 										}
 									}
 								}
@@ -292,8 +361,9 @@ namespace VixenModules.Effect.Wipe
 										return;
 									result = PulseRenderer.RenderNode(element, _data.Curve, _data.ColorGradient, segmentPulse, HasDiscreteColors);
 									result.OffsetAllCommandsByTime(effectTime);
-									bool discreteElement = HasDiscreteColors && ColorModule.isElementNodeDiscreteColored(element);
-									_elementData.Add(IntentBuilder.ConvertToStaticArrayIntents(result, TimeSpan, discreteElement));
+									//bool discreteElement = HasDiscreteColors && ColorModule.isElementNodeDiscreteColored(element);
+									//_elementData.Add(IntentBuilder.ConvertToStaticArrayIntents(result, TimeSpan, discreteElement));
+									_elementData.Add(result);
 								}
 							}
 							effectTime += intervalTime;
@@ -426,8 +496,9 @@ namespace VixenModules.Effect.Wipe
 									//result = pulse.Render();
 									result = PulseRenderer.RenderNode(element, _data.Curve, _data.ColorGradient, segmentPulse, HasDiscreteColors);
 									result.OffsetAllCommandsByTime(effectTime);
-									bool discreteElement = HasDiscreteColors && ColorModule.isElementNodeDiscreteColored(element);
-									_elementData.Add(IntentBuilder.ConvertToStaticArrayIntents(result, TimeSpan, discreteElement));
+									//bool discreteElement = HasDiscreteColors && ColorModule.isElementNodeDiscreteColored(element);
+									//_elementData.Add(IntentBuilder.ConvertToStaticArrayIntents(result, TimeSpan, discreteElement));
+									_elementData.Add(result);
 								}
 							}
 							effectTime += intervalTime;
@@ -468,8 +539,9 @@ namespace VixenModules.Effect.Wipe
 									//result = pulse.Render();
 									result = PulseRenderer.RenderNode(element, _data.Curve, _data.ColorGradient, segmentPulse, HasDiscreteColors);
 									result.OffsetAllCommandsByTime(effectTime);
-									bool discreteElement = HasDiscreteColors && ColorModule.isElementNodeDiscreteColored(element);
-									_elementData.Add(IntentBuilder.ConvertToStaticArrayIntents(result, TimeSpan, discreteElement));
+									//bool discreteElement = HasDiscreteColors && ColorModule.isElementNodeDiscreteColored(element);
+									//_elementData.Add(IntentBuilder.ConvertToStaticArrayIntents(result, TimeSpan, discreteElement));
+									_elementData.Add(result);
 								}
 							}
 							effectTime += intervalTime;
@@ -524,6 +596,7 @@ namespace VixenModules.Effect.Wipe
 		[ProviderCategory(@"Color",3)]
 		[ProviderDisplayName(@"ColorGradient")]
 		[ProviderDescription(@"Color")]
+		[PropertyOrder(1)]
 		public ColorGradient ColorGradient
 		{
 			get
@@ -533,6 +606,22 @@ namespace VixenModules.Effect.Wipe
 			set
 			{
 				_data.ColorGradient = value;
+				IsDirty = true;
+				OnPropertyChanged();
+			}
+		}
+
+		[Value]
+		[ProviderCategory(@"Color", 3)]
+		[ProviderDisplayName(@"ColorHandling")]
+		[ProviderDescription(@"ColorHandling")]
+		[PropertyOrder(0)]
+		public ColorHandling ColorHandling
+		{
+			get { return _data.ColorHandling; }
+			set
+			{
+				_data.ColorHandling = value;
 				IsDirty = true;
 				OnPropertyChanged();
 			}
@@ -550,6 +639,9 @@ namespace VixenModules.Effect.Wipe
 				_data.Direction = value;
 				IsDirty = true;
 				OnPropertyChanged();
+				UpdateAttributes();
+				TypeDescriptor.Refresh(this);
+
 			}
 		}
 
@@ -664,6 +756,20 @@ namespace VixenModules.Effect.Wipe
 			}
 		}
 
+		#region Information
+
+		public override string Information
+		{
+			get { return "Visit the Vixen Lights website for more information on this effect."; }
+		}
+
+		public override string InformationLink
+		{
+			get { return "http://www.vixenlights.com/vixen-3-documentation/sequencer/effects/wipe/"; }
+		}
+
+		#endregion
+
 		#region Attributes
 
 		private void UpdateAttributes()
@@ -674,7 +780,8 @@ namespace VixenModules.Effect.Wipe
 				{"PulsePercent", WipeByCount},
 				{"WipeOn", WipeByCount},
 				{"WipeOff", WipeByCount},
-				{"PulseTime", !WipeByCount}
+				{"PulseTime", !WipeByCount},
+				{"ColorHandling", Direction != WipeDirection.In && Direction != WipeDirection.Out }
 			};
 			SetBrowsable(propertyStates);
 		}

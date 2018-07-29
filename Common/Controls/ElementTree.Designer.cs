@@ -53,6 +53,7 @@ namespace Common.Controls
 			this.moveHereToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.copyHereToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.treeview = new Common.Controls.MultiSelectTreeview();
+			this.sortToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.contextMenuStripTreeView.SuspendLayout();
 			this.contextMenuStripDragging.SuspendLayout();
 			this.SuspendLayout();
@@ -87,9 +88,10 @@ namespace Common.Controls
             this.renameNodesToolStripMenuItem,
             this.patternRenameToolStripMenuItem,
             this.collapseAllToolStripMenuItem,
-            this.reverseElementsToolStripMenuItem});
+            this.reverseElementsToolStripMenuItem,
+            this.sortToolStripMenuItem});
 			this.contextMenuStripTreeView.Name = "contextMenuStripTreeView";
-			this.contextMenuStripTreeView.Size = new System.Drawing.Size(217, 324);
+			this.contextMenuStripTreeView.Size = new System.Drawing.Size(217, 346);
 			this.contextMenuStripTreeView.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStripTreeView_Opening);
 			// 
 			// cutNodesToolStripMenuItem
@@ -163,35 +165,35 @@ namespace Common.Controls
 			// 
 			this.addNewNodeToolStripMenuItem.Name = "addNewNodeToolStripMenuItem";
 			this.addNewNodeToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
-			this.addNewNodeToolStripMenuItem.Text = "Add";
+			this.addNewNodeToolStripMenuItem.Text = "&Add";
 			this.addNewNodeToolStripMenuItem.Click += new System.EventHandler(this.addNewNodeToolStripMenuItem_Click);
 			// 
 			// addMultipleNewNodesToolStripMenuItem
 			// 
 			this.addMultipleNewNodesToolStripMenuItem.Name = "addMultipleNewNodesToolStripMenuItem";
 			this.addMultipleNewNodesToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
-			this.addMultipleNewNodesToolStripMenuItem.Text = "Add Multiple";
+			this.addMultipleNewNodesToolStripMenuItem.Text = "Add &Multiple";
 			this.addMultipleNewNodesToolStripMenuItem.Click += new System.EventHandler(this.addMultipleNewNodesToolStripMenuItem_Click);
 			// 
 			// deleteNodesToolStripMenuItem
 			// 
 			this.deleteNodesToolStripMenuItem.Name = "deleteNodesToolStripMenuItem";
 			this.deleteNodesToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
-			this.deleteNodesToolStripMenuItem.Text = "Delete";
+			this.deleteNodesToolStripMenuItem.Text = "&Delete";
 			this.deleteNodesToolStripMenuItem.Click += new System.EventHandler(this.deleteNodesToolStripMenuItem_Click);
 			// 
 			// createGroupWithNodesToolStripMenuItem
 			// 
 			this.createGroupWithNodesToolStripMenuItem.Name = "createGroupWithNodesToolStripMenuItem";
 			this.createGroupWithNodesToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
-			this.createGroupWithNodesToolStripMenuItem.Text = "Create group";
+			this.createGroupWithNodesToolStripMenuItem.Text = "Create &Group";
 			this.createGroupWithNodesToolStripMenuItem.Click += new System.EventHandler(this.createGroupWithNodesToolStripMenuItem_Click);
 			// 
 			// renameNodesToolStripMenuItem
 			// 
 			this.renameNodesToolStripMenuItem.Name = "renameNodesToolStripMenuItem";
 			this.renameNodesToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
-			this.renameNodesToolStripMenuItem.Text = "Rename";
+			this.renameNodesToolStripMenuItem.Text = "Re&name";
 			this.renameNodesToolStripMenuItem.Click += new System.EventHandler(this.renameNodesToolStripMenuItem_Click);
 			// 
 			// patternRenameToolStripMenuItem
@@ -205,7 +207,7 @@ namespace Common.Controls
 			// 
 			this.collapseAllToolStripMenuItem.Name = "collapseAllToolStripMenuItem";
 			this.collapseAllToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
-			this.collapseAllToolStripMenuItem.Text = "Collapse All";
+			this.collapseAllToolStripMenuItem.Text = "&Collapse All";
 			this.collapseAllToolStripMenuItem.Click += new System.EventHandler(this.collapseAllToolStripMenuItem_Click);
 			// 
 			// reverseElementsToolStripMenuItem
@@ -228,13 +230,13 @@ namespace Common.Controls
 			// 
 			this.moveHereToolStripMenuItem.Name = "moveHereToolStripMenuItem";
 			this.moveHereToolStripMenuItem.Size = new System.Drawing.Size(130, 22);
-			this.moveHereToolStripMenuItem.Text = "Move here";
+			this.moveHereToolStripMenuItem.Text = "Move Here";
 			// 
 			// copyHereToolStripMenuItem
 			// 
 			this.copyHereToolStripMenuItem.Name = "copyHereToolStripMenuItem";
 			this.copyHereToolStripMenuItem.Size = new System.Drawing.Size(130, 22);
-			this.copyHereToolStripMenuItem.Text = "Copy here";
+			this.copyHereToolStripMenuItem.Text = "Copy Here";
 			// 
 			// treeview
 			// 
@@ -261,6 +263,13 @@ namespace Common.Controls
 			this.treeview.TabIndex = 13;
 			this.treeview.UsingCustomDragCursor = false;
 			this.treeview.KeyDown += new System.Windows.Forms.KeyEventHandler(this.treeview_KeyDown);
+			// 
+			// sortToolStripMenuItem
+			// 
+			this.sortToolStripMenuItem.Name = "sortToolStripMenuItem";
+			this.sortToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
+			this.sortToolStripMenuItem.Text = "&Sort";
+			this.sortToolStripMenuItem.Click += new System.EventHandler(this.sortToolStripMenuItem_Click);
 			// 
 			// ElementTree
 			// 
@@ -302,5 +311,6 @@ namespace Common.Controls
 		private ToolStripMenuItem collapseAllToolStripMenuItem;
 		private ToolStripMenuItem reverseElementsToolStripMenuItem;
 		private ToolStripMenuItem patternRenameToolStripMenuItem;
+		private ToolStripMenuItem sortToolStripMenuItem;
 	}
 }

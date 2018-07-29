@@ -1,38 +1,32 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using Vixen.Sys;
-using Vixen.Sys.LayerMixing;
-using VixenModules.Sequence.Timed;
+using Vixen.Marks;
+using VixenModules.App.Marks;
 
 namespace VixenModules.Editor.TimedSequenceEditor.Undo
 {
 	public class MarksAddedRemovedUndoAction : Common.Controls.UndoAction
 	{
-		private TimedSequenceEditorForm _form;
-		private readonly Dictionary<TimeSpan, MarkCollection> _markCollections;
-		private readonly int _count;
+		private readonly TimedSequenceEditorForm _form;
+		private readonly Dictionary<IMark, IMarkCollection> _markCollections;
 
-		public MarksAddedRemovedUndoAction(TimedSequenceEditorForm form, Dictionary<TimeSpan, MarkCollection> markCollections)
+		public MarksAddedRemovedUndoAction(TimedSequenceEditorForm form, Dictionary<IMark, IMarkCollection> markCollections)
 		{
 			_form = form;
 			_markCollections = markCollections;
-			_count = _markCollections.Count();
+			Count = _markCollections.Count();
 		}
 
-		protected void removeMark()
+		protected void RemoveMark()
 		{
 			_form.RemoveMark(_markCollections);
 		}
 
-		protected void addMark()
+		protected void AddMark()
 		{
 			_form.AddMark(_markCollections);
 		}
 
-		protected int Count
-		{
-			get { return _count; }
-		}
+		protected int Count { get; }
 	}
 }

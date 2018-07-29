@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using Common.Controls.TimelineControl;
+using Common.Controls.TimelineControl.LabeledMarks;
 
 namespace Common.Controls.Timeline
 {
@@ -182,6 +184,8 @@ namespace Common.Controls.Timeline
 		protected override void OnMouseUp(MouseEventArgs e)
 		{
 			base.OnMouseUp(e);
+
+			TimeLineGlobalEventManager.Manager.OnAlignmentActivity(new AlignmentEventArgs(false, null));
 
 			Point gridLocation = mouseUpGridLocation = TranslateLocation(e.Location);
 
@@ -575,7 +579,7 @@ namespace Common.Controls.Timeline
 		private void beginDragSelect(Point gridLocation)
 		{
 			m_dragState = DragState.Selecting;
-			if (!ShiftPressed) ClearSelectedElements();
+			if (!ShiftPressed && SelectedElements.Any()) ClearSelectedElements();
 			else tempSelectedElements = SelectedElements.ToList();
 			ClearSelectedRows(m_mouseDownElementRow);
 			ClearActiveRows(m_mouseDownElementRow);
@@ -984,20 +988,5 @@ namespace Common.Controls.Timeline
 		public event EventHandler<ElementsChangedTimesEventArgs> ElementsMovedNew;
 
 		public event EventHandler<TimelineEventArgs> BackgroundClicked;
-	}
-
-
-	public enum ElementMoveType
-	{
-		Move,
-		Resize,
-		AlignStart,
-		AlignEnd,
-		AlignBoth,
-		AlignDurations,
-		AlignStartToEnd,
-		AlignEndToStart,
-		AlignCenters,
-		Distribute
 	}
 }

@@ -76,6 +76,7 @@
     <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="LipSync\Tools.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -197,7 +198,7 @@
     <None Include="control_stop_blue.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="delete.png" />
+    <Resource Include="delete.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="filter.png" />
@@ -209,6 +210,7 @@
     <None Include="filter_delete.png" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="LipSync\standard_dictionary" />
     <None Include="magnifier.png" />
   </ItemGroup>
   <ItemGroup>
@@ -254,7 +256,7 @@
     <None Include="add.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="colors.png" />
+    <Resource Include="colors.png" />
     <None Include="alignBoth.png" />
     <None Include="alignCenter.png" />
     <None Include="alignEnd.png" />
@@ -265,6 +267,19 @@
     <None Include="alignment.png" />
     <None Include="effects.png" />
     <None Include="check-mark.png" />
+    <Resource Include="Close_6519.png" />
+    <Resource Include="buttonBulbSmaller.png" />
+    <Resource Include="buttonBulbEqual.png" />
+    <Resource Include="buttonBulbBigger.png" />
+    <Content Include="buttonAlignBottom.BackgroundImage.png" />
+    <Content Include="buttonAlignHorizMid.BackgroundImage.png" />
+    <Content Include="buttonAlignLeft.BackgroundImage.png" />
+    <Content Include="buttonAlignRight.BackgroundImage.png" />
+    <Content Include="buttonAlignTop.BackgroundImage.png" />
+    <Content Include="buttonAlignVertMid.BackgroundImage.png" />
+    <Content Include="buttonDistributeHorizontal.BackgroundImage.png" />
+    <Content Include="buttonDistributeVertical.BackgroundImage.png" />
+    <Content Include="buttonMatchProperties.BackgroundImage.png" />
     <Content Include="fill_gaps.png" />
     <None Include="Resources\HeadingBackgroundImage.jpg" />
     <None Include="Resources\HeadingBackgroundImageHover.jpg" />
@@ -287,13 +302,56 @@
     <None Include="Resources\distribute.png" />
     <None Include="Resources\Settings.png" />
     <None Include="Resources\open.png" />
-    <None Include="Resources\boldLine.png" />
+    <Resource Include="Resources\boldLine.png" />
     <None Include="Resources\openMarkManager.png" />
-    <None Include="Resources\add_Collection.png" />
-    <None Include="Resources\dottedLine.png" />
-    <None Include="Resources\delete_32.png" />
+    <Resource Include="Resources\add_Collection.png" />
+    <Resource Include="Resources\dottedLine.png" />
+    <Resource Include="Resources\delete_32.png" />
+    <None Include="Resources\marks.png" />
+    <None Include="Resources\VixenImage.png" />
+    <Resource Include="Saveall_6518.png" />
+    <Resource Include="Save_6530.png" />
+    <Resource Include="Open_6529.png" />
+    <Resource Include="NewFile_6276.png" />
+    <Resource Include="Prop_Add.png" />
+    <Resource Include="Prop_Edit.png" />
+    <Content Include="LineVisible.png" />
+    <Resource Include="MarkBarVisible.png" />
+    <Resource Include="MarkLineVisible.png" />
+    <EmbeddedResource Include="LipSync\AI.jpg" />
+    <EmbeddedResource Include="LipSync\AI_LightGray.jpg" />
+    <EmbeddedResource Include="LipSync\AI_Transparent.png" />
+    <EmbeddedResource Include="LipSync\E.jpg" />
+    <EmbeddedResource Include="LipSync\E_LightGray.jpg" />
+    <EmbeddedResource Include="LipSync\E_Transparent.png" />
+    <EmbeddedResource Include="LipSync\etc.jpg" />
+    <EmbeddedResource Include="LipSync\etc_LightGray.jpg" />
+    <EmbeddedResource Include="LipSync\etc_Transparent.png" />
+    <EmbeddedResource Include="LipSync\FV.jpg" />
+    <EmbeddedResource Include="LipSync\FV_LightGray.jpg" />
+    <EmbeddedResource Include="LipSync\FV_Transparent.png" />
+    <EmbeddedResource Include="LipSync\L.jpg" />
+    <EmbeddedResource Include="LipSync\L_LightGray.jpg" />
+    <EmbeddedResource Include="LipSync\L_Transparent.png" />
+    <EmbeddedResource Include="LipSync\MBP.jpg" />
+    <EmbeddedResource Include="LipSync\MBP_LightGray.jpg" />
+    <EmbeddedResource Include="LipSync\MBP_Transparent.png" />
+    <EmbeddedResource Include="LipSync\NoImage.png" />
+    <EmbeddedResource Include="LipSync\O.jpg" />
+    <EmbeddedResource Include="LipSync\O_LightGray.jpg" />
+    <EmbeddedResource Include="LipSync\O_Transparent.png" />
+    <EmbeddedResource Include="LipSync\Preview.jpg" />
+    <EmbeddedResource Include="LipSync\rest.jpg" />
+    <EmbeddedResource Include="LipSync\rest_LightGray.jpg" />
+    <EmbeddedResource Include="LipSync\rest_Transparent.png" />
+    <EmbeddedResource Include="LipSync\U.jpg" />
+    <EmbeddedResource Include="LipSync\U_LightGray.jpg" />
+    <EmbeddedResource Include="LipSync\U_Transparent.png" />
+    <EmbeddedResource Include="LipSync\WQ.jpg" />
+    <EmbeddedResource Include="LipSync\WQ_LightGray.jpg" />
+    <EmbeddedResource Include="LipSync\WQ_Transparent.png" />
     <Content Include="table_chart_left.png" />
-    <Content Include="folder_open.png" />
+    <Resource Include="folder_open.png" />
     <None Include="hourglass_link.png" />
     <None Include="hourglass_go.png" />
     <None Include="hourglass_delete.png" />
@@ -303,15 +361,15 @@
     <None Include="lightning_delete.png" />
     <None Include="lightning_add.png" />
     <None Include="lightning.png" />
-    <None Include="lightbulb_off.png" />
-    <None Include="lightbulb_delete.png" />
-    <None Include="lightbulb_add.png" />
-    <None Include="lightbulb.png" />
+    <Resource Include="lightbulb_off.png" />
+    <Resource Include="lightbulb_delete.png" />
+    <Resource Include="lightbulb_add.png" />
+    <Resource Include="lightbulb.png" />
     <None Include="pencil_ruler.png" />
     <None Include="pencil_go.png" />
     <None Include="pencil_delete.png" />
     <None Include="pencil_add.png" />
-    <None Include="pencil.png" />
+    <Resource Include="pencil.png" />
     <None Include="toolbar_go.png" />
     <None Include="toolbar_error.png" />
     <None Include="toolbar_edit.png" />
@@ -372,7 +430,7 @@
     <None Include="menu_item.png" />
     <None Include="menu.png" />
     <None Include="magnet.png" />
-    <None Include="help.png" />
+    <Resource Include="help.png" />
     <None Include="bullet_toggle_plus_16px.png" />
     <None Include="bullet_toggle_minus_16px.png" />
     <None Include="bullet_toggle_plus.png" />
@@ -387,10 +445,10 @@
     <None Include="sound.png" />
     <None Include="page_copy.png" />
     <None Include="paste_plain.png" />
-    <None Include="page_white_paste.png" />
-    <None Include="page_white_copy.png" />
+    <Resource Include="page_white_paste.png" />
+    <Resource Include="page_white_copy.png" />
     <None Include="document_move.png" />
-    <None Include="cut.png" />
+    <Resource Include="cut.png" />
     <None Include="document_comment_above.png" />
     <None Include="document_comment_behind.png" />
     <None Include="document_comment_below.png" />
@@ -468,7 +526,7 @@
     <Content Include="folder_edit.png" />
     <Content Include="folder_error.png" />
     <Content Include="folder_explore.png" />
-    <Content Include="folder_go.png" />
+    <Resource Include="folder_go.png" />
     <None Include="plus.png" />
     <None Include="minus.png" />
     <None Include="arrow_undo.png" />

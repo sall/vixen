@@ -207,6 +207,20 @@ namespace VixenModules.Effect.Butterfly
 
 		#endregion
 
+		#region Information
+
+		public override string Information
+		{
+			get { return "Visit the Vixen Lights website for more information on this effect."; }
+		}
+
+		public override string InformationLink
+		{
+			get { return "http://www.vixenlights.com/vixen-3-documentation/sequencer/effects/butterfly/"; }
+		}
+
+		#endregion
+
 		public override IModuleDataModel ModuleData
 		{
 			get { return _data; }
@@ -437,17 +451,30 @@ namespace VixenModules.Effect.Butterfly
 					break;
 
 			}
-			HSV hsv = new HSV(h, 1.0, 1.0);
-
+			
 			if (BackgroundChunks <= 1 || (int) (h*BackgroundChunks)%BackgroundSkips != 0)
 			{
 				if (ColorScheme == ColorScheme.Gradient)
 				{
 					Color color = Color.GetColorAt(h);
-					hsv = HSV.FromRGB(color);
+					if (level < 1)
+					{
+						HSV hsv = HSV.FromRGB(color);
+						hsv.V = hsv.V * level;
+						frameBuffer.SetPixel(xCoord, yCoord, hsv);
+					}
+					else
+					{
+						frameBuffer.SetPixel(xCoord, yCoord, color);
+					}
+
 				}
-				hsv.V = hsv.V*level;
-				frameBuffer.SetPixel(xCoord, yCoord, hsv);
+				else
+				{
+					HSV hsv = new HSV(h, 1.0, level);
+					frameBuffer.SetPixel(xCoord, yCoord, hsv);
+				}
+				
 			}
 			else
 			{

@@ -114,6 +114,20 @@ namespace VixenModules.Effect.Fire
 
 		#endregion
 
+		#region Information
+
+		public override string Information
+		{
+			get { return "Visit the Vixen Lights website for more information on this effect."; }
+		}
+
+		public override string InformationLink
+		{
+			get { return "http://www.vixenlights.com/vixen-3-documentation/sequencer/effects/fire/"; }
+		}
+
+		#endregion
+
 		public override IModuleDataModel ModuleData
 		{
 			get { return _data; }
@@ -246,6 +260,9 @@ namespace VixenModules.Effect.Fire
 			{
 				for (x = 0; x < maxWi; x++)
 				{
+					var colorIndex = GetFireBuffer(x, y, maxWi, maxHt);
+					if (colorIndex == 0) continue; // No point going any further if color index is 0 (Black). Significantly reduces render time.
+					HSV hsv = FirePalette.GetColor(colorIndex);
 					int xp = x;
 					int yp = y;
 					if (Location == FireDirection.Top || Location == FireDirection.Right)
@@ -258,19 +275,13 @@ namespace VixenModules.Effect.Fire
 						xp = yp;
 						yp = t;
 					}
-
-					Color color = FirePalette.GetColor(GetFireBuffer(x, y, maxWi, maxHt));
-					var hsv = HSV.FromRGB(color);
+					
 					if (CalculateHueShift(intervalPosFactor) > 0)
 					{
 						hsv.H = hsv.H + (CalculateHueShift(intervalPosFactor) / 100.0f);
 					}
 
 					hsv.V = hsv.V * LevelCurve.GetValue(intervalPosFactor) / 100;
-					//if (color.R == 0 && color.G == 0 && color.B == 0)
-					//{
-					//	color = Color.Transparent;
-					//}
 					
 					frameBuffer.SetPixel(xp, yp, hsv);
 				}

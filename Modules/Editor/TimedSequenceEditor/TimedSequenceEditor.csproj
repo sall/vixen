@@ -77,9 +77,34 @@
       <Name>WPFCommon</Name>
       <Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\..\App\Marks\Marks.csproj">
+      <Project>{27d283df-52ad-4857-8359-de134db94728}</Project>
+      <Name>Marks</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Effect\Effect\Effect.csproj">
+      <Project>{AF76C902-A776-49C3-9019-D7CB0A53FB2F}</Project>
+      <Name>Effect</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Effect\Picture\Picture.csproj">
+      <Project>{2aae930f-8d4a-451b-b66e-2f3024f079fb}</Project>
+      <Name>Picture</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Effect\Shapes\Shapes.csproj">
+      <Project>{0ff95798-eb47-47f4-a640-4adfc85d99ae}</Project>
+      <Name>Shapes</Name>
+      <Private>False</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\Effect\Video\Video.csproj">
       <Project>{c5606015-2166-4866-a856-8eab67a5de26}</Project>
       <Name>Video</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Property\Face\Face.csproj">
+      <Project>{5FCC5484-8894-4E36-BA81-B2F1B9008404}</Project>
+      <Name>Face</Name>
       <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\EffectEditor\EffectEditor.csproj">
@@ -94,8 +119,21 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Catel.Core, Version=5.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\Catel.Core.5.4.0\lib\net46\Catel.Core.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Catel.MVVM, Version=5.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\Catel.MVVM.5.4.0\lib\net46\Catel.MVVM.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.Expression.Interactions, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\Expression.Blend.Sdk.WPF.1.0.1\lib\net45\Microsoft.Expression.Interactions.dll</HintPath>
+      <Private>True</Private>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\..\..\packages\NLog.4.4.1\lib\net45\NLog.dll</HintPath>
+      <HintPath>..\..\..\packages\NLog.4.4.12\lib\net45\NLog.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="PresentationCore" />
@@ -106,18 +144,24 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\Catel.MVVM.5.4.0\lib\net46\System.Windows.Interactivity.dll</HintPath>
+      <Private>True</Private>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
     <Reference Include="TabControlEX">
       <HintPath>..\..\..\Common\Libraries\TabControlEX.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="WeifenLuo.WinFormsUI.Docking, Version=2.11.0.0, Culture=neutral, PublicKeyToken=5cded1a1a0a7b481, processorArchitecture=MSIL">
-      <HintPath>..\..\..\packages\DockPanelSuite.2.12.0\lib\net40\WeifenLuo.WinFormsUI.Docking.dll</HintPath>
+    <Reference Include="WeifenLuo.WinFormsUI.Docking, Version=3.0.4.0, Culture=neutral, PublicKeyToken=5cded1a1a0a7b481, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\DockPanelSuite.3.0.4\lib\net40\WeifenLuo.WinFormsUI.Docking.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="WeifenLuo.WinFormsUI.Docking.ThemeVS2015, Version=2.11.0.0, Culture=neutral, PublicKeyToken=5cded1a1a0a7b481, processorArchitecture=MSIL">
-      <HintPath>..\..\..\packages\DockPanelSuite.ThemeVS2015.2.12.0\lib\net40\WeifenLuo.WinFormsUI.Docking.ThemeVS2015.dll</HintPath>
+    <Reference Include="WeifenLuo.WinFormsUI.Docking.ThemeVS2015, Version=3.0.4.0, Culture=neutral, PublicKeyToken=5cded1a1a0a7b481, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\DockPanelSuite.ThemeVS2015.3.0.4\lib\net40\WeifenLuo.WinFormsUI.Docking.ThemeVS2015.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="WindowsBase" />
@@ -136,10 +180,33 @@
     <Compile Include="AutomaticMusicDetection.Designer.cs">
       <DependentUpon>AutomaticMusicDetection.cs</DependentUpon>
     </Compile>
-    <Compile Include="FindEffectForm.cs">
+    <Compile Include="Forms\WPF\MarksDocker\Services\MarkImportExportService.cs" />
+    <Compile Include="Forms\WPF\MarksDocker\ViewModels\CheckBoxState.cs" />
+    <Compile Include="Forms\WPF\MarksDocker\ViewModels\MarkCollectionViewModel.cs" />
+    <Compile Include="Forms\WPF\MarksDocker\ViewModels\MarkDockerViewModel.cs" />
+    <Compile Include="Forms\WPF\MarksDocker\Views\MarkCollectionView.xaml.cs">
+      <DependentUpon>MarkCollectionView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\WPF\MarksDocker\Views\MarkDockerView.xaml.cs">
+      <DependentUpon>MarkDockerView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="TimeFormats.cs" />
+    <Compile Include="TimedSequenceEditorForm_Menu.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FindEffectForm.Designer.cs">
+    <Compile Include="TimedSequenceEditorForm_ContextMenu.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TimedSequenceEditorForm_Toolstrip.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TimedSequenceEditorForm_Hotkeys.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FindEffectForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FindEffectForm.Designer.cs">
       <DependentUpon>FindEffectForm.cs</DependentUpon>
     </Compile>
     <Compile Include="BulkEffectMoveForm.cs">
@@ -167,28 +234,28 @@
     <Compile Include="ExportDialog.Designer.cs">
       <DependentUpon>ExportDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="FormParameterPicker.cs">
+    <Compile Include="Forms\FormParameterPicker.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FormParameterPicker.Designer.cs">
+    <Compile Include="Forms\FormParameterPicker.Designer.cs">
       <DependentUpon>FormParameterPicker.cs</DependentUpon>
     </Compile>
-    <Compile Include="Form_AddMultipleEffects.cs">
+    <Compile Include="Forms\Form_AddMultipleEffects.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form_AddMultipleEffects.Designer.cs">
+    <Compile Include="Forms\Form_AddMultipleEffects.Designer.cs">
       <DependentUpon>Form_AddMultipleEffects.cs</DependentUpon>
     </Compile>
-    <Compile Include="FormEffectEditor.cs">
+    <Compile Include="Forms\FormEffectEditor.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FormEffectEditor.Designer.cs">
+    <Compile Include="Forms\FormEffectEditor.Designer.cs">
       <DependentUpon>FormEffectEditor.cs</DependentUpon>
     </Compile>
-    <Compile Include="Form_Marks.cs">
+    <Compile Include="Forms\Form_Marks.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form_Marks.Designer.cs">
+    <Compile Include="Forms\Form_Marks.Designer.cs">
       <DependentUpon>Form_Marks.cs</DependentUpon>
     </Compile>
     <Compile Include="EffectRasterizer.cs" />
@@ -198,17 +265,35 @@
     <Compile Include="EffectTimeEditor.Designer.cs">
       <DependentUpon>EffectTimeEditor.cs</DependentUpon>
     </Compile>
-    <Compile Include="Form_Effects.cs">
+    <Compile Include="Forms\Form_Effects.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form_Effects.Designer.cs">
+    <Compile Include="Forms\Form_Effects.Designer.cs">
       <DependentUpon>Form_Effects.cs</DependentUpon>
     </Compile>
-    <Compile Include="Form_Grid.cs">
+    <Compile Include="Forms\Form_Grid.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form_Grid.Designer.cs">
+    <Compile Include="Forms\Form_Grid.Designer.cs">
       <DependentUpon>Form_Grid.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Form_ColorLibrary.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Form_ColorLibrary.Designer.cs">
+      <DependentUpon>Form_ColorLibrary.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Form_GradientLibrary.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Form_GradientLibrary.Designer.cs">
+      <DependentUpon>Form_GradientLibrary.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Form_CurveLibrary.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Form_CurveLibrary.Designer.cs">
+      <DependentUpon>Form_CurveLibrary.cs</DependentUpon>
     </Compile>
     <Compile Include="IntentRasterizer.cs" />
     <Compile Include="InvalidAudioPathDialog.cs">
@@ -242,10 +327,10 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <Compile Include="ColorCollectionLibrary_Form.cs">
+    <Compile Include="Forms\ColorCollectionLibrary_Form.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ColorCollectionLibrary_Form.Designer.cs">
+    <Compile Include="Forms\ColorCollectionLibrary_Form.Designer.cs">
       <DependentUpon>ColorCollectionLibrary_Form.cs</DependentUpon>
     </Compile>
     <Compile Include="TimedSequenceEditor.cs" />
@@ -269,13 +354,6 @@
     </Compile>
     <Compile Include="TimedSequenceElement.cs" />
     <Compile Include="TimedSequenceRowLabel.cs" />
-    <Compile Include="Form_ToolPalette.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Form_ToolPalette.Designer.cs">
-      <DependentUpon>Form_ToolPalette.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Undo\MarksMovedUndoAction.cs" />
     <Compile Include="Undo\MarksRemovedUndoAction.cs" />
     <Compile Include="Undo\MarksAddedUndoAction .cs" />
     <Compile Include="Undo\MarksAddedRemovedUndoAction.cs" />
@@ -294,6 +372,7 @@
     <Compile Include="LayerEditor.Designer.cs">
       <DependentUpon>LayerEditor.cs</DependentUpon>
     </Compile>
+    <Compile Include="Undo\MarksTimeChangedUndoAction.cs" />
     <Compile Include="User32.cs" />
     <Compile Include="Shell32.cs" />
   </ItemGroup>
@@ -308,7 +387,7 @@
     <EmbeddedResource Include="AutomaticMusicDetection.resx">
       <DependentUpon>AutomaticMusicDetection.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="FindEffectForm.resx">
+    <EmbeddedResource Include="Forms\FindEffectForm.resx">
       <DependentUpon>FindEffectForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="BulkEffectMoveForm.resx">
@@ -323,26 +402,35 @@
     <EmbeddedResource Include="ExportDialog.resx">
       <DependentUpon>ExportDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="FormEffectEditor.resx">
+    <EmbeddedResource Include="Forms\FormEffectEditor.resx">
       <DependentUpon>FormEffectEditor.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="FormParameterPicker.resx">
+    <EmbeddedResource Include="Forms\FormParameterPicker.resx">
       <DependentUpon>FormParameterPicker.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Form_AddMultipleEffects.resx">
+    <EmbeddedResource Include="Forms\Form_AddMultipleEffects.resx">
       <DependentUpon>Form_AddMultipleEffects.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Form_Marks.resx">
+    <EmbeddedResource Include="Forms\Form_Marks.resx">
       <DependentUpon>Form_Marks.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="EffectTimeEditor.resx">
       <DependentUpon>EffectTimeEditor.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Form_Effects.resx">
+    <EmbeddedResource Include="Forms\Form_Effects.resx">
       <DependentUpon>Form_Effects.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Form_Grid.resx">
+    <EmbeddedResource Include="Forms\Form_Grid.resx">
       <DependentUpon>Form_Grid.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Form_ColorLibrary.resx">
+      <DependentUpon>Form_ColorLibrary.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Form_GradientLibrary.resx">
+      <DependentUpon>Form_GradientLibrary.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Form_CurveLibrary.resx">
+      <DependentUpon>Form_CurveLibrary.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="InvalidAudioPathDialog.resx">
       <DependentUpon>InvalidAudioPathDialog.cs</DependentUpon>
@@ -356,7 +444,7 @@
     <EmbeddedResource Include="ParameterEditor.resx">
       <DependentUpon>ParameterEditor.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ColorCollectionLibrary_Form.resx">
+    <EmbeddedResource Include="Forms\ColorCollectionLibrary_Form.resx">
       <DependentUpon>ColorCollectionLibrary_Form.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="TimedSequenceEditorEffectEditor.resx">
@@ -368,9 +456,6 @@
     <EmbeddedResource Include="TimedSequenceEditorResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>TimedSequenceEditorResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Form_ToolPalette.resx">
-      <DependentUpon>Form_ToolPalette.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="LayerEditor.resx">
       <DependentUpon>LayerEditor.cs</DependentUpon>
@@ -468,6 +553,16 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Forms\WPF\MarksDocker\Views\MarkCollectionView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Forms\WPF\MarksDocker\Views\MarkDockerView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -13,6 +13,7 @@ using NLog;
 using Vixen.Rule;
 using Vixen.Services;
 using Vixen.Sys;
+using Vixen.Utility;
 
 namespace VixenApplication.Setup.ElementTemplates
 {
@@ -76,32 +77,30 @@ namespace VixenApplication.Setup.ElementTemplates
 			//Optimize the name check for performance. We know we are going to create a bunch of them and we can handle it ourselves more efficiently
 			HashSet<string> elementNames = new HashSet<string>(VixenSystem.Nodes.Select(x => x.Name));
 
-			ElementNode head = ElementNodeService.Instance.CreateSingle(null, TemplateUtilities.Uniquify(elementNames,gridname), true, false);
+			ElementNode head = ElementNodeService.Instance.CreateSingle(null, NamingUtilities.Uniquify(elementNames,gridname), true, false);
 			result.Add(head);
 
 			int firstlimit, secondlimit;
-			string firstprefix, secondprefix;
 
 			if (rowsfirst) {
 				firstlimit = rows;
 				secondlimit = columns;
-				firstprefix = " R";
-				secondprefix = " C";
 			} else {
 				firstlimit = columns;
 				secondlimit = rows;
-				firstprefix = " C";
-				secondprefix = " R";
 			}
+
+			string firstprefix = " " + textBoxFirstPrefix.Text;
+			string secondprefix = " " + textBoxSecondPrefix.Text;
 
 			for (int i = 0; i < firstlimit; i++) {
 				string firstname = head.Name + firstprefix + (i + 1);
-				ElementNode firstnode = ElementNodeService.Instance.CreateSingle(head, TemplateUtilities.Uniquify(elementNames,firstname),true, false);
+				ElementNode firstnode = ElementNodeService.Instance.CreateSingle(head, NamingUtilities.Uniquify(elementNames,firstname),true, false);
 				result.Add(firstnode);
 
 				for (int j = 0; j < secondlimit; j++) {
 					string secondname = firstnode.Name + secondprefix + (j + 1);
-					ElementNode secondnode = ElementNodeService.Instance.CreateSingle(firstnode, TemplateUtilities.Uniquify(elementNames, secondname), true, false);
+					ElementNode secondnode = ElementNodeService.Instance.CreateSingle(firstnode, NamingUtilities.Uniquify(elementNames, secondname), true, false);
 					result.Add(secondnode);
 				}
 			}
@@ -139,6 +138,13 @@ namespace VixenApplication.Setup.ElementTemplates
 			var btn = (Button)sender;
 			btn.BackgroundImage = Resources.ButtonBackgroundImage;
 
+		}
+
+		private void radioButtonOrientation_CheckedChanged(object sender, EventArgs e)
+		{
+			string temp = textBoxFirstPrefix.Text;
+			textBoxFirstPrefix.Text = textBoxSecondPrefix.Text;
+			textBoxSecondPrefix.Text = temp;
 		}
 	}
 }

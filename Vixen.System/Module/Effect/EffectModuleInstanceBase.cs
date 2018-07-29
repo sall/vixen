@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
@@ -7,6 +9,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using NLog;
+using Vixen.Marks;
 using Vixen.Module.Media;
 using Vixen.Services;
 using Vixen.Sys;
@@ -49,6 +52,7 @@ namespace Vixen.Module.Effect
 		}
 
 		private bool IsRendering;
+		private ObservableCollection<IMarkCollection> _markCollections;
 
 		[Browsable(false)]
 		public ElementNode[] TargetNodes
@@ -211,7 +215,7 @@ namespace Vixen.Module.Effect
 			string DisplayValue = string.Format("{0}", this.EffectName);
 
 
-			using (Font AdjustedFont = Common.Graphics.GetAdjustedFont(g, DisplayValue, clipRectangle, "Arial"))
+			using (Font AdjustedFont = Common.Graphics.GetAdjustedFont(g, DisplayValue, clipRectangle, "Arial", 18))
 			{
 				using (var StringBrush = new SolidBrush(Color.Black))
 				{
@@ -231,6 +235,12 @@ namespace Vixen.Module.Effect
 		}
 
 		[Browsable(false)]
+		public string[] SupportsExtensions
+		{
+			get { return ((IEffectModuleDescriptor)Descriptor).SupportedFileExtensions; }
+		}
+
+		[Browsable(false)]
 		public List<IMediaModuleInstance> Media
 		{
 			get { return _media; }
@@ -240,6 +250,89 @@ namespace Vixen.Module.Effect
 				IsDirty = true;
 			}
 		}
+
+		[Browsable(false)]
+		public bool SupportsMarks => ((IEffectModuleDescriptor)Descriptor).SupportsMarks;
+
+		[Browsable(false)]
+		public ObservableCollection<IMarkCollection> MarkCollections
+		{
+			get { return _markCollections; }
+			set
+			{
+				if (_markCollections != value)
+				{
+					_markCollections = value;
+					MarkCollectionsChanged();
+					_markCollections.CollectionChanged += _markCollections_CollectionChanged;
+					IsDirty = true;
+				}
+				
+			}
+		}
+
+		private void _markCollections_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		{
+			if (e.Action == NotifyCollectionChangedAction.Add)
+			{
+				MarkCollectionsAdded(e.NewItems.Cast<IMarkCollection>().ToList());
+			}
+			else if(e.Action == NotifyCollectionChangedAction.Remove)
+			{
+				MarkCollectionsRemoved(e.OldItems.Cast<IMarkCollection>().ToList());
+			}
+			else
+			{
+				MarkCollectionsChanged();
+			}
+		}
+
+		/// <summary>
+		/// Method for effects to manage mark collections changing.
+		/// </summary>
+		protected virtual void MarkCollectionsChanged()
+		{
+			
+		}
+
+		/// <summary>
+		/// Method for effects to manage mark collections changing.
+		/// </summary>
+		protected virtual void MarkCollectionsAdded(IList<IMarkCollection> addedCollections)
+		{
+
+		}
+
+		/// <summary>
+		/// Method for effects to manage mark collections changing.
+		/// </summary>
+		protected virtual void MarkCollectionsRemoved(IList<IMarkCollection> removedCollections)
+		{
+
+		}
+
+		#region Overrides of ModuleInstanceBase
+
+		/// <inheritdoc />
+		protected override void Dispose(bool disposing)
+		{
+			if (disposing)
+			{
+				if (SupportsMarks && _markCollections != null)
+				{
+					_markCollections.CollectionChanged -= _markCollections_CollectionChanged;
+				}
+
+				_parameterValues = null;
+				_markCollections = null;
+				var md = ModuleData.ModuleDataSet as ModuleDataSet;
+				md?.Dispose();
+			}
+
+			base.Dispose(disposing);
+		}
+
+		#endregion
 
 		private void _EnsureTargetNodeProperties()
 		{
