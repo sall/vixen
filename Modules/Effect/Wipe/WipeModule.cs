@@ -195,7 +195,72 @@ namespace VixenModules.Effect.Wipe
 				case WipeDirection.In:
 					RenderBurst(tokenSource, _data.Direction);
 					break;
-			}
+                case WipeDirection.LeftRight:
+                    renderNodes =  TargetNodes.SelectMany(x => x.GetLeafEnumerator())
+                        .OrderByDescending(x =>
+                        {
+                            var prop = x.Properties.Get(LocationDescriptor._typeId);
+                            if (prop != null)
+                            {
+                                return ((LocationData)prop.ModuleData).X;
+                            }
+                            return 1;
+                        })
+                        .ThenBy(x =>
+                        {
+                            var prop = x.Properties.Get(LocationDescriptor._typeId);
+                            if (prop != null)
+                            {
+                                return ((LocationData)prop.ModuleData).Y;
+                            }
+                            return 1;
+                        })
+                        .GroupBy(x =>
+                        {
+                            var prop = x.Properties.Get(LocationDescriptor._typeId);
+                            if (prop != null)
+                            {
+                                return ((LocationData)prop.ModuleData).X;
+                            }
+                            return 1;
+                        })
+                        .Distinct();
+                    RenderNonBurst(tokenSource, renderNodes);
+
+                    renderNodes = TargetNodes.SelectMany(x => x.GetLeafEnumerator())
+                    .OrderBy(x =>
+                    {
+                        var prop = x.Properties.Get(LocationDescriptor._typeId);
+                        if (prop != null)
+                        {
+                            return ((LocationData)prop.ModuleData).X;
+                        }
+                        return 1;
+                    })
+                    .ThenBy(x =>
+                    {
+                        var prop = x.Properties.Get(LocationDescriptor._typeId);
+                        if (prop != null)
+                        {
+                            return ((LocationData)prop.ModuleData).Y;
+                        }
+                        return 1;
+                    })
+                    .GroupBy(x =>
+                    {
+                        var prop = x.Properties.Get(LocationDescriptor._typeId);
+                        if (prop != null)
+                        {
+                            return ((LocationData)prop.ModuleData).X;
+                        }
+                        return 1;
+                    })
+                    .Distinct();
+
+
+                    RenderNonBurst(tokenSource, renderNodes);
+                    break;
+            }
 		}
 
 		private void RenderNonBurst(CancellationTokenSource tokenSource, IEnumerable<IGrouping<int, ElementNode>> renderNodes)

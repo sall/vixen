@@ -15,6 +15,8 @@ namespace VixenModules.Effect.Wipe {
 		[Description("Burst In")]
 		In = 4,
 		[Description("Burst Out")]
-		Out = 5
+		Out = 5,
+        [Description("Wipe Left, Wipe Right")]
+        LeftRight = 6
 	}
 }
