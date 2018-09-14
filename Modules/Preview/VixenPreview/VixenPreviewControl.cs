@@ -771,10 +771,9 @@ namespace VixenModules.Preview.VixenPreview
 
 					if (_selectedDisplayItem != null)
 					{
-						PreviewPoint selectedPoint = _selectedDisplayItem.Shape.PointInSelectPoint(translatedPoint);
 						if (_selectedDisplayItem.Shape.PointInShape(translatedPoint))
 						{
-							if (_selectedDisplayItem.Shape.GetType().ToString().Contains("PreviewCustom"))
+							if (_selectedDisplayItem.Shape.GetType() == typeof(PreviewCustom))
 							{
 								contextMenuStrip1.Items.Add(new ToolStripMenuItem
 								{
@@ -785,7 +784,7 @@ namespace VixenModules.Preview.VixenPreview
 							}
 						}
 					}
-					else if (SelectedDisplayItems.Count > 1)
+					else if (SelectedDisplayItems.Count > 1 && SelectedDisplayItems.All(x => x.Shape.GetType() != typeof(PreviewCustomProp)))
 					{
 						contextMenuStrip1.Items.Add(new ToolStripMenuItem
 						{
@@ -1677,9 +1676,15 @@ namespace VixenModules.Preview.VixenPreview
 
 			foreach (DisplayItem item in SelectedDisplayItems)
 			{
-				if (item.Shape.GetType().ToString().Contains("PreviewCustom"))
+				if (item.Shape.GetType() == typeof(PreviewCustom))
 				{
 					var messageBox = new MessageBoxForm("You cannot create a group or a template with an item that is already grouped or a template item. First, separate the items and then re-group all the items you would like.", "Grouping Error", MessageBoxButtons.OK, SystemIcons.Error);
+					messageBox.ShowDialog();
+					return null;
+				}
+				if (item.Shape.GetType() == typeof(PreviewCustomProp))
+				{
+					var messageBox = new MessageBoxForm("Grouping or creating a template with a Custom Prop is not suppported at this time.", "Grouping Error", MessageBoxButtons.OK, SystemIcons.Error);
 					messageBox.ShowDialog();
 					return null;
 				}
@@ -1888,7 +1893,7 @@ namespace VixenModules.Preview.VixenPreview
 
 			var returnValue = string.Empty;
 			MessageBoxService mbs = new MessageBoxService();
-			var response = mbs.GetUserInput($"Enter token replacement value for {token}.", "Prop naming", "1");
+			var response = mbs.GetUserInput($"Enter token replacement value for {token}.", "Prop naming", "1", ParentForm);
 			if (response.Result == MessageResult.OK)
 			{
 				returnValue = response.Response;
@@ -2171,78 +2176,78 @@ namespace VixenModules.Preview.VixenPreview
 		//}
 		//#endregion
 
-		public void ProcessUpdateParallel( /*Vixen.Preview.PreviewElementIntentStates elementStates*/)
-		{
-			renderTimer.Reset();
-			renderTimer.Start();
-			CancellationTokenSource tokenSource = new CancellationTokenSource();
-			if (!_paused)
-			{
-				Bitmap clone = (Bitmap) _alphaBackground.Clone();
-				using (FastPixel.FastPixel fp = new FastPixel.FastPixel(clone))
-				{
-					try
-					{
-						fp.Lock();
+		//public void ProcessUpdateParallel( /*Vixen.Preview.PreviewElementIntentStates elementStates*/)
+		//{
+		//	renderTimer.Reset();
+		//	renderTimer.Start();
+		//	CancellationTokenSource tokenSource = new CancellationTokenSource();
+		//	if (!_paused)
+		//	{
+		//		Bitmap clone = (Bitmap) _alphaBackground.Clone();
+		//		using (FastPixel.FastPixel fp = new FastPixel.FastPixel(clone))
+		//		{
+		//			try
+		//			{
+		//				fp.Lock();
 
-						Vixen.Preview.PreviewElementIntentStates elementStates =
-							new Vixen.Preview.PreviewElementIntentStates(VixenSystem.Elements.ToDictionary(x => x, x => x.State));
+		//				Vixen.Preview.PreviewElementIntentStates elementStates =
+		//					new Vixen.Preview.PreviewElementIntentStates(VixenSystem.Elements.ToDictionary(x => x, x => x.State));
 
-						elementStates.AsParallel().WithCancellation(tokenSource.Token).ForAll(channelIntentState =>
-						{
-							Element element = channelIntentState.Key;
-							if (element != null)
-							{
-								ElementNode node = VixenSystem.Elements.GetElementNodeForElement(element);
-								if (node != null)
-								{
-									List<PreviewPixel> pixels;
-									if (NodeToPixel.TryGetValue(node, out pixels))
-									{
-										foreach (PreviewPixel pixel in pixels)
-										{
-											pixel.Draw(fp, channelIntentState.Value);
-										}
-									}
-								}
-							}
-						});
-						fp.Unlock(true);
-						RenderBufferedGraphics(fp);
-					}
-					catch (Exception)
-					{
-						tokenSource.Cancel();
-					}
-				}
-			}
+		//				elementStates.AsParallel().WithCancellation(tokenSource.Token).ForAll(channelIntentState =>
+		//				{
+		//					Element element = channelIntentState.Key;
+		//					if (element != null)
+		//					{
+		//						ElementNode node = VixenSystem.Elements.GetElementNodeForElement(element);
+		//						if (node != null)
+		//						{
+		//							List<PreviewPixel> pixels;
+		//							if (NodeToPixel.TryGetValue(node, out pixels))
+		//							{
+		//								foreach (PreviewPixel pixel in pixels)
+		//								{
+		//									pixel.Draw(fp, channelIntentState.Value);
+		//								}
+		//							}
+		//						}
+		//					}
+		//				});
+		//				fp.Unlock(true);
+		//				RenderBufferedGraphics(fp);
+		//			}
+		//			catch (Exception)
+		//			{
+		//				tokenSource.Cancel();
+		//			}
+		//		}
+		//	}
 
-			renderTimer.Stop();
-			lastRenderUpdateTime = renderTimer.ElapsedMilliseconds;
-		}
+		//	renderTimer.Stop();
+		//	lastRenderUpdateTime = renderTimer.ElapsedMilliseconds;
+		//}
 
-		private object lockObject = new object();
+		//private object lockObject = new object();
 
 		private delegate void RenderBufferedGraphicsDelgate(FastPixel.FastPixel fp /*, Bitmap floodBG*/);
 
-		private void RenderBufferedGraphics(FastPixel.FastPixel fp /*, Bitmap floodBG*/)
-		{
-			if (this.InvokeRequired)
-			{
-				this.Invoke(new RenderBufferedGraphicsDelgate(RenderBufferedGraphics), fp /*, floodBG*/);
-			}
-			else
-				// No, this doesn't allocate every time. It first checks to see if the screen is 
-				// resized or the graphics buffer is not allocated. So it is checked for validity every time
-				// and re-allocated only if the something changed.
-				AllocateGraphicsBuffer(false);
+		//private void RenderBufferedGraphics(FastPixel.FastPixel fp /*, Bitmap floodBG*/)
+		//{
+		//	if (this.InvokeRequired)
+		//	{
+		//		this.Invoke(new RenderBufferedGraphicsDelgate(RenderBufferedGraphics), fp /*, floodBG*/);
+		//	}
+		//	else
+		//		// No, this doesn't allocate every time. It first checks to see if the screen is 
+		//		// resized or the graphics buffer is not allocated. So it is checked for validity every time
+		//		// and re-allocated only if the something changed.
+		//		AllocateGraphicsBuffer(false);
 
-			// First, draw our background image opaque
-			bufferedGraphics.Graphics.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
-			bufferedGraphics.Graphics.DrawImage(fp.Bitmap, 0, 0, fp.Width, fp.Height);
-			if (!this.Disposing && bufferedGraphics != null)
-				bufferedGraphics.Render(Graphics.FromHwnd(this.Handle));
-		}
+		//	// First, draw our background image opaque
+		//	bufferedGraphics.Graphics.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
+		//	bufferedGraphics.Graphics.DrawImage(fp.Bitmap, 0, 0, fp.Width, fp.Height);
+		//	if (!this.Disposing && bufferedGraphics != null)
+		//		bufferedGraphics.Render(Graphics.FromHwnd(this.Handle));
+		//}
 
 		#region "Foreground updates"
 

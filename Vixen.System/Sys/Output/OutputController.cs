@@ -104,13 +104,15 @@ namespace Vixen.Sys.Output
 			_outputMediator.LockOutputs();
 			try
 			{
-				if (OutputCount > 5000)
+
+				if (OutputCount > 15000)
 				{
-					Parallel.For(0, OutputCount, _parallelOptions, x =>
+					Parallel.For(0, OutputCount, _parallelOptions, () => ControllerModule.DataPolicyFactory.CreateDataPolicy(), (x, loopState, dataPolicy) =>
 					{
 						var o = Outputs[x].State;
-						Outputs[x].Command = o?.Value != null ? _dataPolicy.GenerateCommand(o) : null;
-					});
+						Outputs[x].Command = o?.Value != null ? dataPolicy.GenerateCommand(o) : null;
+						return dataPolicy;
+					}, (x) => { }); //nothing to do but let the datapolicy expire
 				}
 				else
 				{
@@ -120,6 +122,8 @@ namespace Vixen.Sys.Output
 						Outputs[x].Command = o?.Value != null ? _dataPolicy.GenerateCommand(o) : null;
 					}
 				}
+
+				
 			}
 			finally
 			{
@@ -139,13 +143,14 @@ namespace Vixen.Sys.Output
 				}
 				_outputMediator.LockOutputs();
 
-				if (OutputCount > 10000)
+				if (OutputCount > 15000)
 				{
-					Parallel.For(0, OutputCount, _parallelOptions, x =>
+					Parallel.For(0, OutputCount, _parallelOptions, () => ControllerModule.DataPolicyFactory.CreateDataPolicy(),  (x, loopState, dataPolicy) =>
 					{
 						var o = Outputs[x].State;
-						commands[x] = o?.Value != null ? _dataPolicy.GenerateCommand(o) : null;
-					});
+						commands[x] = o?.Value != null ? dataPolicy.GenerateCommand(o) : null;
+						return dataPolicy;
+					}, (x) => {  }); //nothing to do but let the datapolicy expire
 				}
 				else
 				{

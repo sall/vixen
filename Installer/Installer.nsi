@@ -88,13 +88,15 @@ SetCompressorDictSize 64
 	!define BITS 32
 	!define BITS_READABLE "32-bit"
 	!define PROG_FILES $PROGRAMFILES
-	!define VC++_REDIST_NAME "vcredist_x86.exe"
+	!define VC++_REDIST_NAMEx86 "vcredist_x86.exe"
+	!define VC++_REDIST_NAMEx64 "vcredist_x64.exe"
 !else
 	!define BUILD_DIR ".\Release64"
 	!define BITS 64
 	!define BITS_READABLE "64-bit"
 	!define PROG_FILES $PROGRAMFILES64
-	!define VC++_REDIST_NAME "vcredist_x64.exe"
+	!define VC++_REDIST_NAMEx64 "vcredist_x64.exe"
+	!define VC++_REDIST_NAMEx86 "vcredist_x86.exe"
 !endif
 
 
@@ -103,6 +105,8 @@ SetCompressorDictSize 64
 !insertmacro GetVersionLocal "${BUILD_DIR}\VixenApplication.exe" AssemblyVersion_
 VIProductVersion "${AssemblyVersion_1}.${AssemblyVersion_2}.${AssemblyVersion_3}.${AssemblyVersion_4}"
 VIAddVersionKey "FileVersion" "${AssemblyVersion_1}.${AssemblyVersion_2}.${AssemblyVersion_3}.${AssemblyVersion_4}"
+VIAddVersionKey "FileDescription" "Vixen Lighting Software"
+VIAddVersionKey "LegalCopyright" "Copyright VixenLights 2018. Free for personal use."
 
 !if ${AssemblyVersion_1} == 0
 	!define DEVBUILD
@@ -239,8 +243,37 @@ Function .onInit
 	
 FunctionEnd
 
+Function .onVerifyInstDir
+	StrCpy $0 $WINDIR 2
+	StrCmp $INSTDIR $0 DoAbort
+	StrCmp $INSTDIR $Desktop DoAbort
+	StrCmp $INSTDIR $PROGRAMFILES DoAbort
+	StrCmp $INSTDIR $PROGRAMFILES64 DoAbort
+	StrLen $0 $WINDIR
+	StrCpy $0 $INSTDIR $0
+	StrCmp $0 $WINDIR DoAbort
+	IfFileExists "$INSTDIR\SystemData\ModuleStore.xml" DoAbort PathGood
+	DoAbort:
+	Abort
+	PathGood:
+FunctionEnd
+
 Function DirectoryLeave
-  GetInstDirError $0
+    GetInstDirError $0
+    StrCmp $0 1 DoAbort
+	StrCpy $0 $WINDIR 3
+	StrCmp $INSTDIR $0 DoAbort
+    StrCmp $INSTDIR $Desktop DoAbort
+	StrCmp $INSTDIR $PROGRAMFILES DoAbort
+	StrCmp $INSTDIR $PROGRAMFILES64 DoAbort
+	StrLen $0 $WINDIR
+	StrCpy $0 $INSTDIR $0
+	StrCmp $0 $WINDIR 0 PathGood
+	DoAbort:
+	MessageBox MB_OK|MB_ICONEXCLAMATION "'$InstDir' is a special folder that should not be installed to."
+	Pop $R0
+	Abort
+	PathGood:
   
   ;=== Does it look like a profile folder?
 	IfFileExists "$INSTDIR\SystemData\ModuleStore.xml" 0 +3
@@ -276,8 +309,13 @@ Section "Application" SEC01
   File /r /x *.res /x *.obj /x *.pch /x *.pdb "${BUILD_DIR}\*.*"
 
   ;Save the VC++ Redistributable files as part of the install image
-  File /oname=$TEMP\${VC++_REDIST_NAME} "${INSTALLERDIR}\Redist\${VC++_REDIST_NAME}"
-  ExecWait "$TEMP\${VC++_REDIST_NAME} /install /quiet"
+  File /oname=$TEMP\${VC++_REDIST_NAMEx86} "${INSTALLERDIR}\Redist\${VC++_REDIST_NAMEx86}"
+  ExecWait "$TEMP\${VC++_REDIST_NAMEx86} /install /quiet"
+  
+  ${If} ${BITS} == 64
+		File /oname=$TEMP\${VC++_REDIST_NAMEx64} "${INSTALLERDIR}\Redist\${VC++_REDIST_NAMEx64}"
+		ExecWait "$TEMP\${VC++_REDIST_NAMEx64} /install /quiet"
+  ${EndIf}
 
   ; Shortcuts
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application

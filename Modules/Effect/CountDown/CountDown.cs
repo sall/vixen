@@ -7,10 +7,8 @@ using System.Drawing.Text;
 using System.Linq;
 using Common.Controls.ColorManagement.ColorModels;
 using Vixen.Attributes;
-using Vixen.Marks;
 using Vixen.Module;
 using Vixen.Sys.Attribute;
-using Vixen.TypeConverters;
 using VixenModules.App.ColorGradients;
 using VixenModules.App.Curves;
 using VixenModules.Effect.Effect;
@@ -30,6 +28,7 @@ namespace VixenModules.Effect.CountDown
 		private string _text;
 		private double _directionPosition;
 		private double _fade;
+		private double _level;
 
 		public CountDown()
 		{
@@ -42,7 +41,7 @@ namespace VixenModules.Effect.CountDown
 		{
 			get
 			{
-				if (Colors.Any(x => !x.CheckLibraryReference()))
+				if (!Colors.CheckLibraryReference())
 				{
 					base.IsDirty = true;
 				}
@@ -287,7 +286,7 @@ namespace VixenModules.Effect.CountDown
 		[ProviderDisplayName(@"TextColors")]
 		[ProviderDescription(@"Color")]
 		[PropertyOrder(0)]
-		public List<ColorGradient> Colors
+		public ColorGradient Colors
 		{
 			get { return _data.Colors; }
 			set
@@ -445,13 +444,13 @@ namespace VixenModules.Effect.CountDown
 			using (var bitmap = new Bitmap(BufferWi, BufferHt))
 			{
 				InitialRender(frame, bitmap);
-				double level = LevelCurve.GetValue(GetEffectTimeIntervalPosition(frame) * 100) / 100;
+				_level = LevelCurve.GetValue(GetEffectTimeIntervalPosition(frame) * 100) / 100;
 				// copy to frameBuffer
 				for (int x = 0; x < BufferWi; x++)
 				{
 					for (int y = 0; y < BufferHt; y++)
 					{
-						CalculatePixel(x, y, bitmap, level, frameBuffer);
+						CalculatePixel(x, y, bitmap, frameBuffer);
 					}
 				}
 			}
@@ -463,7 +462,7 @@ namespace VixenModules.Effect.CountDown
 			for (int frame = 0; frame < numFrames; frame++)
 			{
 				frameBuffer.CurrentFrame = frame;
-				double level = LevelCurve.GetValue(GetEffectTimeIntervalPosition(frame) * 100) / 100;
+				_level = LevelCurve.GetValue(GetEffectTimeIntervalPosition(frame) * 100) / 100;
 				using (var bitmap = new Bitmap(BufferWi, BufferHt))
 				{
 					InitialRender(frame, bitmap);
@@ -471,7 +470,7 @@ namespace VixenModules.Effect.CountDown
 					{
 						foreach (var elementLocation in elementLocations)
 						{
-							CalculatePixel(elementLocation.X, elementLocation.Y, bitmap, level, frameBuffer);
+							CalculatePixel(elementLocation.X, elementLocation.Y, bitmap, frameBuffer);
 						}
 					}
 				}
@@ -664,7 +663,7 @@ namespace VixenModules.Effect.CountDown
 			return countDownNumber.ToString();
 		}
 
-		private void CalculatePixel(int x, int y, Bitmap bitmap, double level, IPixelFrameBuffer frameBuffer)
+		private void CalculatePixel(int x, int y, Bitmap bitmap, IPixelFrameBuffer frameBuffer)
 		{
 			int yCoord = y;
 			int xCoord = x;
@@ -679,24 +678,7 @@ namespace VixenModules.Effect.CountDown
 
 			if (!_emptyColor.Equals(color))
 			{
-				var hsv = HSV.FromRGB(color);
-				switch (CountDownFade)
-				{
-					case CountDownFade.Out:
-						hsv.V = hsv.V * _fade;
-						break;
-					case CountDownFade.In:
-						hsv.V = hsv.V * _fade;
-						break;
-					case CountDownFade.InOut:
-						hsv.V = _fade;
-						break;
-					default:
-						hsv.V = hsv.V * level;
-						break;
-				}
-
-				frameBuffer.SetPixel(xCoord, yCoord, hsv);
+				frameBuffer.SetPixel(xCoord, yCoord, color);
 			}
 			else if (TargetPositioning == TargetPositioningType.Locations)
 			{
@@ -741,7 +723,7 @@ namespace VixenModules.Effect.CountDown
 			var offset = _maxTextSize - (int) size.Width;
 			var offsetPoint = new Point(p.X + offset / 2, p.Y);
 			var brushPointX = offsetPoint.X;
-			ColorGradient cg = Colors[0 % Colors.Count()];
+			ColorGradient cg = _level < 1 || CountDownFade != CountDownFade.None ? GetNewGolorGradient() : new ColorGradient(Colors);
 			var brush = new LinearGradientBrush(new Rectangle(brushPointX, p.Y, _maxTextSize, (int) size.Height), Color.Black,
 					Color.Black, mode)
 				{InterpolationColors = cg.GetColorBlend()};
@@ -755,7 +737,7 @@ namespace VixenModules.Effect.CountDown
 			var size = g.MeasureString(text, _newfont);
 			var offset = _maxTextSize - (int) size.Width;
 			var offsetPoint = new Point(p.X + offset / 2, p.Y);
-			ColorGradient cg = Colors[0 % Colors.Count()];
+			ColorGradient cg = _level < 1 || CountDownFade != CountDownFade.None ? GetNewGolorGradient() : new ColorGradient(Colors);
 			var brush = new LinearGradientBrush(new Rectangle(0, 0, BufferWi, BufferHt),
 					Color.Black,
 					Color.Black, mode)
@@ -765,10 +747,133 @@ namespace VixenModules.Effect.CountDown
 			p.Y += (int) size.Height;
 		}
 
+		private ColorGradient GetNewGolorGradient()
+		{
+			ColorGradient cg = new ColorGradient(Colors);
+			foreach (var color in cg.Colors)
+			{
+				HSV hsv = HSV.FromRGB(color.Color.ToRGB());
+				if (CountDownFade != CountDownFade.None) hsv.V *= _fade;
+				hsv.V *= _level;
+				color.Color = XYZ.FromRGB(hsv.ToRGB());
+			}
+			return cg;
+		}
+
 		private void DrawTextWithBrush(string text, Brush brush, Graphics g, Point p)
 		{
 			g.TextRenderingHint = TextRenderingHint.SingleBitPerPixelGridFit;
 			g.DrawString(text, _newfont, brush, p);
 		}
+
+		public override void GenerateVisualRepresentation(Graphics g, Rectangle clipRectangle)
+		{
+			LinearGradientMode mode = LinearGradientMode.Horizontal;
+			switch (GradientMode)
+			{
+				case GradientMode.VerticalAcrossElement:
+				case GradientMode.VerticalAcrossText:
+					mode = LinearGradientMode.Vertical;
+					break;
+				case GradientMode.DiagonalAcrossElement:
+				case GradientMode.DiagonalAcrossText:
+					mode = LinearGradientMode.ForwardDiagonal;
+					break;
+				case GradientMode.BackwardDiagonalAcrossElement:
+				case GradientMode.BackwardDiagonalAcrossText:
+					mode = LinearGradientMode.BackwardDiagonal;
+					break;
+			}
+			int secondTicks;
+			string displayTime;
+			int countTime = Convert.ToInt32(CountDownTime);
+			switch (CountDownType)
+			{
+				case CountDownType.CountDown:
+					if (CountDownFade == CountDownFade.In) countTime--;
+					secondTicks = (int)((double)clipRectangle.Width / (int)TimeSpan.Ticks * 10000000);// TimeSpan.TicksPerMinute / 60 / 100000;
+					for (int i = 0; i < clipRectangle.Width; i++)
+					{
+						if (i% secondTicks == 0)
+						{
+							if (countTime > 60 && TimeFormat == TimeFormat.Minutes)
+							{
+								TimeSpan time = TimeSpan.FromSeconds(countTime);
+								displayTime = time.ToString(@"m\:ss");
+							}
+							else
+							{
+								displayTime = countTime.ToString();
+							}
+							DrawText(g, clipRectangle, displayTime, mode, i);
+							countTime -= 1;
+						}
+					}
+					break;
+				case CountDownType.CountUp:
+					if (CountDownFade == CountDownFade.In) countTime++;
+					secondTicks = (int)((double)clipRectangle.Width / (int)TimeSpan.Ticks * 10000000);
+					for (int i = 0; i < clipRectangle.Width; i++)
+					{
+						if (i % secondTicks == 0)
+						{
+							if (countTime > 60 && TimeFormat == TimeFormat.Minutes)
+							{
+								TimeSpan time = TimeSpan.FromSeconds(countTime);
+								displayTime = time.ToString(@"m\:ss");
+							}
+							else
+							{
+								displayTime = countTime.ToString();
+							}
+							DrawText(g, clipRectangle, displayTime, mode, i);
+							countTime += 1;
+						}
+					}
+					break;
+				default:
+					double totalFrames = GetNumberFrames();
+					string displayTime1 = "";
+					bool isInt = ((double)totalFrames / 20) == (int)(totalFrames / 20);
+					int startTick = (int)((double)clipRectangle.Width / totalFrames * (int)((totalFrames / 20 - Math.Floor(totalFrames / 20)) * 20));
+					countTime = (int)Math.Ceiling(totalFrames * .050);
+					if (!isInt) countTime--;
+					secondTicks = (int)((double)clipRectangle.Width / (int)TimeSpan.Ticks * 10000000);
+					for ( int i = 0; i < clipRectangle.Width; i++)
+					{
+						if (i % secondTicks == 0)
+						{
+							if (countTime > 60 && TimeFormat == TimeFormat.Minutes)
+							{
+								displayTime = TimeSpan.FromSeconds(countTime).ToString(@"m\:ss");
+								if (i == 0 && startTick > 2) displayTime1 = TimeSpan.FromSeconds(countTime + 1).ToString(@"m\:ss");
+							}
+							else
+							{
+								displayTime = countTime.ToString();
+								if (i == 0 && startTick > 2) displayTime1 = (countTime + 1).ToString();
+							}
+							if (i == 0 && startTick > 2) DrawText(g, clipRectangle, displayTime1, mode, i);
+							DrawText(g, clipRectangle, displayTime, mode, i + startTick);
+							countTime -= 1;
+						}
+					}
+					break;
+			}
+		}
+
+		private void DrawText(Graphics g, Rectangle clipRectangle, string displayedText, LinearGradientMode mode, int startX)
+		{
+			Font adjustedFont = Vixen.Common.Graphics.GetAdjustedFont(g, displayedText, clipRectangle, Font.Name, 48);
+			SizeF adjustedSizeNew = g.MeasureString(displayedText, adjustedFont);
+			var brush = new LinearGradientBrush(
+					new Rectangle(0, 0, (int)adjustedSizeNew.Width, (int)adjustedSizeNew.Height),
+					Color.Black,
+					Color.Black, mode)
+			{ InterpolationColors = Colors.GetColorBlend() };
+			g.DrawString(displayedText, adjustedFont, brush, clipRectangle.X + startX, 2);
+		}
+
+		public override bool ForceGenerateVisualRepresentation { get { return true; } }
 	}
 }

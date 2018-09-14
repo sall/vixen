@@ -26,8 +26,8 @@ namespace VixenModules.Effect.Shapes
 	{
 		private ShapesData _data;
 		private readonly Random _random = new Random();
-		private readonly List<ShapesClass> _shapes = new List<ShapesClass>();
-		private readonly List<ShapesClass> _removeShapes = new List<ShapesClass>();
+		private List<ShapesClass> _shapes;
+		private List<ShapesClass> _removeShapes;
 		private int _shapesCount;
 		private double _intervalPosFactor;
 		private double _centerAngleSpeed;
@@ -47,7 +47,7 @@ namespace VixenModules.Effect.Shapes
 		private float _scaleShapeHeight;
 		private int _totalFrames;
 		private IEnumerable<IMark> _marks = null;
-		private List<int> _shapeFrame = new List<int>();
+		private List<int> _shapeFrame;
 
 		public Shapes()
 		{
@@ -1083,7 +1083,9 @@ namespace VixenModules.Effect.Shapes
 		{
 			_minBuffer = Math.Min(BufferHt, BufferWi);
 			_maxBuffer = Math.Max(BufferHt, BufferWi);
-			_shapes.Clear();
+			_shapes = new List<ShapesClass>();
+			_removeShapes = new List<ShapesClass>();
+			_shapeFrame = new List<int>();
 			_shapesCount = 0;
 			_totalFrames = GetNumberFrames();
 
@@ -1104,8 +1106,7 @@ namespace VixenModules.Effect.Shapes
 			if (ShapeMode != ShapeMode.None)
 			{
 				SetupMarks();
-
-				//_shapeFrame = new List<int>();
+				
 				if (_marks != null)
 				{
 					foreach (var mark in _marks)
@@ -1118,9 +1119,9 @@ namespace VixenModules.Effect.Shapes
 
 		protected override void CleanUpRender()
 		{
-			_shapes.Clear();
-			_removeShapes.Clear();
-			_shapeFrame.Clear();
+			_shapes = null;
+			_removeShapes = null;
+			_shapeFrame = null;
 		}
 
 		#endregion
@@ -1146,7 +1147,6 @@ namespace VixenModules.Effect.Shapes
 
 		protected override void RenderEffectByLocation(int numFrames, PixelLocationFrameBuffer frameBuffer)
 		{
-			var nodes = frameBuffer.ElementLocations.OrderBy(x => x.X).ThenBy(x => x.Y).GroupBy(x => x.X);
 			for (int frame = 0; frame < numFrames; frame++)
 			{
 				frameBuffer.CurrentFrame = frame;
@@ -1154,15 +1154,11 @@ namespace VixenModules.Effect.Shapes
 				using (var bitmap = new Bitmap(BufferWi, BufferHt))
 				{
 					InitialRender(frame, bitmap);
-					foreach (IGrouping<int, ElementLocation> elementLocations in nodes)
+					foreach (var elementLocation in frameBuffer.ElementLocations)
 					{
-						foreach (var elementLocation in elementLocations)
-						{
-							CalculatePixel(elementLocation.X, elementLocation.Y, bitmap, level, frameBuffer);
-						}
+						CalculatePixel(elementLocation.X, elementLocation.Y, bitmap, level, frameBuffer);
 					}
 				}
-
 			}
 		}
 
@@ -1181,13 +1177,13 @@ namespace VixenModules.Effect.Shapes
 
 			if (color.R != 0 || color.G != 0 || color.B != 0)
 			{
-				var hsv = HSV.FromRGB(color);
-				hsv.V = hsv.V * level;
-				frameBuffer.SetPixel(xCoord, yCoord, hsv);
-			}
-			else if (TargetPositioning == TargetPositioningType.Locations)
-			{
-				frameBuffer.SetPixel(xCoord, yCoord, Color.Transparent);
+				if (level < 1)
+				{
+					var hsv = HSV.FromRGB(color);
+					hsv.V = hsv.V * level;
+					color = hsv.ToRGB();
+				}
+				frameBuffer.SetPixel(xCoord, yCoord, color);
 			}
 		}
 
@@ -1557,7 +1553,7 @@ namespace VixenModules.Effect.Shapes
 			var sizeVariation = CalculateSizeVariation(_intervalPosFactor, m.LocationRatio1);
 			var minSize = centerSize - (sizeVariation / 2);
 			var maxSize = centerSize + (sizeVariation / 2);
-			if (minSize <= 9) minSize = 10; // No point having a shape that can't be seen.
+			if (minSize < 1) minSize = 1;
 
 			switch (SizeMode)
 			{
@@ -1688,8 +1684,7 @@ namespace VixenModules.Effect.Shapes
 				var sizeVariation = CalculateSizeVariation(_intervalPosFactor, shape.LocationRatio1);
 				var minSize = centerSize - (sizeVariation / 2);
 				var maxSize = centerSize + (sizeVariation / 2);
-
-				if (minSize <= 9) minSize = 10;
+				
 				if (RemoveShape && !ScaleToGrid)
 				{
 					switch (shape.SizeMode)
@@ -1890,7 +1885,7 @@ namespace VixenModules.Effect.Shapes
 
 		private double CalculateCenterSizeSpeed(double intervalPosFactor)
 		{
-			return ScaleCurveToValue(CenterSizeSpeedCurve.GetValue(intervalPosFactor), 12, 10);
+			return ScaleCurveToValue(CenterSizeSpeedCurve.GetValue(intervalPosFactor), 16, 10);
 		}
 
 		private double CalculateSizeSpeedVariation(double intervalPosFactor)
@@ -1910,14 +1905,14 @@ namespace VixenModules.Effect.Shapes
 
 		private int CalculateSize(double intervalPosFactor, float locationRatio1)
 		{
-			int value = (int)ScaleCurveToValue(SizeCurve.GetValue(intervalPosFactor), (int)(_minBuffer * 2 / locationRatio1), 4);
+			int value = (int)ScaleCurveToValue(SizeCurve.GetValue(intervalPosFactor), (int)(_minBuffer * 2 / locationRatio1), 1);
 			if (value < 1) value = 1;
 			return value;
 		}
 
 		private int CalculateSizeVariation(double intervalPosFactor, float locationRatio1)
 		{
-			int value = (int)ScaleCurveToValue(SizeVariationCurve.GetValue(intervalPosFactor), (int)(_minBuffer * 2 / locationRatio1), 4);
+			int value = (int)ScaleCurveToValue(SizeVariationCurve.GetValue(intervalPosFactor), (int)(_minBuffer * 2 / locationRatio1), 1);
 			if (value < 1) value = 1;
 			return value;
 		}
@@ -1936,7 +1931,7 @@ namespace VixenModules.Effect.Shapes
 
 		private int CalculateYOffset(double intervalPos, int height)
 		{
-			return (int)ScaleCurveToValue(YOffsetCurve.GetValue(intervalPos), height, -height);
+			return (int)ScaleCurveToValue(YOffsetCurve.GetValue(intervalPos), -height, height);
 		}
 
 		private int CalculateAngle(double intervalPos)
